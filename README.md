@@ -9,7 +9,7 @@ El objetivo principal **no es crear un juego complejo**, sino **diseñar una arq
 ## 🎯 Características Principales
 
 ✅ **10 patrones de diseño** implementados y completamente integrados  
-✅ **106 tests unitarios** que validan cada patrón  
+✅ **107 tests unitarios** que validan cada patrón  
 ✅ **Tests de integración** que demuestran colaboración entre patrones  
 ✅ **Arquitectura limpia** con separación clara de responsabilidades  
 ✅ **Sistema de combate completo** que conecta todos los patrones  
@@ -33,10 +33,12 @@ El juego se ejecuta completamente en **consola** para reducir complejidad gráfi
 # Tecnologías Utilizadas
 
 - **Java 17 (OpenJDK)**
-- **VSCode**
-- **JUnit 5**
-- **PlantUML** (para diagramas)
-- **Git / GitHub**
+- **Maven 3.6+**
+- **JUnit 5** (testing)
+- **VSCode** (editor recomendado)
+- **Git / GitHub** (control de versiones)
+
+**Nota sobre diagramas:** Los diagramas UML del proyecto están disponibles en la carpeta `../Docs/Diagramas/` en formato imagen (PNG) y código fuente PlantUML (TXT). PlantUML no es necesario para compilar o ejecutar el proyecto.
 
 Sistema desarrollado en:
 
@@ -45,6 +47,83 @@ Fedora 43 KDE
 OpenJDK 17
 VSCode
 ```
+
+---
+
+# Requisitos y Configuración
+
+## Requisitos Previos
+
+- **Java 17 o superior** (OpenJDK o Temurin recomendado)
+- **Maven 3.6+**
+- Editor de código (VSCode recomendado)
+
+## Configuración de Java 17
+
+### Verificar instalación de Java
+
+```bash
+java -version
+```
+
+Debe mostrar versión 17 o superior:
+```
+openjdk version "17.0.x" ...
+```
+
+### Configurar JAVA_HOME (Linux/macOS)
+
+Si Maven reporta "JAVA_HOME not set", configura la variable de entorno:
+
+1. **Encontrar la ubicación de Java 17:**
+   ```bash
+   ls /usr/lib/jvm/
+   ```
+
+2. **Exportar JAVA_HOME temporalmente:**
+   ```bash
+   export JAVA_HOME=/usr/lib/jvm/java-17-temurin-jdk
+   ```
+
+3. **Hacer permanente (opcional)** agregando a `~/.bashrc` o `~/.zshrc`:
+   ```bash
+   echo 'export JAVA_HOME=/usr/lib/jvm/java-17-temurin-jdk' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+### Configurar JAVA_HOME (Windows)
+
+1. Panel de Control → Sistema → Configuración avanzada del sistema
+2. Variables de entorno → Nueva variable del sistema
+3. Nombre: `JAVA_HOME`
+4. Valor: Ruta a JDK 17 (ej: `C:\Program Files\Java\jdk-17`)
+
+### Verificar configuración
+
+```bash
+echo $JAVA_HOME          # Linux/macOS
+echo %JAVA_HOME%         # Windows
+mvn -version             # Debe mostrar Java 17
+```
+
+## Instalación del Proyecto
+
+```bash
+# Clonar repositorio
+git clone [URL_DEL_REPO]
+cd dungeon-crawler-patterns
+
+# Compilar proyecto
+mvn clean compile
+
+# Ejecutar tests
+mvn test
+
+# Ver cobertura (opcional)
+mvn test jacoco:report
+```
+
+Para más detalles sobre configuración en VSCode, ver [CONFIGURACION_VSCODE.md](CONFIGURACION_VSCODE.md).
 
 ---
 
@@ -431,7 +510,7 @@ Ver documentación completa en: [INTEGRACION_PATRONES.md](INTEGRACION_PATRONES.m
 
 # Testing y Calidad
 
-El proyecto cuenta con **106 tests** que validan todos los patrones implementados.
+El proyecto cuenta con **107 tests** que validan todos los patrones implementados.
 
 ## Tests Unitarios (51)
 

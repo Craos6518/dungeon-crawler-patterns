@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="game.unit.behavioral.ObserverPatternTest" time="0.034" tests="10" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="game.unit.behavioral.StatePatternTest" time="0.054" tests="16" errors="3" skipped="0" failures="1">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -54,14 +54,59 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="testCombatLoggerFormatting" classname="game.unit.behavioral.ObserverPatternTest" time="0.007"/>
-  <testcase name="testEventTypeSpecificSubscription" classname="game.unit.behavioral.ObserverPatternTest" time="0.003"/>
-  <testcase name="testMultipleObserversReceiveEvents" classname="game.unit.behavioral.ObserverPatternTest" time="0.003"/>
-  <testcase name="testObserverReceivesEvents" classname="game.unit.behavioral.ObserverPatternTest" time="0.002"/>
-  <testcase name="testGameEventStoresData" classname="game.unit.behavioral.ObserverPatternTest" time="0.002"/>
-  <testcase name="testEventHistoryIsKept" classname="game.unit.behavioral.ObserverPatternTest" time="0.002"/>
-  <testcase name="testEventManagerCanBeDisabled" classname="game.unit.behavioral.ObserverPatternTest" time="0.001"/>
-  <testcase name="testStatisticsTrackerCountsCorrectly" classname="game.unit.behavioral.ObserverPatternTest" time="0.002"/>
-  <testcase name="testEventManagerIsSingleton" classname="game.unit.behavioral.ObserverPatternTest" time="0.001"/>
-  <testcase name="testObserverCanUnsubscribe" classname="game.unit.behavioral.ObserverPatternTest" time="0.002"/>
+  <testcase name="testCallbacksOnEnterYOnExitSeEjecutan" classname="game.unit.behavioral.StatePatternTest" time="0.012">
+    <failure message="onEnter del nuevo estado debe ejecutarse ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: onEnter del nuevo estado debe ejecutarse ==> expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at game.unit.behavioral.StatePatternTest.testCallbacksOnEnterYOnExitSeEjecutan(StatePatternTest.java:86)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></failure>
+  </testcase>
+  <testcase name="testPatronStateEliminaCondicionalesComplejos" classname="game.unit.behavioral.StatePatternTest" time="0.002"/>
+  <testcase name="testGameOverStateConDerrota" classname="game.unit.behavioral.StatePatternTest" time="0.002"/>
+  <testcase name="testMenuStateCambiaPorEntrada" classname="game.unit.behavioral.StatePatternTest" time="0.002">
+    <error message="Cannot invoke &quot;game.state.game.GameStateContext.cambiarEstado(game.state.game.GameState)&quot; because &quot;this.contexto&quot; is null" type="java.lang.NullPointerException"><![CDATA[java.lang.NullPointerException: Cannot invoke "game.state.game.GameStateContext.cambiarEstado(game.state.game.GameState)" because "this.contexto" is null
+	at game.state.game.MenuState.manejarEntrada(MenuState.java:18)
+	at game.state.game.GameStateContext.procesarEntrada(GameStateContext.java:40)
+	at game.unit.behavioral.StatePatternTest.testMenuStateCambiaPorEntrada(StatePatternTest.java:97)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></error>
+  </testcase>
+  <testcase name="testGameOverStateVolverAlMenu" classname="game.unit.behavioral.StatePatternTest" time="0.002">
+    <error message="Cannot invoke &quot;game.state.game.GameStateContext.cambiarEstado(game.state.game.GameState)&quot; because &quot;this.contexto&quot; is null" type="java.lang.NullPointerException"><![CDATA[java.lang.NullPointerException: Cannot invoke "game.state.game.GameStateContext.cambiarEstado(game.state.game.GameState)" because "this.contexto" is null
+	at game.state.game.GameOverState.manejarEntrada(GameOverState.java:22)
+	at game.state.game.GameStateContext.procesarEntrada(GameStateContext.java:40)
+	at game.unit.behavioral.StatePatternTest.testGameOverStateVolverAlMenu(StatePatternTest.java:132)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></error>
+  </testcase>
+  <testcase name="testGameOverStateConVictoria" classname="game.unit.behavioral.StatePatternTest" time="0.001"/>
+  <testcase name="testContextRechazaEstadoNull" classname="game.unit.behavioral.StatePatternTest" time="0.001"/>
+  <testcase name="testEstadoDelegaRender" classname="game.unit.behavioral.StatePatternTest" time="0.002"/>
+  <testcase name="testInventoryStateVuelveAEstadoAnterior" classname="game.unit.behavioral.StatePatternTest" time="0.002"/>
+  <testcase name="testEstadoDelegaActualizacion" classname="game.unit.behavioral.StatePatternTest" time="0.001"/>
+  <testcase name="testMenuStatePuedeDetenerContexto" classname="game.unit.behavioral.StatePatternTest" time="0.002">
+    <error message="Cannot invoke &quot;game.state.game.GameStateContext.detener()&quot; because &quot;this.contexto&quot; is null" type="java.lang.NullPointerException"><![CDATA[java.lang.NullPointerException: Cannot invoke "game.state.game.GameStateContext.detener()" because "this.contexto" is null
+	at game.state.game.MenuState.manejarEntrada(MenuState.java:27)
+	at game.state.game.GameStateContext.procesarEntrada(GameStateContext.java:40)
+	at game.unit.behavioral.StatePatternTest.testMenuStatePuedeDetenerContexto(StatePatternTest.java:144)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+]]></error>
+  </testcase>
+  <testcase name="testIntegracionContratoGameState" classname="game.unit.behavioral.StatePatternTest" time="0.002"/>
+  <testcase name="testContextInicializaConEstadoInicial" classname="game.unit.behavioral.StatePatternTest" time="0.001"/>
+  <testcase name="testCadaEstadoTieneNombreUnico" classname="game.unit.behavioral.StatePatternTest" time="0.002"/>
+  <testcase name="testTransicionEntreEstados" classname="game.unit.behavioral.StatePatternTest" time="0.001"/>
+  <testcase name="testCambiosDeEstadoMultiples" classname="game.unit.behavioral.StatePatternTest" time="0.002"/>
 </testsuite>

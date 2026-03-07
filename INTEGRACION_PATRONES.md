@@ -280,7 +280,7 @@ El código es modular y cada componente es testeable independientemente.
 Los patrones pueden usarse en otros contextos (no solo combate).
 
 ### 5. Testeo
-Cada patrón tiene sus propios tests unitarios (106 tests en total).
+Cada patrón tiene sus propios tests unitarios (107 tests en total).
 
 ---
 

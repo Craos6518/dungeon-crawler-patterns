@@ -1,0 +1,43 @@
+-------------------------------------------------------------------------------
+Test set: game.unit.behavioral.StatePatternTest
+-------------------------------------------------------------------------------
+Tests run: 16, Failures: 1, Errors: 3, Skipped: 0, Time elapsed: 0.054 s <<< FAILURE! - in game.unit.behavioral.StatePatternTest
+game.unit.behavioral.StatePatternTest.testCallbacksOnEnterYOnExitSeEjecutan  Time elapsed: 0.012 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: onEnter del nuevo estado debe ejecutarse ==> expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at game.unit.behavioral.StatePatternTest.testCallbacksOnEnterYOnExitSeEjecutan(StatePatternTest.java:86)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+game.unit.behavioral.StatePatternTest.testMenuStateCambiaPorEntrada  Time elapsed: 0.002 s  <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "game.state.game.GameStateContext.cambiarEstado(game.state.game.GameState)" because "this.contexto" is null
+	at game.state.game.MenuState.manejarEntrada(MenuState.java:18)
+	at game.state.game.GameStateContext.procesarEntrada(GameStateContext.java:40)
+	at game.unit.behavioral.StatePatternTest.testMenuStateCambiaPorEntrada(StatePatternTest.java:97)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+game.unit.behavioral.StatePatternTest.testGameOverStateVolverAlMenu  Time elapsed: 0.002 s  <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "game.state.game.GameStateContext.cambiarEstado(game.state.game.GameState)" because "this.contexto" is null
+	at game.state.game.GameOverState.manejarEntrada(GameOverState.java:22)
+	at game.state.game.GameStateContext.procesarEntrada(GameStateContext.java:40)
+	at game.unit.behavioral.StatePatternTest.testGameOverStateVolverAlMenu(StatePatternTest.java:132)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+
+game.unit.behavioral.StatePatternTest.testMenuStatePuedeDetenerContexto  Time elapsed: 0.002 s  <<< ERROR!
+java.lang.NullPointerException: Cannot invoke "game.state.game.GameStateContext.detener()" because "this.contexto" is null
+	at game.state.game.MenuState.manejarEntrada(MenuState.java:27)
+	at game.state.game.GameStateContext.procesarEntrada(GameStateContext.java:40)
+	at game.unit.behavioral.StatePatternTest.testMenuStatePuedeDetenerContexto(StatePatternTest.java:144)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+

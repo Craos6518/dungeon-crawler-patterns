@@ -1,5 +1,6 @@
 game/dungeon/theme/DarkThemeFactory$1.class
 game/domain/personaje/factory/EnemigoBasicoFactory.class
+game/demo/IntegracionCompletaDemo.class
 game/state/game/GameStateContext.class
 game/persistence/memento/GameMemento$Builder.class
 game/dungeon/theme/DarkThemeFactory.class
@@ -25,6 +26,7 @@ game/state/game/InventoryState.class
 game/ai/strategy/DefensiveStrategy.class
 game/domain/personaje/factory/DragonFactory.class
 game/dungeon/builder/ConcreteDungeonBuilder.class
+game/events/observer/package-info.class
 game/persistence/memento/GameCaretaker.class
 game/items/model/Item.class
 game/items/inventory/package-info.class
@@ -33,7 +35,9 @@ game/domain/personaje/Orco.class
 game/effects/status/CharacterDecorator.class
 game/events/observer/StatisticsTracker.class
 game/ui/console/package-info.class
+game/events/observer/CombatLogger.class
 game/domain/personaje/factory/GuerreroFactory.class
+game/Main.class
 game/command/actions/Command.class
 game/persistence/memento/GameOriginator.class
 game/command/actions/UseItemCommand.class
@@ -48,6 +52,7 @@ game/command/actions/SkillCommand.class
 game/events/observer/GameObserver.class
 game/state/game/GameState.class
 game/command/actions/DefendCommand.class
+game/combat/engine/IntegratedCombatEngine.class
 game/dungeon/theme/PoisonThemeFactory.class
 game/ai/strategy/RandomStrategy.class
 game/domain/personaje/Personaje.class
@@ -58,6 +63,7 @@ game/effects/status/StrengthEffect.class
 game/dungeon/theme/IceThemeFactory.class
 game/ai/strategy/AggressiveStrategy.class
 game/domain/personaje/factory/OrcoFactory.class
+game/demo/PatronesComportamientoDemo.class
 game/effects/status/PoisonEffect.class
 game/domain/personaje/factory/MagoFactory.class
 game/combat/facade/CombatFacade$EstadisticasCombate.class
@@ -65,8 +71,10 @@ game/effects/status/StunEffect.class
 game/domain/personaje/factory/ArqueroFactory.class
 game/command/actions/AttackCommand.class
 game/combat/engine/MotorCombate.class
+game/events/observer/UINotifier.class
 game/persistence/memento/GameMemento.class
 game/effects/status/BurnEffect.class
+game/events/observer/EventManager.class
 game/ai/strategy/AIController.class
 game/dungeon/builder/DungeonBuilder.class
 game/state/game/MenuState.class

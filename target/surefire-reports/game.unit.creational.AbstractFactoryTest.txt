@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: game.unit.creational.AbstractFactoryTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s - in game.unit.creational.AbstractFactoryTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.031 s - in game.unit.creational.AbstractFactoryTest

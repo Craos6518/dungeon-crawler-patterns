@@ -141,5 +141,6 @@ Los tests de comportamiento se suman a los existentes:
 - **Tests dominio:** CharacterDamageTest
 - **Tests combate:** CombatTurnAlternationTest, CombatEndTest
 - **Tests integración:** CombatIntegrationTest
+- **Tests comportamiento:** CommandPatternTest, StrategyPatternTest, ObserverPatternTest, MementoPatternTest, StatePatternTest
 
-**Total proyecto: 106 tests pasando ✅**
+**Total proyecto: 107 tests pasando ✅**
