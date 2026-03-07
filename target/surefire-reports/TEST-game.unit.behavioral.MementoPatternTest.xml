@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="game.integration.behavioral.BehavioralPatternsIntegrationTest" time="0.011" tests="5" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="game.unit.behavioral.MementoPatternTest" time="0.085" tests="13" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -54,12 +54,43 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="testStrategyChange" classname="game.integration.behavioral.BehavioralPatternsIntegrationTest" time="0.002"/>
-  <testcase name="testFullIntegrationScenario" classname="game.integration.behavioral.BehavioralPatternsIntegrationTest" time="0.002"/>
-  <testcase name="testMementoWithGameStateIntegration" classname="game.integration.behavioral.BehavioralPatternsIntegrationTest" time="0.001">
+  <testcase name="testListSavedGames" classname="game.unit.behavioral.MementoPatternTest" time="0.029">
+    <system-out><![CDATA[Partida guardada exitosamente en: ./test-saves/save1.save
+Partida guardada exitosamente en: ./test-saves/save2.save
+]]></system-out>
+  </testcase>
+  <testcase name="testCaretakerStoresMultipleMementos" classname="game.unit.behavioral.MementoPatternTest" time="0.006">
     <system-out><![CDATA[¡Has subido al nivel 2!
 ]]></system-out>
   </testcase>
-  <testcase name="testStrategyWithCommandIntegration" classname="game.integration.behavioral.BehavioralPatternsIntegrationTest" time="0.001"/>
-  <testcase name="testCommandWithObserverIntegration" classname="game.integration.behavioral.BehavioralPatternsIntegrationTest" time="0.001"/>
+  <testcase name="testRestoreFromMemento" classname="game.unit.behavioral.MementoPatternTest" time="0.002">
+    <system-out><![CDATA[¡Has subido al nivel 2!
+]]></system-out>
+  </testcase>
+  <testcase name="testCaretakerThrowsExceptionWhenEmpty" classname="game.unit.behavioral.MementoPatternTest" time="0.003"/>
+  <testcase name="testCaretakerThrowsExceptionForInvalidIndex" classname="game.unit.behavioral.MementoPatternTest" time="0.002"/>
+  <testcase name="testSaveToDisk" classname="game.unit.behavioral.MementoPatternTest" time="0.003">
+    <system-out><![CDATA[¡Has subido al nivel 2!
+Partida guardada exitosamente en: ./test-saves/test_partida.save
+]]></system-out>
+  </testcase>
+  <testcase name="testMementoIsImmutable" classname="game.unit.behavioral.MementoPatternTest" time="0.002"/>
+  <testcase name="testDeleteSavedGame" classname="game.unit.behavioral.MementoPatternTest" time="0.003">
+    <system-out><![CDATA[Partida guardada exitosamente en: ./test-saves/test_delete.save
+Guardado eliminado: test_delete
+]]></system-out>
+  </testcase>
+  <testcase name="testCreateMemento" classname="game.unit.behavioral.MementoPatternTest" time="0.002"/>
+  <testcase name="testLoadFromDisk" classname="game.unit.behavioral.MementoPatternTest" time="0.014">
+    <system-out><![CDATA[¡Has subido al nivel 2!
+Partida guardada exitosamente en: ./test-saves/test_carga.save
+Partida cargada exitosamente desde: ./test-saves/test_carga.save
+]]></system-out>
+  </testcase>
+  <testcase name="testCaretakerGetLastMemento" classname="game.unit.behavioral.MementoPatternTest" time="0.002">
+    <system-out><![CDATA[¡Has subido al nivel 2!
+]]></system-out>
+  </testcase>
+  <testcase name="testMementoPreservesState" classname="game.unit.behavioral.MementoPatternTest" time="0.001"/>
+  <testcase name="testClearHistory" classname="game.unit.behavioral.MementoPatternTest" time="0.002"/>
 </testsuite>
