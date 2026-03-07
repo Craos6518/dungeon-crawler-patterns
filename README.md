@@ -6,6 +6,16 @@ El objetivo principal **no es crear un juego complejo**, sino **diseñar una arq
 
 ---
 
+## 🎯 Características Principales
+
+✅ **10 patrones de diseño** implementados y completamente integrados  
+✅ **106 tests unitarios** que validan cada patrón  
+✅ **Tests de integración** que demuestran colaboración entre patrones  
+✅ **Arquitectura limpia** con separación clara de responsabilidades  
+✅ **Sistema de combate completo** que conecta todos los patrones  
+
+---
+
 # Objetivo del Proyecto
 
 Demostrar el uso correcto de patrones de diseño en un sistema realista mediante:
@@ -272,6 +282,54 @@ Evita condicionales complejos y centraliza el comportamiento de cada estado.
 
 ---
 
+## 🔗 Integración de Patrones
+
+El proyecto no solo implementa patrones individuales, sino que demuestra cómo **múltiples patrones colaboran** para crear un sistema cohesivo.
+
+### IntegratedCombatEngine: Hub de Integración
+
+Esta clase es el **corazón de la integración**, conectando 5 patrones simultáneamente:
+
+```java
+IntegratedCombatEngine motor = new IntegratedCombatEngine(
+    heroe,              // Del Factory Method
+    enemigo,            // Del Abstract Factory
+    new AggressiveStrategy()  // Patrón Strategy
+);
+```
+
+**Patrones integrados en el combate:**
+
+1. **Command**: Cada acción (ataque, defensa, uso de item) es un comando ejecutable con historial
+2. **Strategy**: El enemigo usa IA intercambiable que puede cambiar durante el combate
+3. **Observer**: Todos los eventos se notifican automáticamente a múltiples listeners
+4. **Decorator**: Los efectos de estado se aplican automáticamente cada turno
+5. **Facade**: La complejidad del motor está oculta tras una API simple
+
+**Flujo de integración:**
+
+```
+Creacionales (Factory, Builder, Abstract Factory)
+         ↓
+    Personajes + Mazmorra + Items
+         ↓
+Estructurales (Composite, Decorator)
+         ↓
+    Inventario + Efectos aplicados
+         ↓
+Comportamiento (Command, Strategy, Observer)
+         ↓
+    Combate ejecutado con eventos
+         ↓
+Persistencia (Memento)
+         ↓
+    Estado guardado/restaurado
+```
+
+Ver documentación completa: [INTEGRACION_PATRONES.md](INTEGRACION_PATRONES.md)
+
+---
+
 ### Memento
 
 Permite guardar y restaurar el estado del juego.
@@ -318,17 +376,56 @@ Esto evita dependencias cruzadas innecesarias.
 
 # Ejecución del Proyecto
 
+## Demo Básica (Patrones Creacionales)
+
 Compilar:
 
-```
-javac -d out $(find src -name "*.java")
+```bash
+cd dungeon-crawler-patterns
+mvn compile
 ```
 
-Ejecutar:
+Ejecutar demo básica:
 
+```bash
+mvn exec:java -Dexec.mainClass="game.Main"
 ```
-java -cp out game.Main
+
+## 🎮 Demo INTEGRADA (Todos los Patrones)
+
+**¡RECOMENDADO!** Esta demo muestra cómo los 10 patrones trabajan juntos en un sistema cohesivo:
+
+```bash
+mvn exec:java -Dexec.mainClass="game.demo.IntegracionCompletaDemo"
 ```
+
+O usando el Main con parámetro:
+
+```bash
+mvn exec:java -Dexec.mainClass="game.Main" -Dexec.args="--integracion"
+```
+
+### Qué verás en la demo integrada:
+
+1. **FASE 1: PREPARACIÓN**
+   - ⚔️ Factory Method creando personajes
+   - 🎒 Composite construyendo inventario jerárquico
+   - 🏰 Builder generando mazmorras temáticas
+   - 🎯 Abstract Factory creando enemigos coherentes
+   - ✨ Decorator aplicando efectos de estado
+
+2. **FASE 2: COMBATE INTEGRADO**
+   - 📡 Observer notificando eventos en tiempo real
+   - ⚔️ Command encapsulando cada acción
+   - 🧠 Strategy decidiendo comportamiento de IA
+   - 🔄 Decorator aplicando efectos automáticamente
+   - 🏆 Facade simplificando la interfaz
+
+3. **FASE 3: POST-COMBATE**
+   - 📊 Estadísticas acumuladas por observers
+   - 💾 Memento guardando/restaurando estado
+
+Ver documentación completa en: [INTEGRACION_PATRONES.md](INTEGRACION_PATRONES.md)
 
 ---
 

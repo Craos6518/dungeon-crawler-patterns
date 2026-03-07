@@ -1,6 +1,5 @@
 package game.effects.status;
 
-import game.combat.model.ResultadoAtaque;
 import game.domain.personaje.Personaje;
 
 /**

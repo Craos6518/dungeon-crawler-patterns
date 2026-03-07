@@ -1,13 +1,26 @@
 package game.integration.behavioral;
 
-import game.ai.strategy.*;
-import game.command.actions.*;
+import game.ai.strategy.AIController;
+import game.ai.strategy.AIStrategy;
+import game.ai.strategy.AggressiveStrategy;
+import game.ai.strategy.DefensiveStrategy;
+import game.command.actions.AttackCommand;
+import game.command.actions.Command;
+import game.command.actions.CommandInvoker;
+import game.command.actions.DefendCommand;
 import game.combat.model.ResultadoAtaque;
-import game.domain.personaje.EnemigoBasico;
-import game.domain.personaje.Guerrero;
 import game.domain.personaje.Personaje;
-import game.events.observer.*;
-import game.persistence.memento.*;
+import game.domain.personaje.factory.EnemigoBasicoFactory;
+import game.domain.personaje.factory.GuerreroFactory;
+import game.domain.personaje.factory.PersonajeFactory;
+import game.events.observer.CombatLogger;
+import game.events.observer.EventManager;
+import game.events.observer.EventType;
+import game.events.observer.GameEvent;
+import game.events.observer.StatisticsTracker;
+import game.persistence.memento.GameCaretaker;
+import game.persistence.memento.GameMemento;
+import game.persistence.memento.GameOriginator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -51,8 +64,10 @@ public class BehavioralPatternsIntegrationTest {
     @Test
     public void testCommandWithObserverIntegration() {
         // Este test demuestra cómo Command y Observer trabajan juntos
-        Personaje heroe = new Guerrero("Héroe", 100, 25);
-        Personaje enemigo = new EnemigoBasico("Enemigo", 60, 15);
+        PersonajeFactory guerreroFactory = new GuerreroFactory(100, 25);
+        PersonajeFactory enemigoFactory = new EnemigoBasicoFactory(60, 15);
+        Personaje heroe = guerreroFactory.crearPersonaje("Héroe");
+        Personaje enemigo = enemigoFactory.crearPersonaje("Enemigo");
         
         // Notificar inicio de combate
         eventManager.notificar(new GameEvent(EventType.COMBATE_INICIADO));
@@ -76,8 +91,10 @@ public class BehavioralPatternsIntegrationTest {
     @Test
     public void testStrategyWithCommandIntegration() {
         // Este test demuestra cómo Strategy genera Commands
-        Personaje enemigo = new EnemigoBasico("IA", 80, 15);
-        Personaje heroe = new Guerrero("Jugador", 100, 20);
+        PersonajeFactory enemigoFactory = new EnemigoBasicoFactory(80, 15);
+        PersonajeFactory guerreroFactory = new GuerreroFactory(100, 20);
+        Personaje enemigo = enemigoFactory.crearPersonaje("IA");
+        Personaje heroe = guerreroFactory.crearPersonaje("Jugador");
         
         // Configurar IA con estrategia agresiva
         AIStrategy estrategia = new AggressiveStrategy();
@@ -121,8 +138,10 @@ public class BehavioralPatternsIntegrationTest {
     @Test
     public void testFullIntegrationScenario() {
         // Test completo que usa todos los patrones juntos
-        Personaje heroe = new Guerrero("Héroe", 100, 30);
-        Personaje enemigo = new EnemigoBasico("Jefe", 70, 18);
+        PersonajeFactory guerreroFactory = new GuerreroFactory(100, 30);
+        PersonajeFactory enemigoFactory = new EnemigoBasicoFactory(70, 18);
+        Personaje heroe = guerreroFactory.crearPersonaje("Héroe");
+        Personaje enemigo = enemigoFactory.crearPersonaje("Jefe");
         
         // Memento: Guardar antes del combate
         GameMemento antesDelCombate = juego.guardar();
@@ -167,8 +186,10 @@ public class BehavioralPatternsIntegrationTest {
     @Test
     public void testStrategyChange() {
         // Test que demuestra cambio dinámico de estrategia
-        Personaje enemigo = new EnemigoBasico("Enemigo Adaptable", 100, 15);
-        Personaje heroe = new Guerrero("Héroe", 120, 25);
+        PersonajeFactory enemigoFactory = new EnemigoBasicoFactory(100, 15);
+        PersonajeFactory guerreroFactory = new GuerreroFactory(120, 25);
+        Personaje enemigo = enemigoFactory.crearPersonaje("Enemigo Adaptable");
+        Personaje heroe = guerreroFactory.crearPersonaje("Héroe");
         
         AIController ia = new AIController(enemigo, new AggressiveStrategy());
         

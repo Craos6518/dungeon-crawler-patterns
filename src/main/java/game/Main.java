@@ -1,6 +1,7 @@
 package game;
 
 import game.combat.engine.MotorCombate;
+import game.demo.IntegracionCompletaDemo;
 import game.domain.personaje.Personaje;
 import game.domain.personaje.factory.GuerreroFactory;
 import game.domain.personaje.factory.MagoFactory;
@@ -15,14 +16,28 @@ import game.dungeon.theme.IceThemeFactory;
 import game.items.model.SimpleItem;
 
 /**
- * Clase principal que demuestra el uso de los patrones de diseño creacionales:
+ * Clase principal del proyecto Dungeon Crawler.
+ * 
+ * Demuestra el uso de los patrones de diseño creacionales en un demo básico.
+ * Para ver la INTEGRACIÓN COMPLETA de TODOS los patrones, ejecutar:
+ * 
+ *     IntegracionCompletaDemo.main()
+ * 
+ * Patrones demostrados aquí:
  * - Factory Method
- * - Builder
+ * - Builder  
  * - Abstract Factory
  */
 public class Main {
 	public static void main(String[] args) {
+		// Verificar si se solicita la demo completa
+		if (args.length > 0 && args[0].equals("--integracion")) {
+			IntegracionCompletaDemo.main(args);
+			return;
+		}
+		
 		System.out.println("=== DUNGEON CRAWLER - PATRONES CREACIONALES ===\n");
+		System.out.println("💡 Tip: Ejecuta con '--integracion' para ver TODOS los patrones integrados\n");
 		
 		// ========== FACTORY METHOD ==========
 		System.out.println("--- 1. FACTORY METHOD: Creación de Personajes ---");
@@ -74,5 +89,13 @@ public class Main {
 		MotorCombate combate = new MotorCombate(heroe, jefeFuego);
 		Personaje ganador = combate.iniciar();
 		System.out.println("Ganador: " + ganador.getNombre());
+		System.out.println();
+		
+		System.out.println("─".repeat(60));
+		System.out.println("✨ Para ver la INTEGRACIÓN COMPLETA, ejecuta:");
+		System.out.println("   java -cp target/classes game.demo.IntegracionCompletaDemo");
+		System.out.println("   o");
+		System.out.println("   java -cp target/classes game.Main --integracion");
+		System.out.println("─".repeat(60));
 	}
 }

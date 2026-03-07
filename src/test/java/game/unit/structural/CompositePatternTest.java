@@ -1,7 +1,6 @@
 package game.unit.structural;
 
 import game.items.model.ContainerItem;
-import game.items.model.ItemComponent;
 import game.items.model.SimpleItem;
 import org.junit.jupiter.api.Test;
 

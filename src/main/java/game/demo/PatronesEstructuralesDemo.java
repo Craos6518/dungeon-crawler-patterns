@@ -4,12 +4,10 @@ import game.combat.facade.CombatFacade;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Guerrero;
 import game.domain.personaje.Personaje;
-import game.effects.status.BurnEffect;
 import game.effects.status.PoisonEffect;
 import game.effects.status.StunEffect;
 import game.effects.status.StrengthEffect;
 import game.items.model.ContainerItem;
-import game.items.model.ItemComponent;
 import game.items.model.SimpleItem;
 
 /**
@@ -50,7 +48,6 @@ public class PatronesEstructuralesDemo {
         // Crear items simples
         SimpleItem espada = new SimpleItem("Espada Legendaria", "Arma poderosa", "Arma", 500, 8);
         SimpleItem pocion = new SimpleItem("Poción de Vida", "Restaura 50 HP", "Consumible", 50, 1);
-        SimpleItem oro = new SimpleItem("Moneda de Oro", "Moneda valiosa", "Tesoro", 10, 0);
 
         // Crear contenedores
         ContainerItem mochila = new ContainerItem("Mochila del Aventurero", "Mochila grande", 10, 2);
@@ -58,6 +55,8 @@ public class PatronesEstructuralesDemo {
 
         // Agregar oro a la bolsa
         for (int i = 0; i < 5; i++) {
+            SimpleItem moneda = new SimpleItem("Moneda de Oro", "Moneda valiosa", "Tesoro", 10, 0);
+            bolsaOro.agregar(moneda);
             bolsaOro.agregar(new SimpleItem("Moneda de Oro", "Moneda", "Tesoro", 10, 0));
         }
 
@@ -133,7 +132,7 @@ public class PatronesEstructuralesDemo {
 
         // 3 líneas de código vs ~20 líneas sin facade
         facade.iniciarCombate(heroe, enemigo);
-        Personaje ganador = facade.ejecutarCombateCompleto();
+        facade.ejecutarCombateCompleto();
         
         System.out.println("=".repeat(60));
         System.out.println();

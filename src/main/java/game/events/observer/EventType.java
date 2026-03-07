@@ -28,5 +28,10 @@ public enum EventType {
     JUEGO_PAUSADO,
     JUEGO_GUARDADO,
     JUEGO_CARGADO,
-    JUEGO_TERMINADO
+    JUEGO_TERMINADO,
+    
+    // Eventos adicionales para integración
+    ESTADO_CAMBIADO,
+    EFECTO_APLICADO,
+    ACCION_REALIZADA
 }
