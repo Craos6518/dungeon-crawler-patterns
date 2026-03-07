@@ -41,6 +41,7 @@ game/domain/personaje/Orco.class
 game/effects/status/CharacterDecorator.class
 game/ui/console/package-info.class
 game/domain/personaje/factory/GuerreroFactory.class
+game/demo/PatronesEstructuralesDemo.class
 game/items/model/ContainerItem.class
 game/domain/personaje/factory/PersonajeFactory.class
 game/domain/personaje/Arquero.class

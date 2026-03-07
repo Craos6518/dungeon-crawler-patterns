@@ -1,0 +1,23 @@
+{
+    "recommendations": [
+        // Java Essentials
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-java-debug",
+        "vscjava.vscode-java-test",
+        "vscjava.vscode-java-dependency",
+        "redhat.java",
+        
+        // Maven
+        "vscjava.vscode-maven",
+        
+        // Testing
+        "hbenl.vscode-test-explorer",
+        
+        // Utilidades
+        "streetsidesoftware.code-spell-checker",
+        "eamodio.gitlens",
+        
+        // Markdown
+        "yzhang.markdown-all-in-one"
+    ]
+}

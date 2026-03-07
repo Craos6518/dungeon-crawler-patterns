@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Ejecutar Main",
+            "request": "launch",
+            "mainClass": "game.Main",
+            "projectName": "dungeon-crawler-patterns",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "JAVA_HOME": "/usr/lib/jvm/java-17-temurin-jdk"
+            }
+        },
+        {
+            "type": "java",
+            "name": "Ejecutar Demo Patrones Estructurales",
+            "request": "launch",
+            "mainClass": "game.demo.PatronesEstructuralesDemo",
+            "projectName": "dungeon-crawler-patterns",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "JAVA_HOME": "/usr/lib/jvm/java-17-temurin-jdk"
+            }
+        },
+        {
+            "type": "java",
+            "name": "Debug Tests",
+            "request": "launch",
+            "mainClass": "",
+            "projectName": "dungeon-crawler-patterns",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "env": {
+                "JAVA_HOME": "/usr/lib/jvm/java-17-temurin-jdk"
+            },
+            "vmArgs": "-ea"
+        }
+    ]
+}
