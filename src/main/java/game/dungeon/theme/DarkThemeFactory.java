@@ -3,7 +3,7 @@ package game.dungeon.theme;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Orco;
 import game.domain.personaje.Personaje;
-import game.items.model.Item;
+import game.items.model.SimpleItem;
 
 /**
  * Abstract Factory - Implementación para el tema Oscuro
@@ -38,19 +38,21 @@ public class DarkThemeFactory implements DungeonThemeFactory {
     }
 
     @Override
-    public Item crearTesoroComun() {
-        return new Item("Runa Oscura", 
+    public SimpleItem crearTesoroComun() {
+        return new SimpleItem("Runa Oscura", 
             "Símbolo antiguo con poder de las sombras", 
             "Runa", 
-            45);
+            45,
+            0);
     }
 
     @Override
-    public Item crearTesoroRaro() {
-        return new Item("Armadura de las Sombras", 
+    public SimpleItem crearTesoroRaro() {
+        return new SimpleItem("Armadura de las Sombras", 
             "Armadura que absorbe la luz y otorga poder", 
             "Armadura", 
-            250);
+            250,
+            8);
     }
 
     @Override

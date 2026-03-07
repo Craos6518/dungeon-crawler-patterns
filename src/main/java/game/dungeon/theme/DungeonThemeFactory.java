@@ -1,12 +1,13 @@
 package game.dungeon.theme;
 
 import game.domain.personaje.Personaje;
-import game.items.model.Item;
+import game.items.model.SimpleItem;
 
 /**
  * Abstract Factory Pattern - Interfaz para crear familias de objetos temáticos
  * 
  * Cada implementación crea enemigos, tesoros y elementos coherentes con un tema.
+ * Integrado con el patrón Composite: retorna SimpleItem que forma parte del sistema de inventario.
  */
 public interface DungeonThemeFactory {
     /**
@@ -26,13 +27,15 @@ public interface DungeonThemeFactory {
     
     /**
      * Crea un tesoro común del tema
+     * Retorna SimpleItem que puede ser agregado a contenedores (patrón Composite)
      */
-    Item crearTesoroComun();
+    SimpleItem crearTesoroComun();
     
     /**
      * Crea un tesoro raro del tema
+     * Retorna SimpleItem que puede ser agregado a contenedores (patrón Composite)
      */
-    Item crearTesoroRaro();
+    SimpleItem crearTesoroRaro();
     
     /**
      * Retorna el nombre del tema

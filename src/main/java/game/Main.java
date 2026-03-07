@@ -12,7 +12,7 @@ import game.dungeon.model.Dungeon;
 import game.dungeon.theme.DungeonThemeFactory;
 import game.dungeon.theme.FireThemeFactory;
 import game.dungeon.theme.IceThemeFactory;
-import game.items.model.Item;
+import game.items.model.SimpleItem;
 
 /**
  * Clase principal que demuestra el uso de los patrones de diseño creacionales:
@@ -57,13 +57,13 @@ public class Main {
 		
 		System.out.println("Tema: " + fireTheme.getNombreTema());
 		Personaje enemigoFuego = fireTheme.crearEnemigoBasico();
-		Item tesoroFuego = fireTheme.crearTesoroRaro();
+		SimpleItem tesoroFuego = fireTheme.crearTesoroRaro();
 		System.out.println("  Enemigo: " + enemigoFuego.getNombre());
 		System.out.println("  Tesoro: " + tesoroFuego);
 		
 		System.out.println("\nTema: " + iceTheme.getNombreTema());
 		Personaje jefeFuego = fireTheme.crearJefe();
-		Item tesoroHielo = iceTheme.crearTesoroComun();
+		SimpleItem tesoroHielo = iceTheme.crearTesoroComun();
 		System.out.println("  Jefe: " + jefeFuego.getNombre() + 
 		                   " (HP: " + jefeFuego.getVida() + ")");
 		System.out.println("  Tesoro: " + tesoroHielo);

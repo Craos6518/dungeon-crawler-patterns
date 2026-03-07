@@ -4,7 +4,7 @@ import game.domain.personaje.Dragon;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Orco;
 import game.domain.personaje.Personaje;
-import game.items.model.Item;
+import game.items.model.SimpleItem;
 
 /**
  * Abstract Factory - Implementación para el tema de Veneno
@@ -29,19 +29,21 @@ public class PoisonThemeFactory implements DungeonThemeFactory {
     }
 
     @Override
-    public Item crearTesoroComun() {
-        return new Item("Vial de Veneno", 
+    public SimpleItem crearTesoroComun() {
+        return new SimpleItem("Vial de Veneno", 
             "Frasco con líquido verde brillante", 
             "Poción", 
-            40);
+            40,
+            1);
     }
 
     @Override
-    public Item crearTesoroRaro() {
-        return new Item("Daga del Asesino", 
+    public SimpleItem crearTesoroRaro() {
+        return new SimpleItem("Daga del Asesino", 
             "Daga impregnada con veneno letal", 
             "Arma", 
-            180);
+            180,
+            2);
     }
 
     @Override

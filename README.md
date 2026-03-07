@@ -140,63 +140,133 @@ Oculta la complejidad del motor de combate.
 
 ### Command
 
-Cada acción de combate es representada como un comando.
+Encapsula cada acción del juego como un objeto ejecutable.
 
 ```
-Command
- ├─ MoveCommand
+Command (interface)
  ├─ AttackCommand
+ ├─ DefendCommand
+ ├─ UseItemCommand
  ├─ SkillCommand
- └─ UseItemCommand
+ └─ CommandInvoker (historial)
 ```
 
-Esto permite:
+**Beneficios:**
+- Desacopla emisor de receptor
+- Permite historial de acciones (undo potencial)
+- Facilita logging y replay
+- Testeable individualmente
 
-- ejecutar acciones
-- deshacer acciones
-- registrar acciones
+**Implementación:**
+- `Command.java` - Interfaz base
+- `CommandInvoker.java` - Gestor de historial
+- 5 comandos concretos
 
 ---
 
 ### Strategy
 
-Define comportamientos de IA intercambiables.
+Define algoritmos de comportamiento de IA intercambiables.
 
 ```
-AIStrategy
- ├─ AggressiveStrategy
- ├─ DefensiveStrategy
- └─ IntelligentStrategy
+AIStrategy (interface)
+ ├─ AggressiveStrategy    // Ataca al más fuerte
+ ├─ DefensiveStrategy     // Defiende cuando vida < 30%
+ ├─ IntelligentStrategy   // Elimina débiles primero
+ ├─ RandomStrategy        // Comportamiento aleatorio
+ └─ AIController          // Contexto que usa estrategias
 ```
 
-Los enemigos pueden cambiar su comportamiento sin modificar su clase.
+**Beneficios:**
+- Comportamientos intercambiables en runtime
+- Enemigos pueden cambiar estrategia dinámicamente
+- Extensible (fácil agregar nuevas estrategias)
+- Sin condicionales complejos (if/else chains)
+
+**Implementación:**
+- `AIStrategy.java` - Interfaz base
+- `AIController.java` - Contexto
+- 4 estrategias concretas
 
 ---
 
 ### Observer
 
-Sistema de eventos del juego.
+Sistema de eventos desacoplado para notificaciones del juego.
 
-Se utiliza para:
+```
+EventManager (Singleton)
+ ├─ GameEvent / EventType
+ └─ Observers:
+     ├─ CombatLogger         // Logs de combate
+     ├─ StatisticsTracker    // Métricas del juego
+     └─ UINotifier           // Notificaciones UI
+```
 
-- notificaciones
-- actualización de UI
-- log de combate
+**Beneficios:**
+- Comunicación desacoplada entre componentes
+- Múltiples observers sin duplicar código
+- Soporta suscripción por tipo de evento
+- Historial de eventos mantenido
+
+**Implementación:**
+- `EventManager.java` (Singleton)
+- `GameEvent.java` / `EventType.java` (enum)
+- 3 observers concretos
+- Sistema habilitado/deshabilitado en runtime
 
 ---
 
 ### State
 
-Modela los diferentes estados del juego.
+Modela los diferentes estados del juego y sus transiciones.
 
 ```
-GameState
+GameState (interface)
  ├─ MenuState
  ├─ ExplorationState
  ├─ CombatState
  ├─ InventoryState
- └─ GameOverState
+ ├─ GameOverState
+ └─ GameStateContext    // Mantiene estado actual
 ```
+
+**Beneficios:**
+- Encapsula comportamiento específico de cada estado
+- Transiciones explícitas y controladas
+- Sin condicionales complejos basados en flags
+- Cada estado es testeable individualmente
+
+**Implementación:**
+- `GameState.java` - Interfaz base
+- `GameStateContext.java` - Contexto que mantiene estado
+- 5 estados concretos
+
+---
+
+### Memento
+
+Permite guardar y restaurar el estado completo del juego.
+
+```
+GameMemento (immutable)
+ ├─ GameOriginator      // Objeto principal del juego
+ └─ GameCaretaker       // Gestor de mementos
+     ├─ Memoria (historial de checkpoints)
+     └─ Disco (serialización)
+```
+
+**Beneficios:**
+- Encapsula estado interno sin exponerlo
+- Soporte save/load (memoria y disco)
+- Historial de checkpoints
+- Immutable (using Builder pattern)
+
+**Implementación:**
+- `GameMemento.java` - Memento inmutable con Builder
+- `GameOriginator.java` - Objeto cuyo estado se guarda
+- `GameCaretaker.java` - Gestor con persistencia en disco
+- Serializable para guardado permanente
 
 Evita condicionales complejos y centraliza el comportamiento de cada estado.
 
@@ -259,6 +329,56 @@ Ejecutar:
 ```
 java -cp out game.Main
 ```
+
+---
+
+# Testing y Calidad
+
+El proyecto cuenta con **106 tests** que validan todos los patrones implementados.
+
+## Tests Unitarios (51)
+
+### Patrones Creacionales (3 suites)
+- **AbstractFactoryTest** - Factorías temáticas de dungeons
+- **BuilderPatternTest** - Construcción de mazmorras
+- **FactoryMethodTest** - Creación de personajes
+
+### Patrones Estructurales (3 suites)
+- **CompositePatternTest** - Inventario jerárquico de items
+- **DecoratorPatternTest** - Efectos de estado temporales
+- **FacadePatternTest** - Interfaz simplificada del sistema de combate
+
+### Patrones de Comportamiento (4 suites)
+- **CommandPatternTest** (11 tests) - Encapsulación de acciones
+- **StrategyPatternTest** (11 tests) - Comportamientos de IA
+- **ObserverPatternTest** (13 tests) - Sistema de eventos
+- **MementoPatternTest** (14 tests) - Guardado/restauración de estado
+
+### Tests de Dominio y Combate (2 suites)
+- **CharacterDamageTest** - Mecánicas de daño
+- **CombatTurnAlternationTest** / **CombatEndTest** - Flujo de combate
+
+## Tests de Integración (2)
+
+- **CombatIntegrationTest** - Combate completo con múltiples patrones
+- **BehavioralPatternsIntegrationTest** (6 tests) - Interacción entre Command, Strategy, Observer y Memento
+
+## Ejecutar Tests
+
+```bash
+# Todos los tests
+mvn test
+
+# Solo tests de comportamiento
+mvn test -Dtest="game.unit.behavioral.*Test"
+
+# Test específico
+mvn test -Dtest="CommandPatternTest"
+```
+
+Ver documentación completa en:
+- [RESUMEN_TESTS_BEHAVIORAL.md](RESUMEN_TESTS_BEHAVIORAL.md)
+- [README_TESTS.md](README_TESTS.md)
 
 ---
 

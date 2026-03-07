@@ -4,7 +4,7 @@ import game.domain.personaje.Dragon;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Orco;
 import game.domain.personaje.Personaje;
-import game.items.model.Item;
+import game.items.model.SimpleItem;
 
 /**
  * Abstract Factory - Implementación para el tema de Fuego
@@ -29,19 +29,21 @@ public class FireThemeFactory implements DungeonThemeFactory {
     }
 
     @Override
-    public Item crearTesoroComun() {
-        return new Item("Gema de Fuego", 
+    public SimpleItem crearTesoroComun() {
+        return new SimpleItem("Gema de Fuego", 
             "Una gema que brilla con luz ardiente", 
             "Gema", 
-            50);
+            50,
+            1);
     }
 
     @Override
-    public Item crearTesoroRaro() {
-        return new Item("Espada Flamígera", 
+    public SimpleItem crearTesoroRaro() {
+        return new SimpleItem("Espada Flamígera", 
             "Espada legendaria envuelta en llamas eternas", 
             "Arma", 
-            200);
+            200,
+            5);
     }
 
     @Override
