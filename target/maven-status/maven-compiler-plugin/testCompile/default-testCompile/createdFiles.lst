@@ -1,0 +1,4 @@
+game/unit/domain/CharacterDamageTest.class
+game/integration/combat/CombatIntegrationTest.class
+game/unit/combat/CombatTurnAlternationTest.class
+game/unit/combat/CombatEndTest.class

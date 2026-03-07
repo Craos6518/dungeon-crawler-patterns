@@ -1,0 +1,14 @@
+game/Main.class
+game/effects/status/package-info.class
+game/combat/model/ResultadoAtaque.class
+game/combat/engine/MotorCombate.class
+game/persistence/memento/package-info.class
+game/command/actions/package-info.class
+game/items/inventory/package-info.class
+game/state/game/package-info.class
+game/domain/personaje/Personaje.class
+game/dungeon/builder/package-info.class
+game/domain/personaje/EnemigoBasico.class
+game/ui/console/package-info.class
+game/domain/personaje/Guerrero.class
+game/ai/strategy/package-info.class
