@@ -1,7 +1,10 @@
 game/unit/domain/CharacterDamageTest.class
+game/unit/structural/FacadePatternTest.class
 game/unit/creational/FactoryMethodTest.class
 game/integration/combat/CombatIntegrationTest.class
+game/unit/structural/DecoratorPatternTest.class
 game/unit/combat/CombatEndTest.class
 game/unit/creational/AbstractFactoryTest.class
 game/unit/creational/BuilderPatternTest.class
+game/unit/structural/CompositePatternTest.class
 game/unit/combat/CombatTurnAlternationTest.class
