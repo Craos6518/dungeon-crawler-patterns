@@ -6,6 +6,7 @@ import game.dungeon.builder.*;
 import game.dungeon.model.Dungeon;
 import game.dungeon.model.Room;
 import game.dungeon.theme.*;
+import game.items.model.SimpleItem;
 
 /**
  * Clase de demostración de los patrones creacionales implementados.
@@ -89,20 +90,21 @@ public class PatronesCreacionalesDemo {
         // Opción 1: Construcción manual paso a paso
         System.out.println("📐 Construcción manual (sin Director):");
         DungeonBuilder builder = new ConcreteDungeonBuilder();
+        builder.reset(); // reset() retorna void, no es encadenable
 
         Dungeon mazmorraCustom = builder
-            .reset()
             .setNombre("Cripta Olvidada")
             .setTema("Muerte")
-            .setDificultad("Normal")
-            .agregarSala("Entrada", "Sala de entrada a la cripta", "Normal", 1)
-            .agregarSala("Pasillo Oscuro", "Un pasillo lleno de sombras", "Normal", 1)
-            .agregarSala("Cámara del Tesoro", "Sala con cofre misterioso", "Difícil", 2)
+            .setNivelDificultad(2) // int en vez de String
+            .agregarSala("Entrada", "Sala de entrada a la cripta", 1, false, false)
+            .agregarSala("Pasillo Oscuro", "Un pasillo lleno de sombras", 1, false, true)
+            .agregarSala("Cámara del Tesoro", "Sala con cofre misterioso", 2, true, false)
+            .setSalaJefe("Cripta Final", "Tumba del Rey Olvidado", 3)
             .build();
 
         System.out.println("  " + mazmorraCustom.getNombre());
         System.out.println("  Tema: " + mazmorraCustom.getTema());
-        System.out.println("  Dificultad: " + mazmorraCustom.getDificultad());
+        System.out.println("  Dificultad: " + mazmorraCustom.getNivelDificultad());
         System.out.println("  Salas: " + mazmorraCustom.getSalas().size());
         System.out.println();
 
@@ -120,10 +122,10 @@ public class PatronesCreacionalesDemo {
         System.out.println("     " + mazmorraFuego.getNombre() + " (" + 
             mazmorraFuego.getSalas().size() + " salas)");
 
-        Dungeon mazmorraHielo = director.construirMazmorraHielo();
-        System.out.println("  → Mazmorra de Hielo creada:");
-        System.out.println("     " + mazmorraHielo.getNombre() + " (" + 
-            mazmorraHielo.getSalas().size() + " salas)");
+        Dungeon mazmorraOscura = director.construirMazmorraOscura();
+        System.out.println("  → Mazmorra Oscura creada:");
+        System.out.println("     " + mazmorraOscura.getNombre() + " (" + 
+            mazmorraOscura.getSalas().size() + " salas)");
         System.out.println();
 
         // Mostrar detalle de una sala
@@ -147,65 +149,71 @@ public class PatronesCreacionalesDemo {
 
         // Abstract Factory crea familias de objetos relacionados
         // sin especificar sus clases concretas
+        // NOTA: Los ThemeFactory crean enemigos y tesoros, NO mazmorras
 
         // Familia de Fuego
         System.out.println("🔥 Familia FUEGO:");
         DungeonThemeFactory temaFuego = new FireThemeFactory();
         
-        Personaje enemigoFuego = temaFuego.crearEnemigo();
+        Personaje enemigoBasico = temaFuego.crearEnemigoBasico();
+        Personaje enemigoMedio = temaFuego.crearEnemigoMedio();
         Personaje jefeFuego = temaFuego.crearJefe();
-        Dungeon mazmorraFuego = temaFuego.crearMazmorra();
+        SimpleItem tesoroComun = temaFuego.crearTesoroComun();
+        SimpleItem tesoroRaro = temaFuego.crearTesoroRaro();
 
-        System.out.println("  Enemigo: " + enemigoFuego.getNombre() + 
-            " (HP: " + enemigoFuego.getVida() + ")");
+        System.out.println("  Enemigo Básico: " + enemigoBasico.getNombre() + 
+            " (HP: " + enemigoBasico.getVida() + ")");
+        System.out.println("  Enemigo Medio: " + enemigoMedio.getNombre() + 
+            " (HP: " + enemigoMedio.getVida() + ")");
         System.out.println("  Jefe: " + jefeFuego.getNombre() + 
             " (HP: " + jefeFuego.getVida() + ")");
-        System.out.println("  Mazmorra: " + mazmorraFuego.getNombre());
+        System.out.println("  Tesoro Común: " + tesoroComun.getNombre());
+        System.out.println("  Tesoro Raro: " + tesoroRaro.getNombre());
         System.out.println();
 
         // Familia de Hielo
         System.out.println("❄️  Familia HIELO:");
         DungeonThemeFactory temaHielo = new IceThemeFactory();
         
-        Personaje enemigoHielo = temaHielo.crearEnemigo();
+        Personaje enemigoHielo = temaHielo.crearEnemigoBasico();
         Personaje jefeHielo = temaHielo.crearJefe();
-        Dungeon mazmorraHielo = temaHielo.crearMazmorra();
+        SimpleItem tesoroHielo = temaHielo.crearTesoroRaro();
 
         System.out.println("  Enemigo: " + enemigoHielo.getNombre() + 
             " (HP: " + enemigoHielo.getVida() + ")");
         System.out.println("  Jefe: " + jefeHielo.getNombre() + 
             " (HP: " + jefeHielo.getVida() + ")");
-        System.out.println("  Mazmorra: " + mazmorraHielo.getNombre());
+        System.out.println("  Tesoro: " + tesoroHielo.getNombre());
         System.out.println();
 
         // Familia Oscura
         System.out.println("🌑 Familia OSCURA:");
         DungeonThemeFactory temaOscuro = new DarkThemeFactory();
         
-        Personaje enemigoOscuro = temaOscuro.crearEnemigo();
+        Personaje enemigoOscuro = temaOscuro.crearEnemigoMedio();
         Personaje jefeOscuro = temaOscuro.crearJefe();
-        Dungeon mazmorraOscura = temaOscuro.crearMazmorra();
+        SimpleItem tesoroOscuro = temaOscuro.crearTesoroRaro();
 
         System.out.println("  Enemigo: " + enemigoOscuro.getNombre() + 
             " (HP: " + enemigoOscuro.getVida() + ")");
         System.out.println("  Jefe: " + jefeOscuro.getNombre() + 
             " (HP: " + jefeOscuro.getVida() + ")");
-        System.out.println("  Mazmorra: " + mazmorraOscura.getNombre());
+        System.out.println("  Tesoro: " + tesoroOscuro.getNombre());
         System.out.println();
 
         // Familia de Veneno
         System.out.println("☠️  Familia VENENO:");
         DungeonThemeFactory temaVeneno = new PoisonThemeFactory();
         
-        Personaje enemigoVeneno = temaVeneno.crearEnemigo();
+        Personaje enemigoVeneno = temaVeneno.crearEnemigoBasico();
         Personaje jefeVeneno = temaVeneno.crearJefe();
-        Dungeon mazmorraVeneno = temaVeneno.crearMazmorra();
+        SimpleItem tesoroVeneno = temaVeneno.crearTesoroComun();
 
         System.out.println("  Enemigo: " + enemigoVeneno.getNombre() + 
             " (HP: " + enemigoVeneno.getVida() + ")");
         System.out.println("  Jefe: " + jefeVeneno.getNombre() + 
             " (HP: " + jefeVeneno.getVida() + ")");
-        System.out.println("  Mazmorra: " + mazmorraVeneno.getNombre());
+        System.out.println("  Tesoro: " + tesoroVeneno.getNombre());
         System.out.println();
 
         System.out.println("✅ Beneficio: Coherencia temática garantizada");
@@ -237,10 +245,12 @@ public class PatronesCreacionalesDemo {
 
         // 3. Crear familia de enemigos con Abstract Factory
         System.out.println("3️⃣  Generando enemigos del tema (Abstract Factory):");
-        Personaje enemigo = temaSeleccionado.crearEnemigo();
+        Personaje enemigo = temaSeleccionado.crearEnemigoBasico();
         Personaje jefe = temaSeleccionado.crearJefe();
+        SimpleItem tesoro = temaSeleccionado.crearTesoroRaro();
         System.out.println("   → Enemigo: " + enemigo.getNombre());
         System.out.println("   → Jefe: " + jefe.getNombre());
+        System.out.println("   → Tesoro: " + tesoro.getNombre());
         System.out.println();
 
         // 4. Construir mazmorra con Builder

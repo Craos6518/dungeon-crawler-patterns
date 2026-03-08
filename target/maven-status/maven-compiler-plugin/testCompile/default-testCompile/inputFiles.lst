@@ -4,6 +4,7 @@
 /run/media/craos6518/Externo/back/Proyecto Patrones de diseño/dungeon-crawler-patterns/src/test/java/game/unit/structural/FacadePatternTest.java
 /run/media/craos6518/Externo/back/Proyecto Patrones de diseño/dungeon-crawler-patterns/src/test/java/game/unit/behavioral/MementoPatternTest.java
 /run/media/craos6518/Externo/back/Proyecto Patrones de diseño/dungeon-crawler-patterns/src/test/java/game/unit/creational/BuilderPatternTest.java
+/run/media/craos6518/Externo/back/Proyecto Patrones de diseño/dungeon-crawler-patterns/src/test/java/game/integration/behavioral/StateMementoIntegrationTest.java
 /run/media/craos6518/Externo/back/Proyecto Patrones de diseño/dungeon-crawler-patterns/src/test/java/game/integration/behavioral/BehavioralPatternsIntegrationTest.java
 /run/media/craos6518/Externo/back/Proyecto Patrones de diseño/dungeon-crawler-patterns/src/test/java/game/integration/combat/CombatIntegrationTest.java
 /run/media/craos6518/Externo/back/Proyecto Patrones de diseño/dungeon-crawler-patterns/src/test/java/game/unit/behavioral/CommandPatternTest.java

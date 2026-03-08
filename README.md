@@ -13,6 +13,7 @@ El objetivo principal **no es crear un juego complejo**, sino **diseñar una arq
 ✅ **Tests de integración** que demuestran colaboración entre patrones  
 ✅ **Arquitectura limpia** con separación clara de responsabilidades  
 ✅ **Sistema de combate completo** que conecta todos los patrones  
+⭐ **NUEVO: Juego interactivo jugable** donde tú tomas todas las decisiones  
 
 ---
 
@@ -455,24 +456,83 @@ Esto evita dependencias cruzadas innecesarias.
 
 # Ejecución del Proyecto
 
-## Demo Básica (Patrones Creacionales)
+## 🎮 DEMO INTERACTIVA (¡JUEGA TÚ MISMO!)
 
-Compilar:
+**⭐ NUEVO - TOTALMENTE JUGABLE ⭐**
 
-```bash
-cd dungeon-crawler-patterns
-mvn compile
-```
-
-Ejecutar demo básica:
+Juega una aventura completa donde TÚ tomas las decisiones:
 
 ```bash
-mvn exec:java -Dexec.mainClass="game.Main"
+mvn exec:java -Dexec.mainClass="game.InteractiveGame"
 ```
 
-## 🎮 Demo INTEGRADA (Todos los Patrones)
+### 🎯 Características del Juego Interactivo:
 
-**¡RECOMENDADO!** Esta demo muestra cómo los 10 patrones trabajan juntos en un sistema cohesivo:
+**Decisiones que tomas:**
+- ⚔️  Elige tu héroe (Guerrero/Mago/Arquero)
+- 🏰 Selecciona tema de mazmorra (Fuego/Hielo/Oscuro/Veneno)
+- 🗺️  Explora salas y busca tesoros
+- ⚔️  Combate por turnos: Atacar, Defender, o Usar Items
+- 🎒 Gestiona tu inventario
+- 💾 Guarda y carga tu progreso
+
+**Patrones en acción:**
+- **Factory Method**: Crea tu héroe personalizado
+- **Abstract Factory**: Cada tema genera enemigos y tesoros coherentes
+- **Builder**: Mazmorras construidas paso a paso
+- **Composite**: Sistema de inventario jerárquico funcional
+- **Decorator**: Efectos de estado que modifican el combate
+- **Facade**: Combate simplificado pero completo
+- **Command**: Cada acción es un comando ejecutable
+- **Strategy**: IA enemiga con comportamientos diferentes
+- **Observer**: Recibes notificaciones de eventos en tiempo real
+- **Memento**: Sistema de guardado/carga funcional
+- **State**: Transiciones entre Menu → Exploración → Combate → Inventario
+
+### 📖 Ejemplo de juego:
+
+```
+🎮 NUEVA PARTIDA
+⚔️  ELIGE TU HÉROE:
+1. Guerrero   (HP: 150, Ataque: 25)
+2. Mago       (HP: 100, Ataque: 35)
+> 1
+
+🏰 ELIGE EL TEMA DE LA MAZMORRA:
+1. 🔥 Fuego
+2. ❄️  Hielo
+> 1
+
+🗺️  EXPLORANDO: Volcán del Dragón Ancestral
+📍 Sala 1/5: Cámara de Lava
+   ¿Qué deseas hacer?
+   1. Avanzar
+   2. Buscar tesoro
+   3. Inventario
+> 2
+
+✨ ¡Tesoro RARO encontrado!
+   → Gema de Fuego (Valor: 500)
+
+⚔️  ¡ENEMIGO APARECIÓ!
+   Elemental de Fuego (HP: 80)
+
+--- TURNO 1 ---
+Tu HP: 150 | Enemigo HP: 80
+Tu turno:
+1. Atacar
+2. Defender  
+3. Inventario
+> _
+```
+
+**📚 Guía completa:** Ver [JUEGO_INTERACTIVO.md](JUEGO_INTERACTIVO.md) para instrucciones detalladas, consejos y estrategias.
+
+---
+
+## 🎬 Demo INTEGRADA (Automática - Todos los Patrones)
+
+Esta demo ejecuta automáticamente todos los patrones en secuencia:
 
 ```bash
 mvn exec:java -Dexec.mainClass="game.demo.IntegracionCompletaDemo"
@@ -505,6 +565,23 @@ mvn exec:java -Dexec.mainClass="game.Main" -Dexec.args="--integracion"
    - 💾 Memento guardando/restaurando estado
 
 Ver documentación completa en: [INTEGRACION_PATRONES.md](INTEGRACION_PATRONES.md)
+
+---
+
+## 🔧 Demo Básica (Patrones Creacionales)
+
+Compilar:
+
+```bash
+cd dungeon-crawler-patterns
+mvn compile
+```
+
+Ejecutar demo básica:
+
+```bash
+mvn exec:java -Dexec.mainClass="game.Main"
+```
 
 ---
 

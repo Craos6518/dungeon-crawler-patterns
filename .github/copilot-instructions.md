@@ -4,7 +4,7 @@
 
 Java 17 / JUnit 5 únicamente. Proyecto académico (Universidad Tecnológica de Pereira - Patrones de Diseño). Arquitectura limpia sin frameworks externos.
 
-**Estado actual:** ✅ Proyecto completo con 107 tests pasando y 10 patrones implementados.
+**Estado actual:** ✅ Proyecto completo con 131 tests pasando, 10 patrones implementados, y juego interactivo jugable.
 
 ## Principios Fundamentales
 

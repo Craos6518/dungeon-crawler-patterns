@@ -6,6 +6,7 @@ game/unit/combat/CombatEndTest.class
 game/unit/behavioral/ObserverPatternTest.class
 game/unit/creational/BuilderPatternTest.class
 game/unit/combat/CombatTurnAlternationTest.class
+game/integration/behavioral/StateMementoIntegrationTest.class
 game/integration/behavioral/BehavioralPatternsIntegrationTest.class
 game/unit/behavioral/StatePatternTest.class
 game/integration/combat/CombatIntegrationTest.class

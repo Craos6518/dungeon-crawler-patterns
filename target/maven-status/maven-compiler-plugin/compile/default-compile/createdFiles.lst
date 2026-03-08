@@ -25,12 +25,14 @@ game/dungeon/model/Dungeon.class
 game/state/game/InventoryState.class
 game/ai/strategy/DefensiveStrategy.class
 game/domain/personaje/factory/DragonFactory.class
+game/demo/PatronesCreacionalesDemo.class
 game/dungeon/builder/ConcreteDungeonBuilder.class
 game/events/observer/package-info.class
 game/persistence/memento/GameCaretaker.class
 game/items/model/Item.class
 game/items/inventory/package-info.class
 game/state/game/package-info.class
+game/InteractiveGame.class
 game/domain/personaje/Orco.class
 game/effects/status/CharacterDecorator.class
 game/events/observer/StatisticsTracker.class

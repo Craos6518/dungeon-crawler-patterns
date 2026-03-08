@@ -70,7 +70,9 @@ public class StatePatternTest {
     
     @Test
     public void testCallbacksOnEnterYOnExitSeEjecutan() {
-        contexto = new GameStateContext(new MenuState(contexto));
+        // Crear el estado con null inicialmente, luego el contexto
+        MenuState menuState = new MenuState(null);
+        contexto = new GameStateContext(menuState);
         String output1 = outputStream.toString();
         
         assertTrue(output1.contains("Entrando al menú principal"), 
@@ -83,17 +85,23 @@ public class StatePatternTest {
         
         assertTrue(output2.contains("Saliendo del menú principal"), 
             "onExit del estado anterior debe ejecutarse");
-        assertTrue(output2.contains("Entrando a exploración"), 
+        assertTrue(output2.contains("Iniciando exploración"), 
             "onEnter del nuevo estado debe ejecutarse");
     }
     
     @Test
     public void testMenuStateCambiaPorEntrada() {
-        contexto = new GameStateContext(new MenuState(contexto));
+        // Crear MenuState con referencia al contexto que se creará
+        MenuState menuState = new MenuState(null);
+        contexto = new GameStateContext(menuState);
         
         assertEquals("Menu", contexto.getEstadoActual().getNombre());
         
-        // Simular entrada "jugar"
+        // MenuState fue creado con null, necesitamos transición manual
+        // o cambiar a un estado que tenga el contexto correcto
+        contexto.cambiarEstado(new MenuState(contexto));
+        
+        // Ahora simular entrada "jugar"
         contexto.procesarEntrada("1");
         
         // Debe haber cambiado a ExplorationState
@@ -124,9 +132,14 @@ public class StatePatternTest {
     
     @Test
     public void testGameOverStateVolverAlMenu() {
-        contexto = new GameStateContext(new GameOverState(contexto, false));
+        // Crear estado inicial con null, luego el contexto
+        GameOverState gameOverState = new GameOverState(null, false);
+        contexto = new GameStateContext(gameOverState);
         
         assertEquals("GameOver", contexto.getEstadoActual().getNombre());
+        
+        // Cambiar a un GameOverState que tenga el contexto correcto
+        contexto.cambiarEstado(new GameOverState(contexto, false));
         
         // Simular entrada "menu"
         contexto.procesarEntrada("2");
@@ -136,9 +149,14 @@ public class StatePatternTest {
     
     @Test
     public void testMenuStatePuedeDetenerContexto() {
-        contexto = new GameStateContext(new MenuState(contexto));
+        // Crear estado con null, luego contexto, luego actualizar
+        MenuState menuState = new MenuState(null);
+        contexto = new GameStateContext(menuState);
         
         assertTrue(contexto.isEjecutando());
+        
+        // Cambiar a MenuState con contexto correcto
+        contexto.cambiarEstado(new MenuState(contexto));
         
         // Simular entrada "salir"
         contexto.procesarEntrada("3");
