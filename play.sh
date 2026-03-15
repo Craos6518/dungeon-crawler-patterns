@@ -2,6 +2,8 @@
 # Script de inicio rápido para el juego interactivo
 # Uso: ./play.sh
 
+export JAVA_HOME=/usr/lib/jvm/java-17-temurin-jdk
+
 echo "🎮 Iniciando Dungeon Crawler Interactivo..."
 echo ""
 

@@ -18,6 +18,11 @@ public abstract class Personaje {
         vida = Math.max(0, vida - danioAplicado);
     }
 
+    public void curar(int cantidad) {
+        int curacion = Math.max(0, cantidad);
+        vida += curacion;
+    }
+
     public boolean estaVivo() {
         return vida > 0;
     }

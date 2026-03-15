@@ -47,10 +47,14 @@ Personaje enemigo = tema.crearJefe();
 ```
 DungeonBuilder builder = new ConcreteDungeonBuilder();
 DungeonDirector director = new DungeonDirector(builder);
-Dungeon mazmorra = director.construirMazmorraFuego();
+
+// El director puede construir 3 variantes de mazmorras:
+Dungeon mazmorraBasica = director.construirMazmorraBasica();
+Dungeon mazmorraFuego = director.construirMazmorraFuego();
+Dungeon mazmorraOscura = director.construirMazmorraOscura();
 ```
 
-**Colaboración**: La mazmorra define el contexto temático del combate.
+**Colaboración**: La mazmorra define el contexto temático del combate. El `DungeonDirector` ofrece 3 configuraciones predefinidas.
 
 ---
 

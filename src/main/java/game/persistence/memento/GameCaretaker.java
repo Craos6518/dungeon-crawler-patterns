@@ -74,7 +74,7 @@ public class GameCaretaker {
             oos.writeObject(memento);
             System.out.println("Partida guardada exitosamente en: " + rutaCompleta);
         } catch (IOException e) {
-            System.err.println("Error al guardar la partida: " + e.getMessage());
+            System.out.println("Error al guardar la partida: " + e.getMessage());
             throw new RuntimeException("No se pudo guardar la partida", e);
         }
     }
@@ -91,7 +91,7 @@ public class GameCaretaker {
             System.out.println("Partida cargada exitosamente desde: " + rutaCompleta);
             return memento;
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Error al cargar la partida: " + e.getMessage());
+            System.out.println("Error al cargar la partida: " + e.getMessage());
             throw new RuntimeException("No se pudo cargar la partida", e);
         }
     }

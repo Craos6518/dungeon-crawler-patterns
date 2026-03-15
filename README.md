@@ -4,6 +4,11 @@ Proyecto académico desarrollado en **Java 17** para demostrar la aplicación co
 
 El objetivo principal **no es crear un juego complejo**, sino **diseñar una arquitectura limpia, mantenible y defendible académicamente**.
 
+## 📘 Documentación de Diseño
+
+- GDD general del proyecto: `../GDD.md`
+- Trazabilidad GDD -> código: `GDD_IMPLEMENTACION.md`
+
 ---
 
 ## 🎯 Características Principales

@@ -17,15 +17,15 @@ game/events/observer/StatisticsTracker$1.class
 game/domain/personaje/Guerrero.class
 game/ai/strategy/IntelligentStrategy.class
 game/ai/strategy/package-info.class
-game/events/observer/GameEvent.class
 game/events/observer/CombatLogger$1.class
+game/events/observer/GameEvent.class
 game/ai/strategy/AIStrategy.class
 game/domain/personaje/Mago.class
 game/dungeon/model/Dungeon.class
 game/state/game/InventoryState.class
 game/ai/strategy/DefensiveStrategy.class
-game/domain/personaje/factory/DragonFactory.class
 game/demo/PatronesCreacionalesDemo.class
+game/domain/personaje/factory/DragonFactory.class
 game/dungeon/builder/ConcreteDungeonBuilder.class
 game/events/observer/package-info.class
 game/persistence/memento/GameCaretaker.class
@@ -48,8 +48,8 @@ game/effects/status/package-info.class
 game/combat/model/ResultadoAtaque.class
 game/state/game/ExplorationState.class
 game/events/observer/UINotifier$1.class
-game/state/game/GameOverState.class
 game/state/game/CombatState.class
+game/state/game/GameOverState.class
 game/command/actions/SkillCommand.class
 game/events/observer/GameObserver.class
 game/state/game/GameState.class
@@ -70,8 +70,8 @@ game/effects/status/PoisonEffect.class
 game/domain/personaje/factory/MagoFactory.class
 game/combat/facade/CombatFacade$EstadisticasCombate.class
 game/effects/status/StunEffect.class
-game/domain/personaje/factory/ArqueroFactory.class
 game/command/actions/AttackCommand.class
+game/domain/personaje/factory/ArqueroFactory.class
 game/combat/engine/MotorCombate.class
 game/events/observer/UINotifier.class
 game/persistence/memento/GameMemento.class
