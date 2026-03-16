@@ -283,6 +283,6 @@ sobre la complejidad del juego.
 
 Proyecto académico desarrollado por:
 
-**Andrés**
+**Andrés Felipe Martinez Henao**
 
 Curso: Patrones de Diseño de Software
