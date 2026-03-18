@@ -1,0 +1,27 @@
+@startuml
+title Arquitectura por Componentes
+
+package "Capa Presentación" {
+    [ConsolaUI]
+}
+
+package "Capa Aplicación" {
+    [MotorCombate]
+    [GestorTurnos]
+}
+
+package "Capa Dominio" {
+    [Personaje]
+    [EstrategiaAtaque]
+    [GestorEfectos]
+    [EfectoEstado]
+    [Comando]
+}
+
+ConsolaUI --> MotorCombate
+MotorCombate --> Comando
+MotorCombate --> Personaje
+Personaje --> GestorEfectos
+Personaje --> EstrategiaAtaque
+
+@enduml

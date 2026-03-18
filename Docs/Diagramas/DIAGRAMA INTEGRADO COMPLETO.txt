@@ -1,0 +1,129 @@
+@startuml
+title Sistema de Combate Integrado - Arquitectura Limpia
+
+' =========================
+' PERSONAJE
+' =========================
+
+abstract class Personaje {
+    - nombre : String
+    - hp : int
+    - ataqueBase : int
+    - defensaBase : int
+    - estrategia : EstrategiaAtaque
+    - calculadorBase : CalculadorDanio
+    - gestorEfectos : GestorEfectos
+    + ejecutarTurno(objetivo : Personaje) : void
+    + calcularAtaque() : int
+    + calcularDefensa() : int
+    + recibirDanio(cantidad : int) : void
+    + aplicarEfecto(e : EfectoEstado) : void
+}
+
+Personaje --> EstrategiaAtaque
+Personaje --> GestorEfectos
+Personaje --> CalculadorDanio
+
+' =========================
+' STRATEGY
+' =========================
+
+interface EstrategiaAtaque {
+    + calcularDanio(atacante : Personaje, defensor : Personaje) : int
+}
+
+class AtaqueFisico
+class AtaqueMagico
+
+EstrategiaAtaque <|.. AtaqueFisico
+EstrategiaAtaque <|.. AtaqueMagico
+
+' =========================
+' CALCULADOR (DECORATOR)
+' =========================
+
+interface CalculadorDanio {
+    + calcularAtaque(base : int) : int
+    + calcularDefensa(base : int) : int
+}
+
+class CalculadorBase
+CalculadorDanio <|.. CalculadorBase
+
+abstract class CalculadorDecorator {
+    - componente : CalculadorDanio
+}
+
+CalculadorDanio <|.. CalculadorDecorator
+CalculadorDecorator --> CalculadorDanio
+
+class DecoradorVeneno
+class DecoradorFortaleza
+class DecoradorDebilidad
+
+CalculadorDecorator <|-- DecoradorVeneno
+CalculadorDecorator <|-- DecoradorFortaleza
+CalculadorDecorator <|-- DecoradorDebilidad
+
+' =========================
+' EFECTOS
+' =========================
+
+abstract class EfectoEstado {
+    - duracion : int
+    + aplicarDecorador(base : CalculadorDanio) : CalculadorDanio
+    + procesarTurno(p : Personaje) : void
+    + reducirDuracion() : void
+    + estaExpirado() : boolean
+}
+
+class EfectoVeneno
+class EfectoFortaleza
+class EfectoDebilidad
+
+EfectoEstado <|-- EfectoVeneno
+EfectoEstado <|-- EfectoFortaleza
+EfectoEstado <|-- EfectoDebilidad
+
+' =========================
+' GESTOR DE EFECTOS
+' =========================
+
+class GestorEfectos {
+    - efectosActivos : List<EfectoEstado>
+    + agregarEfecto(e : EfectoEstado) : void
+    + procesarEfectos(p : Personaje) : void
+    + construirCalculador(base : CalculadorDanio) : CalculadorDanio
+    + limpiarExpirados() : void
+}
+
+GestorEfectos --> "0..*" EfectoEstado
+
+' =========================
+' COMMAND
+' =========================
+
+interface Comando {
+    + ejecutar() : void
+}
+
+class ComandoAtacar
+class ComandoAplicarEfecto
+
+Comando <|.. ComandoAtacar
+Comando <|.. ComandoAplicarEfecto
+
+ComandoAtacar --> Personaje
+ComandoAplicarEfecto --> Personaje
+
+' =========================
+' MOTOR DE COMBATE
+' =========================
+
+class MotorCombate {
+    + ejecutarTurno(c : Comando) : void
+}
+
+MotorCombate --> Comando
+
+@enduml

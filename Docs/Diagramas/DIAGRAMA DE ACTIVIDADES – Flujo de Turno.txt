@@ -1,0 +1,20 @@
+@startuml
+title Actividad - Flujo de Turno
+
+start
+
+:Procesar efectos activos;
+
+if (Personaje vivo?) then (Sí)
+    :Seleccionar comando;
+    :Validar comando;
+    :Ejecutar comando;
+    :Aplicar daño/efectos;
+else (No)
+    :Terminar combate;
+endif
+
+:Verificar victoria/derrota;
+
+stop
+@enduml

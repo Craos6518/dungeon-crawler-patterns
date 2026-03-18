@@ -1,0 +1,21 @@
+@startuml
+title Secuencia - Modelo Alternado
+
+participant MotorCombate
+participant Personaje
+participant Comando
+
+MotorCombate -> Personaje : procesarEfectos()
+MotorCombate -> Personaje : estaVivo()?
+
+alt Vivo
+    MotorCombate -> Personaje : seleccionarComando()
+    Personaje --> MotorCombate : Comando
+    MotorCombate -> Comando : ejecutar()
+    MotorCombate -> MotorCombate : verificarFin()
+    MotorCombate -> MotorCombate : cambiarTurno()
+else Muerto
+    MotorCombate -> MotorCombate : finalizarCombate()
+end
+
+@enduml

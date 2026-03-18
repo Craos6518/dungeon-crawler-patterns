@@ -1,0 +1,15 @@
+@startuml
+title Estados del Combate
+
+[*] --> Inicializado
+Inicializado --> TurnoJugador
+TurnoJugador --> TurnoEnemigo : fin turno jugador
+TurnoEnemigo --> TurnoJugador : fin turno enemigo
+
+TurnoJugador --> Victoria : enemigo.hp <= 0
+TurnoEnemigo --> Derrota : jugador.hp <= 0
+
+Victoria --> [*]
+Derrota --> [*]
+
+@enduml

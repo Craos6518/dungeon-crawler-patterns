@@ -1,0 +1,66 @@
+@startuml
+title Subsistema de Efectos de Estado - Decorator
+
+' =========================
+' PERSONAJE
+' =========================
+
+abstract class Personaje {
+    - nombre : String
+    - hp : int
+    - ataqueBase : int
+    - defensaBase : int
+    - calculador : CalculadorDanio
+    + recibirDanio(cantidad : int) : void
+    + calcularAtaque() : int
+    + calcularDefensa() : int
+    + aplicarEfecto(efecto : CalculadorDanio) : void
+}
+
+Personaje --> CalculadorDanio
+
+' =========================
+' COMPONENTE
+' =========================
+
+interface CalculadorDanio {
+    + calcularAtaque(base : int) : int
+    + calcularDefensa(base : int) : int
+    + procesarTurno(p : Personaje) : void
+    + estaExpirado() : boolean
+}
+
+' =========================
+' COMPONENTE CONCRETO BASE
+' =========================
+
+class CalculadorBase
+
+CalculadorDanio <|.. CalculadorBase
+
+' =========================
+' DECORATOR ABSTRACTO
+' =========================
+
+abstract class EfectoEstadoDecorator {
+    - componente : CalculadorDanio
+    - duracion : int
+    + reducirDuracion() : void
+}
+
+CalculadorDanio <|.. EfectoEstadoDecorator
+EfectoEstadoDecorator --> CalculadorDanio
+
+' =========================
+' DECORADORES CONCRETOS
+' =========================
+
+class EfectoVeneno
+class EfectoQuemadura
+class EfectoFortaleza
+
+EfectoEstadoDecorator <|-- EfectoVeneno
+EfectoEstadoDecorator <|-- EfectoQuemadura
+EfectoEstadoDecorator <|-- EfectoFortaleza
+
+@enduml

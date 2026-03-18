@@ -1,0 +1,122 @@
+@startuml
+title Sistema de Combate - Diagrama Detallado
+
+' =========================
+' FACHADA
+' =========================
+
+class SistemaCombate {
+    - contexto : ContextoCombate
+    + iniciarCombate(heroes : List<Heroe>, enemigos : List<Enemigo>) : void
+    + ejecutarTurno() : void
+    + finalizarCombate() : void
+}
+
+SistemaCombate --> ContextoCombate
+
+' =========================
+' CONTEXTO DE COMBATE
+' =========================
+
+class ContextoCombate {
+    - heroes : List<Heroe>
+    - enemigos : List<Enemigo>
+    - turnoActual : Personaje
+    - historialComandos : List<Comando>
+    + determinarOrdenTurnos() : void
+    + siguienteTurno() : void
+    + verificarFinCombate() : boolean
+}
+
+ContextoCombate --> "1..*" Heroe
+ContextoCombate --> "1..*" Enemigo
+ContextoCombate --> "0..*" Comando
+
+' =========================
+' PERSONAJES
+' =========================
+
+abstract class Personaje {
+    - nombre : String
+    - hp : int
+    - ataque : int
+    - defensa : int
+    - velocidad : int
+    + recibirDanio(cantidad : int) : void
+    + estaVivo() : boolean
+}
+
+class Heroe
+class Enemigo {
+    - estrategia : EstrategiaIA
+    + ejecutarIA(contexto : ContextoCombate) : void
+}
+
+Personaje <|-- Heroe
+Personaje <|-- Enemigo
+
+Enemigo --> EstrategiaIA
+
+' =========================
+' STRATEGY (IA)
+' =========================
+
+interface EstrategiaIA {
+    + decidirAccion(enemigo : Enemigo, contexto : ContextoCombate) : Comando
+}
+
+class EstrategiaAgresiva
+class EstrategiaDefensiva
+class EstrategiaInteligente
+
+EstrategiaIA <|.. EstrategiaAgresiva
+EstrategiaIA <|.. EstrategiaDefensiva
+EstrategiaIA <|.. EstrategiaInteligente
+
+' =========================
+' COMMAND
+' =========================
+
+interface Comando {
+    + ejecutar() : void
+    + deshacer() : void
+}
+
+class ComandoMover {
+    - receptor : Personaje
+    - xDestino : int
+    - yDestino : int
+}
+
+class ComandoAtacar {
+    - atacante : Personaje
+    - objetivo : Personaje
+}
+
+class ComandoHabilidad {
+    - lanzador : Personaje
+    - objetivo : Personaje
+}
+
+class ComandoUsarItem {
+    - usuario : Heroe
+}
+
+Comando <|.. ComandoMover
+Comando <|.. ComandoAtacar
+Comando <|.. ComandoHabilidad
+Comando <|.. ComandoUsarItem
+
+ComandoMover --> Personaje
+ComandoAtacar --> Personaje
+ComandoHabilidad --> Personaje
+ComandoUsarItem --> Heroe
+
+' =========================
+' RELACIONES CLAVE
+' =========================
+
+SistemaCombate --> Comando : ejecuta >
+ContextoCombate --> Personaje : gestiona >
+
+@enduml

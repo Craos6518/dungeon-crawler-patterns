@@ -1,0 +1,25 @@
+@startuml
+title Secuencia - Turno de Ataque
+
+actor Usuario
+participant MotorCombate
+participant ComandoAtacar
+participant Personaje as Atacante
+participant Personaje as Defensor
+participant GestorEfectos
+participant EstrategiaAtaque
+
+Usuario -> MotorCombate : ejecutarTurno(comando)
+MotorCombate -> ComandoAtacar : ejecutar()
+
+ComandoAtacar -> Atacante : calcularAtaque()
+Atacante -> GestorEfectos : construirCalculador()
+GestorEfectos --> Atacante : CalculadorDanio decorado
+Atacante --> ComandoAtacar : ataqueFinal
+
+ComandoAtacar -> EstrategiaAtaque : calcularDanio(atacante, defensor)
+EstrategiaAtaque --> ComandoAtacar : dañoCalculado
+
+ComandoAtacar -> Defensor : recibirDanio(dañoCalculado)
+
+@enduml

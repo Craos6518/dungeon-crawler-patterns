@@ -1,6 +1,6 @@
 # Backlog del Proyecto Dungeon Crawler
 
-Fecha de corte: 17 de marzo de 2026
+Fecha de corte: 18 de marzo de 2026
 
 ## Completados
 
@@ -39,12 +39,16 @@ Fecha de corte: 17 de marzo de 2026
   - `AIStrategy` y estrategias concretas.
   - `GameObserver` y observers concretos.
   - `GameState` y estados concretos.
+- Integración del patrón State en producción:
+  - La orquestación runtime principal usa estados de ejecución reales (`MenuRuntimeState`, `SetupRuntimeState`, `AdventureRuntimeState`).
+  - Las clases de estado legacy (`MenuState`, `ExplorationState`, `CombatState`, `InventoryState`, `GameOverState`) disponibles para demostración académica y pruebas del patrón.
+  - Desacoplamiento mediante `GameRuntimeCoordinator` para que RuntimeStates no dependan directamente de `InteractiveGame`.
+  - `GameStateContext` gestiona transiciones y callbacks (onEnter/onExit) correctamente.
+  - Demo académica ejecutable: `game.demo.LegacyStatePatternDemo` (muestra patrón State clásico con legacy states).
+  - Implementación verificada con Java 17 y Maven compilación limpia.
+  - Arquitectura de dos niveles: Production RuntimeStates + Academic LegacyStates para docencia.
 
 ## Parcialmente Completados
-
-- Integración del patrón State en producción:
-  - La orquestación runtime principal ya usa estados de ejecución reales.
-  - Las clases de estado legacy (`MenuState`, `ExplorationState`, etc.) permanecen para demostración académica y pruebas del patrón.
 - IA de enemigos:
   - Estrategias disponibles y cambio dinámico funcional.
   - La profundidad táctica en el loop interactivo es básica (reglas simples por umbrales de vida).

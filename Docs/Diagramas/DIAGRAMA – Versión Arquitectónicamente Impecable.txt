@@ -1,0 +1,96 @@
+@startuml
+title Subsistema de Efectos - Versión Limpia con Gestor
+
+' =========================
+' PERSONAJE
+' =========================
+
+abstract class Personaje {
+    - nombre : String
+    - hp : int
+    - ataqueBase : int
+    - defensaBase : int
+    - calculadorBase : CalculadorDanio
+    - gestorEfectos : GestorEfectos
+    + calcularAtaque() : int
+    + calcularDefensa() : int
+    + recibirDanio(cantidad : int) : void
+    + aplicarEfecto(efecto : EfectoEstado) : void
+}
+
+Personaje --> CalculadorDanio
+Personaje --> GestorEfectos
+
+' =========================
+' COMPONENTE BASE
+' =========================
+
+interface CalculadorDanio {
+    + calcularAtaque(base : int) : int
+    + calcularDefensa(base : int) : int
+}
+
+class CalculadorBase
+
+CalculadorDanio <|.. CalculadorBase
+
+' =========================
+' DECORATOR ABSTRACTO
+' =========================
+
+abstract class CalculadorDecorator {
+    - componente : CalculadorDanio
+}
+
+CalculadorDanio <|.. CalculadorDecorator
+CalculadorDecorator --> CalculadorDanio
+
+' =========================
+' EFECTOS CONCRETOS (Decoradores)
+' =========================
+
+class DecoradorVeneno
+class DecoradorQuemadura
+class DecoradorFortaleza
+
+CalculadorDecorator <|-- DecoradorVeneno
+CalculadorDecorator <|-- DecoradorQuemadura
+CalculadorDecorator <|-- DecoradorFortaleza
+
+' =========================
+' EFECTO COMO ENTIDAD LÓGICA
+' =========================
+
+abstract class EfectoEstado {
+    - duracion : int
+    + aplicarDecorador(base : CalculadorDanio) : CalculadorDanio
+    + procesarTurno(p : Personaje) : void
+    + reducirDuracion() : void
+    + estaExpirado() : boolean
+}
+
+class EfectoVeneno
+class EfectoQuemadura
+class EfectoFortaleza
+
+EfectoEstado <|-- EfectoVeneno
+EfectoEstado <|-- EfectoQuemadura
+EfectoEstado <|-- EfectoFortaleza
+
+EfectoEstado --> CalculadorDanio
+
+' =========================
+' GESTOR DE EFECTOS
+' =========================
+
+class GestorEfectos {
+    - efectosActivos : List<EfectoEstado>
+    + agregarEfecto(e : EfectoEstado) : void
+    + procesarEfectos(p : Personaje) : void
+    + construirCalculador(base : CalculadorDanio) : CalculadorDanio
+    + limpiarExpirados() : void
+}
+
+GestorEfectos --> "0..*" EfectoEstado
+
+@enduml

@@ -1,0 +1,163 @@
+@startuml
+title Dungeon Crawler - Arquitectura Base
+
+' =========================
+' NÚCLEO DEL DOMINIO
+' =========================
+
+abstract class Personaje {
+    - nombre : String
+    - hp : int
+    - ataque : int
+    - defensa : int
+    - velocidad : int
+    + recibirDanio(cantidad : int) : void
+    + realizarAccion() : void
+}
+
+class Heroe {
+}
+
+class Enemigo {
+    - estrategia : EstrategiaIA
+    + ejecutarIA() : void
+}
+
+Personaje <|-- Heroe
+Personaje <|-- Enemigo
+
+Enemigo --> EstrategiaIA
+
+' =========================
+' FACTORY METHOD
+' =========================
+
+interface FabricaHeroe {
+    + crearHeroe(tipo : String) : Heroe
+}
+
+class FabricaHeroeConcreta
+
+FabricaHeroe <|.. FabricaHeroeConcreta
+
+' =========================
+' STRATEGY
+' =========================
+
+interface EstrategiaIA {
+    + decidirAccion() : void
+}
+
+class EstrategiaAgresiva
+class EstrategiaDefensiva
+class EstrategiaInteligente
+
+EstrategiaIA <|.. EstrategiaAgresiva
+EstrategiaIA <|.. EstrategiaDefensiva
+EstrategiaIA <|.. EstrategiaInteligente
+
+' =========================
+' COMMAND
+' =========================
+
+interface Comando {
+    + ejecutar() : void
+    + deshacer() : void
+}
+
+class ComandoMover
+class ComandoAtacar
+class ComandoHabilidad
+class ComandoUsarItem
+
+Comando <|.. ComandoMover
+Comando <|.. ComandoAtacar
+Comando <|.. ComandoHabilidad
+Comando <|.. ComandoUsarItem
+
+' =========================
+' COMPOSITE (Inventario)
+' =========================
+
+interface Item {
+    + getPeso() : double
+}
+
+class ItemSimple
+class ItemContenedor {
+    - hijos : List<Item>
+    + agregar(item : Item) : void
+    + remover(item : Item) : void
+}
+
+Item <|.. ItemSimple
+Item <|.. ItemContenedor
+
+ItemContenedor --> "0..*" Item
+
+' =========================
+' STATE (Estados del Juego)
+' =========================
+
+interface EstadoJuego {
+    + manejarEntrada() : void
+}
+
+class EstadoMenu
+class EstadoExploracion
+class EstadoCombate
+class EstadoInventario
+class EstadoGameOver
+
+EstadoJuego <|.. EstadoMenu
+EstadoJuego <|.. EstadoExploracion
+EstadoJuego <|.. EstadoCombate
+EstadoJuego <|.. EstadoInventario
+EstadoJuego <|.. EstadoGameOver
+
+' =========================
+' BUILDER
+' =========================
+
+interface ConstructorMazmorra {
+    + construirHabitaciones() : void
+    + conectarHabitaciones() : void
+    + colocarEnemigos() : void
+}
+
+class ConstructorMazmorraConcreto
+
+ConstructorMazmorra <|.. ConstructorMazmorraConcreto
+
+' =========================
+' ABSTRACT FACTORY
+' =========================
+
+interface FabricaTemaMazmorra {
+    + crearEnemigo() : Enemigo
+    + crearTesoro() : Item
+}
+
+class FabricaTemaFuego
+class FabricaTemaVeneno
+
+FabricaTemaMazmorra <|.. FabricaTemaFuego
+FabricaTemaMazmorra <|.. FabricaTemaVeneno
+
+' =========================
+' MEMENTO
+' =========================
+
+class MementoJuego {
+    - estadoSerializado : String
+    + getEstado() : String
+}
+
+class GestorGuardado {
+    + guardar(m : MementoJuego) : void
+    + cargar() : MementoJuego
+}
+
+GestorGuardado --> MementoJuego
+
+@enduml

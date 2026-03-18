@@ -1,0 +1,19 @@
+@startuml
+title Secuencia - Procesamiento de Efectos
+
+participant MotorCombate
+participant Personaje
+participant GestorEfectos
+participant EfectoEstado
+
+MotorCombate -> Personaje : iniciarTurno()
+Personaje -> GestorEfectos : procesarEfectos()
+
+loop por cada efecto activo
+    GestorEfectos -> EfectoEstado : procesarTurno(personaje)
+    GestorEfectos -> EfectoEstado : reducirDuracion()
+end
+
+GestorEfectos -> GestorEfectos : limpiarExpirados()
+
+@enduml

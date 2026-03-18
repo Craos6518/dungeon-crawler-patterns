@@ -1,0 +1,30 @@
+@startuml
+title Modelo Alternado Formal - Motor de Combate
+
+class MotorCombate {
+    - jugador : Personaje
+    - enemigo : Personaje
+    - turnoActual : TipoTurno
+    - estado : EstadoCombate
+    + iniciar()
+    + ejecutarTurno()
+    + cambiarTurno()
+    + verificarFin()
+}
+
+enum TipoTurno {
+    JUGADOR
+    ENEMIGO
+}
+
+enum EstadoCombate {
+    INICIADO
+    EN_PROGRESO
+    FINALIZADO
+}
+
+MotorCombate --> Personaje
+MotorCombate --> TipoTurno
+MotorCombate --> EstadoCombate
+
+@enduml
