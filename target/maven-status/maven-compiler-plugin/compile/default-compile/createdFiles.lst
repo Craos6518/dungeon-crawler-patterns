@@ -24,8 +24,8 @@ game/domain/personaje/Mago.class
 game/dungeon/model/Dungeon.class
 game/state/game/InventoryState.class
 game/ai/strategy/DefensiveStrategy.class
-game/demo/PatronesCreacionalesDemo.class
 game/domain/personaje/factory/DragonFactory.class
+game/demo/PatronesCreacionalesDemo.class
 game/dungeon/builder/ConcreteDungeonBuilder.class
 game/events/observer/package-info.class
 game/persistence/memento/GameCaretaker.class
@@ -35,8 +35,8 @@ game/state/game/package-info.class
 game/InteractiveGame.class
 game/domain/personaje/Orco.class
 game/effects/status/CharacterDecorator.class
-game/events/observer/StatisticsTracker.class
 game/ui/console/package-info.class
+game/events/observer/StatisticsTracker.class
 game/events/observer/CombatLogger.class
 game/domain/personaje/factory/GuerreroFactory.class
 game/Main.class
@@ -73,8 +73,8 @@ game/effects/status/StunEffect.class
 game/command/actions/AttackCommand.class
 game/domain/personaje/factory/ArqueroFactory.class
 game/combat/engine/MotorCombate.class
-game/events/observer/UINotifier.class
 game/persistence/memento/GameMemento.class
+game/events/observer/UINotifier.class
 game/effects/status/BurnEffect.class
 game/events/observer/EventManager.class
 game/ai/strategy/AIController.class

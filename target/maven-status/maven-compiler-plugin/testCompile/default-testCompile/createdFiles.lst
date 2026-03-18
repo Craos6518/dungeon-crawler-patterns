@@ -4,8 +4,8 @@ game/unit/structural/FacadePatternTest.class
 game/unit/creational/FactoryMethodTest.class
 game/unit/combat/CombatEndTest.class
 game/unit/behavioral/ObserverPatternTest.class
-game/unit/creational/BuilderPatternTest.class
 game/unit/combat/CombatTurnAlternationTest.class
+game/unit/creational/BuilderPatternTest.class
 game/integration/behavioral/StateMementoIntegrationTest.class
 game/integration/behavioral/BehavioralPatternsIntegrationTest.class
 game/unit/behavioral/StatePatternTest.class

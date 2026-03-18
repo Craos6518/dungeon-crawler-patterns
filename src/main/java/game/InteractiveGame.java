@@ -17,13 +17,21 @@ import game.dungeon.theme.*;
 import game.effects.status.PoisonEffect;
 import game.events.observer.*;
 import game.items.model.ContainerItem;
+import game.items.model.ItemComponent;
 import game.items.model.SimpleItem;
 import game.persistence.memento.GameCaretaker;
 import game.persistence.memento.GameMemento;
 import game.persistence.memento.GameOriginator;
+import game.state.game.GameState;
+import game.state.game.GameStateContext;
+import game.state.game.runtime.GameRuntimeCoordinator;
+import game.state.game.runtime.MenuRuntimeState;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Scanner;
@@ -31,10 +39,48 @@ import java.util.Scanner;
 /**
  * Juego interactivo completo que integra los patrones del proyecto.
  */
-public class InteractiveGame {
+public class InteractiveGame implements GameRuntimeCoordinator {
 
     private static final class InputClosedException extends RuntimeException {
         private static final long serialVersionUID = 1L;
+    }
+
+    private static final class FlowState implements GameState {
+        private final String nombre;
+
+        private FlowState(String nombre) {
+            this.nombre = nombre;
+        }
+
+        @Override
+        public void manejarEntrada(String entrada) {
+            // Estado de flujo informativo para el loop principal.
+        }
+
+        @Override
+        public void actualizar() {
+            // Sin lógica de actualización en este adaptador.
+        }
+
+        @Override
+        public void render() {
+            // El render real lo maneja InteractiveGame.
+        }
+
+        @Override
+        public void onEnter() {
+            // Estado de flujo silencioso para evitar ruido en UI.
+        }
+
+        @Override
+        public void onExit() {
+            // Estado de flujo silencioso para evitar ruido en UI.
+        }
+
+        @Override
+        public String getNombre() {
+            return nombre;
+        }
     }
 
     private final Scanner scanner;
@@ -62,6 +108,13 @@ public class InteractiveGame {
     private boolean enCombate;
     private final boolean vistaDebugIA;
     private final List<String> historialIA;
+    private GameStateContext runtimeContext;
+    private GameStateContext flowContext;
+    private boolean defensaHeroeActiva;
+    private int turnosVenenoHeroe;
+    private int danioVenenoHeroe;
+    private boolean solicitarNuevaPartida;
+    private boolean solicitarReanudarExploracion;
 
     public InteractiveGame() {
         this.scanner = new Scanner(System.in);
@@ -73,6 +126,11 @@ public class InteractiveGame {
         this.enCombate = false;
         this.vistaDebugIA = true;
         this.historialIA = new ArrayList<>();
+        this.defensaHeroeActiva = false;
+        this.turnosVenenoHeroe = 0;
+        this.danioVenenoHeroe = 0;
+        this.solicitarNuevaPartida = false;
+        this.solicitarReanudarExploracion = false;
 
         this.eventManager = EventManager.getInstance();
         this.eventManager.limpiar();
@@ -94,21 +152,11 @@ public class InteractiveGame {
 
     private void iniciar() {
         mostrarTitulo();
+        this.runtimeContext = new GameStateContext(new MenuRuntimeState(this));
 
         try {
-            while (juegoActivo) {
-                mostrarMenuPrincipal();
-                int opcion = leerOpcion(1, 4);
-
-                switch (opcion) {
-                    case 1 -> nuevaPartida();
-                    case 2 -> cargarPartida();
-                    case 3 -> mostrarEstadisticas();
-                    case 4 -> {
-                        System.out.println("\n¡Gracias por jugar! 🎮");
-                        juegoActivo = false;
-                    }
-                }
+            while (juegoActivo && runtimeContext.isEjecutando()) {
+                runtimeContext.actualizar();
             }
         } catch (InputClosedException e) {
             System.out.println("\nEntrada finalizada. Cerrando juego de forma segura.");
@@ -117,21 +165,22 @@ public class InteractiveGame {
         scanner.close();
     }
 
-    private void nuevaPartida() {
+    private boolean configurarNuevaPartida() {
+        cambiarEstadoFlujo("Preparacion");
         System.out.println("\n" + "=".repeat(60));
         System.out.println("🎮 NUEVA PARTIDA");
         System.out.println("=".repeat(60));
 
         this.heroe = elegirHeroe();
         if (heroe == null) {
-            return;
+            return false;
         }
 
         crearInventarioInicial();
 
         this.temaActual = elegirTema();
         if (temaActual == null) {
-            return;
+            return false;
         }
 
         construirMazmorra();
@@ -139,12 +188,81 @@ public class InteractiveGame {
         this.salaActual = 0;
         this.enemigosDerrota = 0;
         this.oroAcumulado = 0;
+        this.turnosVenenoHeroe = 0;
+        this.danioVenenoHeroe = 0;
+        this.defensaHeroeActiva = false;
 
         eventManager.notificar(new GameEvent(EventType.JUEGO_INICIADO)
             .agregarDato("heroe", heroe.getNombre())
             .agregarDato("tema", temaActual.getNombreTema()));
 
+        return true;
+    }
+
+    @Override
+    public void cambiarEstadoRuntime(GameState nuevoEstado) {
+        runtimeContext.cambiarEstado(nuevoEstado);
+    }
+
+    @Override
+    public void cambiarEstadoFlujoRuntime(String nombreEstado) {
+        cambiarEstadoFlujo(nombreEstado);
+    }
+
+    @Override
+    public int leerOpcionMenuPrincipal() {
+        mostrarMenuPrincipal();
+        return leerOpcion(1, 4);
+    }
+
+    @Override
+    public boolean configurarNuevaPartidaRuntime() {
+        return configurarNuevaPartida();
+    }
+
+    @Override
+    public boolean cargarPartidaDesdeMenuRuntime() {
+        return cargarPartida(false);
+    }
+
+    @Override
+    public void mostrarEstadisticasRuntime() {
+        mostrarEstadisticas();
+    }
+
+    @Override
+    public void ejecutarAventuraRuntime() {
         explorarMazmorra();
+    }
+
+    @Override
+    public boolean consumirSolicitudNuevaPartida() {
+        if (!solicitarNuevaPartida) {
+            return false;
+        }
+        solicitarNuevaPartida = false;
+        return true;
+    }
+
+    @Override
+    public boolean consumirSolicitudReanudarExploracion() {
+        if (!solicitarReanudarExploracion) {
+            return false;
+        }
+        solicitarReanudarExploracion = false;
+        return true;
+    }
+
+    @Override
+    public void detenerJuegoRuntime() {
+        System.out.println("\n¡Gracias por jugar! 🎮");
+        juegoActivo = false;
+        runtimeContext.detener();
+    }
+
+    @Override
+    public boolean estaJuegoActivoRuntime() {
+        return juegoActivo;
     }
 
     private Personaje elegirHeroe() {
@@ -234,6 +352,7 @@ public class InteractiveGame {
     }
 
     private void explorarMazmorra() {
+        cambiarEstadoFlujo("Exploracion");
         System.out.println("\n" + "=".repeat(60));
         System.out.println("🗺️  EXPLORANDO: " + mazmorra.getNombre());
         System.out.println("=".repeat(60));
@@ -347,11 +466,11 @@ public class InteractiveGame {
     }
 
     private SimpleItem buscarConsumiblePorNombre(String textoParcial) {
-        String criterio = textoParcial.toLowerCase();
+        String criterio = normalizarTexto(textoParcial);
         for (var item : inventario.obtenerItems()) {
             if (item instanceof SimpleItem simpleItem) {
-                String nombre = simpleItem.getNombre().toLowerCase();
-                String tipo = simpleItem.getTipo().toLowerCase();
+                String nombre = normalizarTexto(simpleItem.getNombre());
+                String tipo = normalizarTexto(simpleItem.getTipo());
                 if (tipo.contains("consum") && nombre.contains(criterio)) {
                     return simpleItem;
                 }
@@ -360,12 +479,15 @@ public class InteractiveGame {
         return null;
     }
 
+    private String normalizarTexto(String texto) {
+        String normalized = Normalizer.normalize(texto, Normalizer.Form.NFD);
+        return normalized.replaceAll("\\p{M}", "").toLowerCase();
+    }
+
     private void guardarPartida() {
         System.out.println("\n💾 Guardando partida...");
 
-        sincronizarEstadoOriginator("Exploracion");
-
-        GameMemento memento = originator.guardar();
+        GameMemento memento = crearMementoSesion("Exploracion");
         caretaker.guardarEnMemoria(memento);
 
         System.out.print("Nombre del archivo (o Enter para autosave): ");
@@ -377,19 +499,24 @@ public class InteractiveGame {
         try {
             caretaker.guardarEnDisco(memento, nombreArchivo);
             System.out.println("✅ Partida guardada: " + nombreArchivo + ".save");
+            eventManager.notificar(new GameEvent(EventType.JUEGO_GUARDADO)
+                .agregarDato("tipo", "manual")
+                .agregarDato("archivo", nombreArchivo));
         } catch (RuntimeException e) {
             System.out.println("❌ Error al guardar partida: " + e.getMessage());
         }
     }
 
-    private void cargarPartida() {
+    private boolean cargarPartida(boolean pausarAlFinal) {
         System.out.println("\n📂 CARGAR PARTIDA");
         List<String> guardados = caretaker.listarGuardados();
         if (guardados.isEmpty()) {
             System.out.println("No hay guardados en disco.");
-            System.out.println("\n(Presiona Enter)");
-            esperarEnterSiDisponible();
-            return;
+            if (pausarAlFinal) {
+                System.out.println("\n(Presiona Enter)");
+                esperarEnterSiDisponible();
+            }
+            return false;
         }
 
         System.out.println("Ranuras disponibles:");
@@ -403,15 +530,19 @@ public class InteractiveGame {
 
         if (nombreArchivo == null || nombreArchivo.isEmpty()) {
             System.out.println("❌ Selección inválida. Operación cancelada.");
-            System.out.println("\n(Presiona Enter)");
-            esperarEnterSiDisponible();
-            return;
+            if (pausarAlFinal) {
+                System.out.println("\n(Presiona Enter)");
+                esperarEnterSiDisponible();
+            }
+            return false;
         }
 
+        boolean cargada = false;
         try {
             GameMemento memento = caretaker.cargarDesdeDisco(nombreArchivo);
             originator.restaurar(memento);
-            aplicarMementoAlJuego(memento);
+            restaurarSesionCompleta(memento);
+            cargada = true;
             System.out.println("✅ Partida cargada");
             System.out.println("   Jugador: " + originator.getNombreJugador());
             System.out.println("   Nivel: " + originator.getNivelActual());
@@ -422,8 +553,12 @@ public class InteractiveGame {
             System.out.println("❌ No se pudo cargar la partida: " + e.getMessage());
         }
 
-        System.out.println("\n(Presiona Enter)");
-        esperarEnterSiDisponible();
+        if (pausarAlFinal) {
+            System.out.println("\n(Presiona Enter)");
+            esperarEnterSiDisponible();
+        }
+
+        return cargada;
     }
 
     private void encontrarEnemigo() {
@@ -448,6 +583,8 @@ public class InteractiveGame {
         }
 
         eventManager.notificar(new GameEvent(EventType.COMBATE_INICIADO)
+            .agregarDato("atacante", heroe.getNombre())
+            .agregarDato("defensor", enemigo.getNombre())
             .agregarDato("heroe", heroe.getNombre())
             .agregarDato("enemigo", enemigo.getNombre()));
 
@@ -455,8 +592,10 @@ public class InteractiveGame {
     }
 
     private void iniciarCombate(Personaje enemigo, boolean esJefe) {
+        cambiarEstadoFlujo("Combate");
         enCombate = true;
         historialIA.clear();
+        defensaHeroeActiva = false;
 
         AIStrategy estrategiaInicial = esJefe ? new AggressiveStrategy() : new RandomStrategy();
         AIController enemyAI = new AIController(enemigo, estrategiaInicial);
@@ -467,9 +606,18 @@ public class InteractiveGame {
 
         int turno = 1;
         while (heroe.estaVivo() && enemigo.estaVivo()) {
+            aplicarVenenoHeroeInicioTurno();
+            if (!heroe.estaVivo()) {
+                break;
+            }
+
             System.out.println("\n--- TURNO " + turno + " ---");
             System.out.println("Tu HP: " + heroe.getVida() + " | " +
                 enemigo.getNombre() + " HP: " + enemigo.getVida());
+
+            if (turnosVenenoHeroe > 0) {
+                System.out.println("Estado: ☠️ Envenenado (" + turnosVenenoHeroe + " turnos restantes)");
+            }
 
             actualizarEstrategiaEnemiga(enemyAI, enemigo);
             if (vistaDebugIA) {
@@ -501,22 +649,11 @@ public class InteractiveGame {
                 case 2 -> {
                     DefendCommand defendCommand = new DefendCommand(heroe);
                     commandInvoker.ejecutarComando(defendCommand);
-                    System.out.println("\n🛡️  " + heroe.getNombre() + " se defiende! (+reducción de daño)");
+                    defensaHeroeActiva = true;
+                    System.out.println("\n🛡️  " + heroe.getNombre() + " se defiende! (reducción activa para el próximo golpe)");
                 }
                 case 3 -> {
-                    SimpleItem item = buscarConsumiblePorNombre("poci");
-                    if (item == null) {
-                        System.out.println("\n❌ No tienes consumibles de curación.");
-                        continue;
-                    }
-
-                    UseItemCommand useItemCommand = new UseItemCommand(heroe, item, heroe);
-                    commandInvoker.ejecutarComando(useItemCommand);
-                    usarPocion();
-
-                    eventManager.notificar(new GameEvent(EventType.ITEM_USADO)
-                        .agregarDato("usuario", heroe.getNombre())
-                        .agregarDato("item", item.getNombre()));
+                    usarConsumibleEnCombate();
                 }
                 case 4 -> {
                     String nombreHabilidad = "Golpe Especial";
@@ -548,6 +685,15 @@ public class InteractiveGame {
             historialIA.add("T" + turno + " " + nombreEstrategia + " -> " + accionEnemiga.getDescription());
 
             if (accionEnemiga instanceof AttackCommand ataqueCommand) {
+                if (defensaHeroeActiva) {
+                    int mitigado = Math.max(1, ataqueCommand.getDanioAplicado() / 2);
+                    heroe.curar(mitigado);
+                    defensaHeroeActiva = false;
+                    System.out.println("🛡️  Defensa activa: daño mitigado en " + mitigado + " puntos.");
+                }
+
+                aplicarVenenoPorAtaqueEnemigo();
+
                 System.out.println("💥 " + enemigo.getNombre() + " ataca!");
                 System.out.println("   Estrategia: " + nombreEstrategia);
                 System.out.println("   Daño recibido: " + ataqueCommand.getDanioAplicado());
@@ -560,6 +706,7 @@ public class InteractiveGame {
         }
 
         enCombate = false;
+        cambiarEstadoFlujo("Exploracion");
 
         if (heroe.estaVivo()) {
             System.out.println("\n🎉 ¡VICTORIA!");
@@ -580,6 +727,7 @@ public class InteractiveGame {
     }
 
     private void victoria() {
+        cambiarEstadoFlujo("Victoria");
         System.out.println("\n" + "=".repeat(60));
         System.out.println("🎊 ¡¡¡VICTORIA!!! 🎊");
         System.out.println("=".repeat(60));
@@ -597,6 +745,7 @@ public class InteractiveGame {
     }
 
     private void derrota() {
+        cambiarEstadoFlujo("GameOver");
         System.out.println("\n" + "=".repeat(60));
         System.out.println("💀 GAME OVER 💀");
         System.out.println("=".repeat(60));
@@ -685,7 +834,8 @@ public class InteractiveGame {
         System.out.println("Estado héroe: " + heroe.getNombre() +
             " | HP: " + heroe.getVida() +
             " | Oro: " + oroAcumulado +
-            " | Enemigos derrotados: " + enemigosDerrota);
+            " | Enemigos derrotados: " + enemigosDerrota +
+            " | Estado: " + estadoFlujoActual());
     }
 
     private void mostrarVistaDebugIA(AIController enemyAI, Personaje enemigo, int turno) {
@@ -741,9 +891,7 @@ public class InteractiveGame {
     }
 
     private void guardarCheckpointAutomatico() {
-        sincronizarEstadoOriginator("PostCombate");
-
-        GameMemento memento = originator.guardar();
+        GameMemento memento = crearMementoSesion("PostCombate");
         caretaker.guardarEnMemoria(memento);
         try {
             caretaker.guardarEnDisco(memento, "checkpoint-auto");
@@ -756,27 +904,332 @@ public class InteractiveGame {
         }
     }
 
-    private void sincronizarEstadoOriginator(String estado) {
-        originator.setEstadoActual(estado);
-        originator.recibirDanio(Math.max(0, originator.getVidaJugador() - heroe.getVida()));
+    private GameMemento crearMementoSesion(String estado) {
+        String nombreJugador = heroe != null ? heroe.getNombre() : originator.getNombreJugador();
+        int vidaActual = heroe != null ? heroe.getVida() : originator.getVidaJugador();
+
+        GameMemento.Builder builder = new GameMemento.Builder()
+            .nombreJugador(nombreJugador)
+            .nivelActual(Math.max(1, originator.getNivelActual()))
+            .salaActual(salaActual + 1)
+            .agregarEstadoPersonaje("vida", vidaActual)
+            .agregarEstadoPersonaje("claseHeroe", obtenerClaseHeroe())
+            .agregarEstadoPersonaje("enemigosDerrotados", enemigosDerrota)
+            .agregarEstadoPersonaje("oroAcumulado", oroAcumulado)
+            .agregarEstadoPersonaje("venenoTurnos", turnosVenenoHeroe)
+            .agregarEstadoPersonaje("venenoDanio", danioVenenoHeroe)
+            .agregarEstadoPersonaje("defensaActiva", defensaHeroeActiva)
+            .agregarEstadoInventario("items", serializarInventario())
+            .agregarEstadoMazmorra("tema", temaActual != null ? temaActual.getNombreTema() : "Fuego")
+            .agregarEstadoMazmorra("estadoActual", estado)
+            .agregarEstadoMazmorra("salaActualIndex", salaActual)
+            .agregarEstadoMazmorra("tamanoMazmorra", mazmorra != null ? mazmorra.getSalas().size() : 0);
+
+        return builder.build();
     }
 
-    private void aplicarMementoAlJuego(GameMemento memento) {
-        if (heroe != null) {
-            int vidaObjetivo = originator.getVidaJugador();
-            int delta = vidaObjetivo - heroe.getVida();
+    private List<Map<String, Object>> serializarInventario() {
+        List<Map<String, Object>> snapshot = new ArrayList<>();
 
-            if (delta > 0) {
-                heroe.curar(delta);
-            } else if (delta < 0) {
-                heroe.recibirDanio(-delta);
-            }
+        if (inventario == null) {
+            return snapshot;
         }
 
-        salaActual = Math.max(0, originator.getSalaActual() - 1);
+        for (ItemComponent item : inventario.obtenerItems()) {
+            recolectarItemsSimples(item, snapshot);
+        }
+
+        return snapshot;
+    }
+
+    private void recolectarItemsSimples(ItemComponent item, List<Map<String, Object>> snapshot) {
+        if (item instanceof SimpleItem simple) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("nombre", simple.getNombre());
+            data.put("descripcion", simple.getDescripcion());
+            data.put("tipo", simple.getTipo());
+            data.put("valor", simple.getValorTotal());
+            data.put("peso", simple.getPesoTotal());
+            snapshot.add(data);
+            return;
+        }
+
+        if (item instanceof ContainerItem contenedor) {
+            for (ItemComponent hijo : contenedor.obtenerItems()) {
+                recolectarItemsSimples(hijo, snapshot);
+            }
+        }
+    }
+
+    private void restaurarSesionCompleta(GameMemento memento) {
+        Map<String, Object> estadoPersonaje = memento.getEstadoPersonaje();
+        Map<String, Object> estadoInventario = memento.getEstadoInventario();
+        Map<String, Object> estadoMazmorra = memento.getEstadoMazmorra();
+
+        String nombreJugador = memento.getNombreJugador();
+        String claseHeroe = valorString(estadoPersonaje, "claseHeroe", "Guerrero");
+        this.heroe = crearHeroeSegunClase(claseHeroe, nombreJugador);
+
+        int vidaObjetivo = valorEntero(estadoPersonaje, "vida", heroe.getVida());
+        ajustarVida(heroe, vidaObjetivo);
+
+        this.temaActual = crearTemaDesdeNombre(valorString(estadoMazmorra, "tema", "Fuego"));
+        construirMazmorra();
+
+        int salaGuardada = valorEntero(estadoMazmorra, "salaActualIndex", Math.max(0, memento.getSalaActual() - 1));
+        int ultimaSala = Math.max(0, mazmorra.getSalas().size() - 1);
+        this.salaActual = Math.min(Math.max(0, salaGuardada), ultimaSala);
+
+        this.enemigosDerrota = valorEntero(estadoPersonaje, "enemigosDerrotados", 0);
+        this.oroAcumulado = valorEntero(estadoPersonaje, "oroAcumulado", 0);
+        this.turnosVenenoHeroe = Math.max(0, valorEntero(estadoPersonaje, "venenoTurnos", 0));
+        this.danioVenenoHeroe = Math.max(0, valorEntero(estadoPersonaje, "venenoDanio", 0));
+        this.defensaHeroeActiva = valorBooleano(estadoPersonaje, "defensaActiva", false);
+
+        restaurarInventario(estadoInventario.get("items"));
+        cambiarEstadoFlujo("Exploracion");
+
         eventManager.notificar(new GameEvent(EventType.JUEGO_CARGADO)
             .agregarDato("jugador", memento.getNombreJugador())
-            .agregarDato("sala", memento.getSalaActual()));
+            .agregarDato("sala", memento.getSalaActual())
+            .agregarDato("tema", temaActual.getNombreTema()));
+    }
+
+    private void restaurarInventario(Object inventarioSerializado) {
+        this.inventario = new ContainerItem("Mochila", "Tu inventario principal", 20, 2);
+
+        if (!(inventarioSerializado instanceof List<?> lista)) {
+            return;
+        }
+
+        for (Object entrada : lista) {
+            if (!(entrada instanceof Map<?, ?> map)) {
+                continue;
+            }
+
+            String nombre = valorStringMap(map, "nombre", "Objeto");
+            String descripcion = valorStringMap(map, "descripcion", "Sin descripción");
+            String tipo = valorStringMap(map, "tipo", "Consumible");
+            int valor = Math.max(0, valorEnteroMap(map, "valor", 0));
+            int peso = Math.max(0, valorEnteroMap(map, "peso", 1));
+
+            try {
+                inventario.agregar(new SimpleItem(nombre, descripcion, tipo, valor, peso));
+            } catch (RuntimeException ignored) {
+                // Si excede la capacidad, se descarta el resto para mantener consistencia.
+                break;
+            }
+        }
+    }
+
+    private Personaje crearHeroeSegunClase(String claseHeroe, String nombre) {
+        return switch (claseHeroe.toLowerCase()) {
+            case "mago" -> new MagoFactory(100, 35).crearPersonaje(nombre);
+            case "arquero" -> new ArqueroFactory(120, 28).crearPersonaje(nombre);
+            default -> new GuerreroFactory(150, 25).crearPersonaje(nombre);
+        };
+    }
+
+    private String obtenerClaseHeroe() {
+        if (heroe == null) {
+            return "Guerrero";
+        }
+
+        String tipo = heroe.getClass().getSimpleName().toLowerCase();
+        if (tipo.contains("mago")) {
+            return "Mago";
+        }
+        if (tipo.contains("arquero")) {
+            return "Arquero";
+        }
+        return "Guerrero";
+    }
+
+    private DungeonThemeFactory crearTemaDesdeNombre(String tema) {
+        return switch (tema.toLowerCase()) {
+            case "hielo" -> new IceThemeFactory();
+            case "oscuridad" -> new DarkThemeFactory();
+            case "veneno" -> new PoisonThemeFactory();
+            default -> new FireThemeFactory();
+        };
+    }
+
+    private void ajustarVida(Personaje personaje, int vidaObjetivo) {
+        int delta = vidaObjetivo - personaje.getVida();
+        if (delta > 0) {
+            personaje.curar(delta);
+        } else if (delta < 0) {
+            personaje.recibirDanio(-delta);
+        }
+    }
+
+    private int valorEntero(Map<String, Object> mapa, String clave, int porDefecto) {
+        Object valor = mapa.get(clave);
+        if (valor instanceof Number numero) {
+            return numero.intValue();
+        }
+        if (valor instanceof String texto) {
+            try {
+                return Integer.parseInt(texto);
+            } catch (NumberFormatException ignored) {
+                return porDefecto;
+            }
+        }
+        return porDefecto;
+    }
+
+    private String valorString(Map<String, Object> mapa, String clave, String porDefecto) {
+        Object valor = mapa.get(clave);
+        return valor != null ? String.valueOf(valor) : porDefecto;
+    }
+
+    private boolean valorBooleano(Map<String, Object> mapa, String clave, boolean porDefecto) {
+        Object valor = mapa.get(clave);
+        if (valor instanceof Boolean bool) {
+            return bool;
+        }
+        if (valor instanceof String texto) {
+            return Boolean.parseBoolean(texto);
+        }
+        return porDefecto;
+    }
+
+    private int valorEnteroMap(Map<?, ?> mapa, String clave, int porDefecto) {
+        Object valor = mapa.get(clave);
+        if (valor instanceof Number numero) {
+            return numero.intValue();
+        }
+        if (valor instanceof String texto) {
+            try {
+                return Integer.parseInt(texto);
+            } catch (NumberFormatException ignored) {
+                return porDefecto;
+            }
+        }
+        return porDefecto;
+    }
+
+    private String valorStringMap(Map<?, ?> mapa, String clave, String porDefecto) {
+        Object valor = mapa.get(clave);
+        return valor != null ? String.valueOf(valor) : porDefecto;
+    }
+
+    private void usarConsumibleEnCombate() {
+        SimpleItem pocion = buscarConsumiblePorNombre("poci");
+        SimpleItem antidoto = buscarConsumiblePorNombre("antid");
+
+        if (pocion == null && antidoto == null) {
+            System.out.println("\n❌ No tienes consumibles utilizables.");
+            return;
+        }
+
+        System.out.println("\nConsumibles disponibles:");
+        System.out.println("1. Poción de Vida " + (pocion == null ? "(no disponible)" : ""));
+        System.out.println("2. Antídoto " + (antidoto == null ? "(no disponible)" : ""));
+        System.out.println("3. Cancelar");
+
+        int opcion = leerOpcion(1, 3);
+        switch (opcion) {
+            case 1 -> {
+                if (pocion == null) {
+                    System.out.println("❌ No tienes pociones.");
+                    return;
+                }
+
+                UseItemCommand useItemCommand = new UseItemCommand(heroe, pocion, heroe);
+                commandInvoker.ejecutarComando(useItemCommand);
+                usarPocion();
+
+                eventManager.notificar(new GameEvent(EventType.ITEM_USADO)
+                    .agregarDato("usuario", heroe.getNombre())
+                    .agregarDato("item", pocion.getNombre()));
+            }
+            case 2 -> {
+                if (antidoto == null) {
+                    System.out.println("❌ No tienes antídotos.");
+                    return;
+                }
+
+                UseItemCommand useItemCommand = new UseItemCommand(heroe, antidoto, heroe);
+                commandInvoker.ejecutarComando(useItemCommand);
+                usarAntidoto(antidoto);
+
+                eventManager.notificar(new GameEvent(EventType.ITEM_USADO)
+                    .agregarDato("usuario", heroe.getNombre())
+                    .agregarDato("item", antidoto.getNombre()));
+            }
+            case 3 -> System.out.println("Acción cancelada.");
+        }
+    }
+
+    private void usarAntidoto(SimpleItem antidoto) {
+        inventario.remover(antidoto);
+
+        if (turnosVenenoHeroe <= 0) {
+            System.out.println("💊 Usaste antídoto, pero no estabas envenenado.");
+            return;
+        }
+
+        turnosVenenoHeroe = 0;
+        danioVenenoHeroe = 0;
+        System.out.println("💊 Antídoto aplicado: veneno removido.");
+    }
+
+    private void aplicarVenenoHeroeInicioTurno() {
+        if (turnosVenenoHeroe <= 0 || danioVenenoHeroe <= 0) {
+            return;
+        }
+
+        heroe.recibirDanio(danioVenenoHeroe);
+        turnosVenenoHeroe--;
+        System.out.println("☠️  Veneno: recibes " + danioVenenoHeroe + " de daño. HP actual: " + heroe.getVida());
+
+        eventManager.notificar(new GameEvent(EventType.EFECTO_APLICADO)
+            .agregarDato("personaje", heroe.getNombre())
+            .agregarDato("efecto", "Veneno")
+            .agregarDato("danio", danioVenenoHeroe));
+    }
+
+    private void aplicarVenenoPorAtaqueEnemigo() {
+        if (temaActual == null || !"Veneno".equalsIgnoreCase(temaActual.getNombreTema())) {
+            return;
+        }
+
+        if (random.nextInt(100) >= 35) {
+            return;
+        }
+
+        turnosVenenoHeroe = 3;
+        danioVenenoHeroe = 4;
+        System.out.println("☠️  ¡Has sido envenenado! Usa antídoto para curarte.");
+
+        eventManager.notificar(new GameEvent(EventType.EFECTO_APLICADO)
+            .agregarDato("personaje", heroe.getNombre())
+            .agregarDato("efecto", "VenenoAplicado")
+            .agregarDato("duracion", turnosVenenoHeroe));
+    }
+
+    private void cambiarEstadoFlujo(String nombreEstado) {
+        if (flowContext == null) {
+            flowContext = new GameStateContext(new FlowState(nombreEstado));
+        } else {
+            String actual = flowContext.getEstadoActual().getNombre();
+            if (actual.equals(nombreEstado)) {
+                return;
+            }
+            flowContext.cambiarEstado(new FlowState(nombreEstado));
+        }
+
+        eventManager.notificar(new GameEvent(EventType.ESTADO_CAMBIADO)
+            .agregarDato("sistema", "GameFlow")
+            .agregarDato("estado", nombreEstado));
+    }
+
+    private String estadoFlujoActual() {
+        if (flowContext == null || flowContext.getEstadoActual() == null) {
+            return "N/A";
+        }
+        return flowContext.getEstadoActual().getNombre();
     }
 
     private boolean mostrarOpcionesGameOver() {
@@ -794,7 +1247,7 @@ public class InteractiveGame {
                 }
                 GameMemento ultimo = caretaker.obtenerUltimoMemento();
                 originator.restaurar(ultimo);
-                aplicarMementoAlJuego(ultimo);
+                restaurarSesionCompleta(ultimo);
                 System.out.println("✅ Checkpoint restaurado. Continuas en exploración.");
                 return true;
             }
@@ -804,7 +1257,7 @@ public class InteractiveGame {
             }
             case 3 -> {
                 System.out.println("Iniciando nueva partida...");
-                nuevaPartida();
+                solicitarNuevaPartida = true;
                 return true;
             }
             default -> {
