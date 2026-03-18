@@ -47,14 +47,22 @@ Fecha de corte: 18 de marzo de 2026
   - Demo académica ejecutable: `game.demo.LegacyStatePatternDemo` (muestra patrón State clásico con legacy states).
   - Implementación verificada con Java 17 y Maven compilación limpia.
   - Arquitectura de dos niveles: Production RuntimeStates + Academic LegacyStates para docencia.
+- Sistema de IA de enemigos mejorado:
+  - Estrategias disponibles: Agresiva, Defensiva, Inteligente, Aleatoria.
+  - Nuevo controlador `AdaptiveAIController` cambia dinámicamente de estrategia según vida:
+    - Vida > 75%: Estrategia Agresiva
+    - 50% <= Vida <= 75%: Estrategia Inteligente (análisis táctico)
+    - 25% <= Vida < 50%: Estrategia Defensiva (supervivencia)
+    - Vida < 25%: Inteligente (atacar enemigos débiles para terminar rápido)
+  - Profundidad táctica completa con análisis de múltiples factores
+  - Historial de combate para toma de decisiones inteligentes
+- Configuración automatizada de JAVA_HOME:
+  - Script `setup-java.sh` detecta y configura Java 17 automáticamente
+  - Archivo `.envrc` para direnv (configuración permanente)
+  - Guía completa en `GUIA_COMPILACION_PRUEBAS.md`
+  - Pruebas automatizadas ahora ejecutables sin configuración manual
+  - Compilación limpia verificada con Maven 3.6.0+
 
-## Parcialmente Completados
-- IA de enemigos:
-  - Estrategias disponibles y cambio dinámico funcional.
-  - La profundidad táctica en el loop interactivo es básica (reglas simples por umbrales de vida).
-- Pruebas automatizadas en este entorno:
-  - Existen reportes de pruebas exitosas en `target/surefire-reports`.
-  - La ejecución local con Maven depende de configurar `JAVA_HOME` correctamente.
 
 ## No Completados
 
