@@ -6,7 +6,7 @@ import game.dungeon.theme.DungeonThemeFactory;
 import game.dungeon.theme.FireThemeFactory;
 import game.dungeon.theme.IceThemeFactory;
 import game.dungeon.theme.PoisonThemeFactory;
-import game.items.model.Item;
+import game.items.model.SimpleItem;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,12 +31,12 @@ public class AbstractFactoryTest {
         assertNotNull(jefe);
         assertTrue(jefe.getVida() > basico.getVida());
         
-        Item tesoro = factory.crearTesoroComun();
+        SimpleItem tesoro = factory.crearTesoroComun();
         assertNotNull(tesoro);
         
-        Item tesoroRaro = factory.crearTesoroRaro();
+        SimpleItem tesoroRaro = factory.crearTesoroRaro();
         assertNotNull(tesoroRaro);
-        assertTrue(tesoroRaro.getValor() > tesoro.getValor());
+        assertTrue(tesoroRaro.getValorTotal() > tesoro.getValorTotal());
     }
 
     @Test
@@ -48,7 +48,7 @@ public class AbstractFactoryTest {
         Personaje basico = factory.crearEnemigoBasico();
         assertNotNull(basico);
         
-        Item tesoro = factory.crearTesoroComun();
+        SimpleItem tesoro = factory.crearTesoroComun();
         assertNotNull(tesoro);
     }
 
@@ -85,8 +85,8 @@ public class AbstractFactoryTest {
         Personaje enemigoFuego = fireFactory.crearEnemigoBasico();
         Personaje enemigoHielo = iceFactory.crearEnemigoBasico();
         
-        Item tesoroFuego = fireFactory.crearTesoroComun();
-        Item tesoroHielo = iceFactory.crearTesoroComun();
+        SimpleItem tesoroFuego = fireFactory.crearTesoroComun();
+        SimpleItem tesoroHielo = iceFactory.crearTesoroComun();
         
         assertNotEquals(enemigoFuego.getNombre(), enemigoHielo.getNombre());
         assertNotEquals(tesoroFuego.getNombre(), tesoroHielo.getNombre());

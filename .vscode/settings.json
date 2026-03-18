@@ -1,0 +1,59 @@
+{
+    // Configuración de Java Runtime
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "/usr/lib/jvm/java-17-temurin-jdk",
+            "default": true
+        }
+    ],
+    
+    // Java Home por defecto
+    "java.home": "/usr/lib/jvm/java-17-temurin-jdk",
+    
+    // Configuración del proyecto
+    "java.project.sourcePaths": ["src/main/java"],
+    "java.project.outputPath": "target/classes",
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar"
+    ],
+    
+    // Maven
+    "maven.executable.path": "/usr/bin/mvn",
+    "maven.terminal.useJavaHome": true,
+    "maven.terminal.customEnv": [
+        {
+            "environmentVariable": "JAVA_HOME",
+            "value": "/usr/lib/jvm/java-17-temurin-jdk"
+        }
+    ],
+    
+    // Tests
+    "java.test.config": {
+        "name": "JUnit5",
+        "workingDirectory": "${workspaceFolder}",
+        "vmArgs": [
+            "-ea"
+        ],
+        "env": {
+            "JAVA_HOME": "/usr/lib/jvm/java-17-temurin-jdk"
+        }
+    },
+    
+    // Compilación
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    
+    // Formato
+    "java.format.settings.url": "../.vscode/java-formatter.xml",
+    
+    // Importaciones automáticas
+    "java.autoImport.enabled": true,
+    
+    // Language Server
+    "java.jdt.ls.java.home": "/usr/lib/jvm/java-17-temurin-jdk",
+    
+    // Debug
+    "java.debug.settings.console": "integratedTerminal",
+    "java.debug.settings.forceBuildBeforeLaunch": true
+}
