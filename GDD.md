@@ -167,3 +167,8 @@ Patrones de Diseno de Software
 - Estudiantes de ingenieria de software.
 - Cursos de arquitectura y patrones.
 - Contextos academicos orientados a diseño orientado a objetos.
+
+## Videos
+https://www.youtube.com/watch?v=qa6GA5p9nQ0&list=PLN9W6BC54TJJr3erMptodGOQFX7gWfKTM
+
+https://www.youtube.com/watch?v=om59cwR7psI&list=PL_QPQmz5C6WUF-pOQDsbsKbaBZqXj4qSq
