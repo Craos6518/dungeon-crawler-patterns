@@ -63,42 +63,55 @@ Fecha de corte: 18 de marzo de 2026
   - Pruebas automatizadas ahora ejecutables sin configuración manual
   - Compilación limpia verificada con Maven 3.6.0+
 - **Orquestación total por estados concretos de dominio:**
-  - ✅ `DomainGameState` - Interfaz base para estados de dominio reutilizables
-  - ✅ `AbstractDomainGameState` - Clase base con inyección de dependencias
-  - ✅ `GameSessionData` - Encapsulación del estado compartido de la sesión
-  - ✅ `ExplorationDomainState` - Lógica de exploración (250 líneas extraídas)
+  - `DomainGameState` - Interfaz base para estados de dominio reutilizables
+  - `AbstractDomainGameState` - Clase base con inyección de dependencias
+  - `GameSessionData` - Encapsulación del estado compartido de la sesión
+  - `ExplorationDomainState` - Lógica de exploración (250 líneas extraídas)
     - Métodos: explorarMazmorra(), avanzarSala(), buscarTesoro(), encontrarEnemigo()
     - Callbacks para combate y victoria
-  - ✅ `CombatDomainState` - Lógica de combate completa (350 líneas extraídas)
+  - `CombatDomainState` - Lógica de combate completa (350 líneas extraídas)
     - Loop de turnos completo
     - Gestión de acciones del jugador y del enemigo
     - Efectos de veneno y defensa
-  - ✅ `SetupDomainState` - Lógica de configuración inicial (150 líneas extraídas)
+  - `SetupDomainState` - Lógica de configuración inicial (150 líneas extraídas)
     - Selección de héroe, tema y construcción de mazmorra
-  - ✅ `EndGameDomainState` - Lógica de fin de juego
+  - `EndGameDomainState` - Lógica de fin de juego
     - Opciones de game over (checkpoint, menú, nueva partida)
-  - ✅ `RefactoredGameArchitecture` - Demostración de cómo usar los nuevos estados
+  - `RefactoredGameArchitecture` - Demostración de cómo usar los nuevos estados
   - Lógica extraída de `InteractiveGame` y completamente reutilizable
   - Independencia de Scanner y otras dependencias de UI
   - Preparado para futuro motor 2D o cualquier otra interfaz
+  - **Hardening de eventos del sistema ante datos nulos o inconsistentes:**
+  - Estandarización de contrato de eventos en todos los emisores (IntegratedCombatEngine, InteractiveGame, CombatDomainState)
+  - Consolidación de 5 eventos críticos: ATAQUE_REALIZADO, EFECTO_APLICADO, ESTADO_CAMBIADO, ACCION_REALIZADA, COMBATE_INICIADO
+  - Creación de `EventContract.java` con constantes de claves de eventos
+  - Documentación completa en `EVENTO_CONTRATO_REFERENCIA.md` con contrato de cada tipo de evento
+  - Validación de valor nulo en todos los emisores antes de agregarDato()
+  - Eliminación de claves redundantes y estructuras incompatibles
+  - Adición de información de contexto faltante (vidaRestante, ronda) en eventos de combate
+  - Compilación exitosa sin errores críticos
 
+- **Definir criterios de cierre por épica funcional:**
+  - ✅ Checklist de aceptación para demo académica (10 patrones + demos + tests)
+  - ✅ Checklist de aceptación para experiencia interactiva (flujo end-to-end, validación integración)
+  - ✅ Checklist de aceptación para trazabilidad GDD-código (matriz completa requisitos → implementación)
+  - ✅ Documento: `CRITERIOS_CIERRE_EPICAS.md` con 6 épicas y criterios detallados
+  - ✅ Validación de cumplimiento: Verde ✅ - Listo para presentación académica
+  - ✅ Definición de "Listo para Presentar" con estados Verde/Ámbar/Rojo
 
 ## No Completados
 
-- Endurecer demo integrada ante datos nulos o inconsistentes en eventos:
-  - Revisar también los eventos emitidos por `IntegratedCombatEngine` para mantener contrato consistente de claves entre todos los emisores.
 - Automatización CI/CD para validación continua:
   - Agregar workflow de compilación y tests en cada push/PR.
-- Definir criterios de cierre por épica funcional:
-  - Checklist de aceptación para demo académica, experiencia interactiva y trazabilidad GDD-código.
 - Integración opcional de nuevos estados de dominio en InteractiveGame principal:
   - Los estados están listos y compilables, pero InteractiveGame original sigue siendo funcional
   - Refactorización completa de InteractiveGame es trabajo futuro (ver RefactoredGameArchitecture.java para referencia)
 
 ## Siguiente Foco Recomendado
 
-1. ✅ **COMPLETADO:** Consolidar una única máquina de estados de gameplay con estados concretos de producción
-2. Estandarizar contrato de eventos entre `InteractiveGame` e `IntegratedCombatEngine`
-3. Añadir pipeline de CI con Java 17 + Maven test
-4. Definir checklist de aceptación final para entrega académica
+1. **COMPLETADO:** Consolidar una única máquina de estados de gameplay con estados concretos de producción
+2. **COMPLETADO:** Estandarizar contrato de eventos entre `InteractiveGame` e `IntegratedCombatEngine`
+3. **COMPLETADO:** Definir checklist de aceptación final para entrega académica (CRITERIOS_CIERRE_EPICAS.md)
+4. Añadir pipeline de CI con Java 17 + Maven test (GitHub Actions workflow)
 5. **Opcionalmente:** Integrar completamente los new DomainGameStates en InteractiveGame reemplazando la lógica procedimental
+6. **Opcionalmente:** Expandir a interfaz gráfica 2D (libGDX o JavaFX)

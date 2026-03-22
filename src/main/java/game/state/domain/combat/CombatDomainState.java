@@ -148,7 +148,7 @@ public class CombatDomainState extends AbstractDomainGameState {
 
             int accion = leerOpcion(1, 4);
 
-            manejarAccionHeroe(accion, enemigo);
+            manejarAccionHeroe(accion, enemigo, turno);
 
             if (!enemigo.estaVivo()) {
                 break;
@@ -185,7 +185,7 @@ public class CombatDomainState extends AbstractDomainGameState {
         }
     }
     
-    private void manejarAccionHeroe(int accion, Personaje enemigo) {
+    private void manejarAccionHeroe(int accion, Personaje enemigo, int turno) {
         switch (accion) {
             case 1 -> {
                 AttackCommand attackCommand = new AttackCommand(sessionData.getHeroe(), enemigo);
@@ -198,7 +198,9 @@ public class CombatDomainState extends AbstractDomainGameState {
                 eventManager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
                     .agregarDato("atacante", sessionData.getHeroe().getNombre())
                     .agregarDato("defensor", enemigo.getNombre())
-                    .agregarDato("danio", attackCommand.getDanioAplicado()));
+                    .agregarDato("danio", attackCommand.getDanioAplicado())
+                    .agregarDato("vidaRestante", enemigo.getVida())
+                    .agregarDato("ronda", turno));
             }
             case 2 -> {
                 DefendCommand defendCommand = new DefendCommand(sessionData.getHeroe());
@@ -220,9 +222,10 @@ public class CombatDomainState extends AbstractDomainGameState {
                 System.out.println("   HP enemigo: " + enemigo.getVida());
 
                 eventManager.notificar(new GameEvent(EventType.ACCION_REALIZADA)
-                    .agregarDato("actor", sessionData.getHeroe().getNombre())
+                    .agregarDato("personaje", sessionData.getHeroe().getNombre())
                     .agregarDato("accion", "habilidad")
-                    .agregarDato("nombre", nombreHabilidad));
+                    .agregarDato("nombre", nombreHabilidad)
+                    .agregarDato("ronda", turno));
             }
         }
     }
@@ -358,7 +361,7 @@ public class CombatDomainState extends AbstractDomainGameState {
 
             eventManager.notificar(new GameEvent(EventType.EFECTO_APLICADO)
                 .agregarDato("personaje", sessionData.getHeroe().getNombre())
-                .agregarDato("efecto", "VenenoAplicado")
+                .agregarDato("efecto", "VENENO")
                 .agregarDato("duracion", sessionData.getTurnosVenenoHeroe()));
         }
     }
@@ -378,8 +381,8 @@ public class CombatDomainState extends AbstractDomainGameState {
         if (!enemyAI.getEstrategia().getNombreEstrategia().equals(nueva.getNombreEstrategia())) {
             enemyAI.setEstrategia(nueva);
             eventManager.notificar(new GameEvent(EventType.ESTADO_CAMBIADO)
-                .agregarDato("sistema", "IA")
-                .agregarDato("estrategia", nueva.getNombreEstrategia()));
+                .agregarDato("tipo", "estrategia")
+                .agregarDato("nuevaEstrategia", nueva.getNombreEstrategia()));
         }
     }
     

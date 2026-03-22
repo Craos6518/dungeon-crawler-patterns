@@ -583,10 +583,11 @@ public class InteractiveGame implements GameRuntimeCoordinator {
         }
 
         eventManager.notificar(new GameEvent(EventType.COMBATE_INICIADO)
-            .agregarDato("atacante", heroe.getNombre())
-            .agregarDato("defensor", enemigo.getNombre())
             .agregarDato("heroe", heroe.getNombre())
-            .agregarDato("enemigo", enemigo.getNombre()));
+            .agregarDato("enemigo", enemigo.getNombre())
+            .agregarDato("vidaHeroe", heroe.getVida())
+            .agregarDato("vidaEnemigo", enemigo.getVida())
+            .agregarDato("estrategia", esJefe ? "Agresiva" : "Aleatoria"));
 
         iniciarCombate(enemigo, esJefe);
     }
@@ -644,7 +645,9 @@ public class InteractiveGame implements GameRuntimeCoordinator {
                     eventManager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
                         .agregarDato("atacante", heroe.getNombre())
                         .agregarDato("defensor", enemigo.getNombre())
-                        .agregarDato("danio", attackCommand.getDanioAplicado()));
+                        .agregarDato("danio", attackCommand.getDanioAplicado())
+                        .agregarDato("vidaRestante", enemigo.getVida())
+                        .agregarDato("ronda", turno));
                 }
                 case 2 -> {
                     DefendCommand defendCommand = new DefendCommand(heroe);
@@ -667,9 +670,10 @@ public class InteractiveGame implements GameRuntimeCoordinator {
                     System.out.println("   HP enemigo: " + enemigo.getVida());
 
                     eventManager.notificar(new GameEvent(EventType.ACCION_REALIZADA)
-                        .agregarDato("actor", heroe.getNombre())
+                        .agregarDato("personaje", heroe.getNombre())
                         .agregarDato("accion", "habilidad")
-                        .agregarDato("nombre", nombreHabilidad));
+                        .agregarDato("nombre", nombreHabilidad)
+                        .agregarDato("ronda", turno));
                 }
             }
 
@@ -871,8 +875,8 @@ public class InteractiveGame implements GameRuntimeCoordinator {
         if (!enemyAI.getEstrategia().getNombreEstrategia().equals(nueva.getNombreEstrategia())) {
             enemyAI.setEstrategia(nueva);
             eventManager.notificar(new GameEvent(EventType.ESTADO_CAMBIADO)
-                .agregarDato("sistema", "IA")
-                .agregarDato("estrategia", nueva.getNombreEstrategia()));
+                .agregarDato("tipo", "estrategia")
+                .agregarDato("nuevaEstrategia", nueva.getNombreEstrategia()));
         }
     }
 
@@ -1186,8 +1190,8 @@ public class InteractiveGame implements GameRuntimeCoordinator {
 
         eventManager.notificar(new GameEvent(EventType.EFECTO_APLICADO)
             .agregarDato("personaje", heroe.getNombre())
-            .agregarDato("efecto", "Veneno")
-            .agregarDato("danio", danioVenenoHeroe));
+            .agregarDato("efecto", "VENENO")
+            .agregarDato("duracion", turnosVenenoHeroe));
     }
 
     private void aplicarVenenoPorAtaqueEnemigo() {
@@ -1205,7 +1209,7 @@ public class InteractiveGame implements GameRuntimeCoordinator {
 
         eventManager.notificar(new GameEvent(EventType.EFECTO_APLICADO)
             .agregarDato("personaje", heroe.getNombre())
-            .agregarDato("efecto", "VenenoAplicado")
+            .agregarDato("efecto", "VENENO")
             .agregarDato("duracion", turnosVenenoHeroe));
     }
 
@@ -1221,7 +1225,7 @@ public class InteractiveGame implements GameRuntimeCoordinator {
         }
 
         eventManager.notificar(new GameEvent(EventType.ESTADO_CAMBIADO)
-            .agregarDato("sistema", "GameFlow")
+            .agregarDato("tipo", "flujo")
             .agregarDato("estado", nombreEstado));
     }
 
