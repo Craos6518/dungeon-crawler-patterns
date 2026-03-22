@@ -490,15 +490,23 @@ public class InteractiveGame implements GameRuntimeCoordinator {
         GameMemento memento = crearMementoSesion("Exploracion");
         caretaker.guardarEnMemoria(memento);
 
-        System.out.print("Nombre del archivo (o Enter para autosave): ");
-        String nombreArchivo = leerLineaRequerida().trim();
-        if (nombreArchivo.isEmpty()) {
-            nombreArchivo = "autosave";
+        System.out.println("Selecciona un slot para guardar:");
+        System.out.println("1. Slot 1");
+        System.out.println("2. Slot 2");
+        System.out.println("3. Slot 3");
+        System.out.println("4. Cancelar");
+
+        int opcion = leerOpcion(1, 4);
+        if (opcion == 4) {
+            System.out.println("❌ Guardado cancelado.");
+            return;
         }
+
+        String nombreArchivo = "Slot_" + opcion;
 
         try {
             caretaker.guardarEnDisco(memento, nombreArchivo);
-            System.out.println("✅ Partida guardada: " + nombreArchivo + ".save");
+            System.out.println("✅ Partida guardada en: " + nombreArchivo + ".save");
             eventManager.notificar(new GameEvent(EventType.JUEGO_GUARDADO)
                 .agregarDato("tipo", "manual")
                 .agregarDato("archivo", nombreArchivo));
@@ -510,30 +518,24 @@ public class InteractiveGame implements GameRuntimeCoordinator {
     private boolean cargarPartida(boolean pausarAlFinal) {
         System.out.println("\n📂 CARGAR PARTIDA");
         List<String> guardados = caretaker.listarGuardados();
-        if (guardados.isEmpty()) {
-            System.out.println("No hay guardados en disco.");
-            if (pausarAlFinal) {
-                System.out.println("\n(Presiona Enter)");
-                esperarEnterSiDisponible();
-            }
+        
+        System.out.println("Selecciona el slot a cargar:");
+        System.out.println("1. Slot 1 " + (guardados.contains("Slot_1") ? "(Disponible)" : "(Vacío)"));
+        System.out.println("2. Slot 2 " + (guardados.contains("Slot_2") ? "(Disponible)" : "(Vacío)"));
+        System.out.println("3. Slot 3 " + (guardados.contains("Slot_3") ? "(Disponible)" : "(Vacío)"));
+        System.out.println("4. Cancelar");
+
+        int opcion = leerOpcion(1, 4);
+        if (opcion == 4) {
+            System.out.println("❌ Carga cancelada.");
+            if (pausarAlFinal) esperarEnterSiDisponible();
             return false;
         }
 
-        System.out.println("Ranuras disponibles:");
-        for (int i = 0; i < guardados.size(); i++) {
-            System.out.println("  " + (i + 1) + ". " + guardados.get(i));
-        }
-
-        System.out.print("Nombre del archivo o numero de ranura: ");
-        String entrada = leerLineaRequerida().trim();
-        String nombreArchivo = resolverNombreArchivo(entrada, guardados);
-
-        if (nombreArchivo == null || nombreArchivo.isEmpty()) {
-            System.out.println("❌ Selección inválida. Operación cancelada.");
-            if (pausarAlFinal) {
-                System.out.println("\n(Presiona Enter)");
-                esperarEnterSiDisponible();
-            }
+        String nombreArchivo = "Slot_" + opcion;
+        if (!guardados.contains(nombreArchivo)) {
+            System.out.println("❌ El " + nombreArchivo + " está vacío.");
+            if (pausarAlFinal) esperarEnterSiDisponible();
             return false;
         }
 
@@ -576,6 +578,9 @@ public class InteractiveGame implements GameRuntimeCoordinator {
         }
 
         System.out.println("   " + enemigo.getNombre() + " (HP: " + enemigo.getVida() + ")");
+
+        // Asignar XP basada en la vida del enemigo
+        enemigo.setExperienciaOtorgada(enemigo.getVida() * 2);
 
         if (random.nextInt(100) < 50 && temaActual.getNombreTema().toLowerCase().contains("veneno")) {
             enemigo = new PoisonEffect(enemigo, 3, 4);
@@ -715,6 +720,20 @@ public class InteractiveGame implements GameRuntimeCoordinator {
         if (heroe.estaVivo()) {
             System.out.println("\n🎉 ¡VICTORIA!");
             enemigosDerrota++;
+            
+            int xpGanada = enemigo.getExperienciaOtorgada();
+            System.out.println("⭐ Has ganado " + xpGanada + " XP!");
+            heroe.ganarExperiencia(xpGanada);
+            
+            int nivelActual = heroe.getNivel();
+            int xpRequerida = nivelActual * 100;
+            if (heroe.getExperiencia() >= xpRequerida) {
+                heroe.subirNivel();
+                heroe.ganarExperiencia(-xpRequerida);
+                System.out.println("🆙 ¡SUBISTE DE NIVEL! Ahora eres nivel " + heroe.getNivel());
+                System.out.println("   HP Máximo incrementado. HP restaurado completamente: " + heroe.getVida());
+            }
+
             mostrarPantallaTesoro();
             guardarCheckpointAutomatico();
 
@@ -836,7 +855,8 @@ public class InteractiveGame implements GameRuntimeCoordinator {
 
     private void mostrarHudExploracion() {
         System.out.println("Estado héroe: " + heroe.getNombre() +
-            " | HP: " + heroe.getVida() +
+            " | Nivel: " + heroe.getNivel() + " (XP: " + heroe.getExperiencia() + "/" + (heroe.getNivel()*100) + ")" +
+            " | HP: " + heroe.getVida() + "/" + heroe.getVidaMaxima() +
             " | Oro: " + oroAcumulado +
             " | Enemigos derrotados: " + enemigosDerrota +
             " | Estado: " + estadoFlujoActual());
@@ -911,12 +931,14 @@ public class InteractiveGame implements GameRuntimeCoordinator {
     private GameMemento crearMementoSesion(String estado) {
         String nombreJugador = heroe != null ? heroe.getNombre() : originator.getNombreJugador();
         int vidaActual = heroe != null ? heroe.getVida() : originator.getVidaJugador();
+        int experienciaActual = heroe != null ? heroe.getExperiencia() : 0;
 
         GameMemento.Builder builder = new GameMemento.Builder()
             .nombreJugador(nombreJugador)
-            .nivelActual(Math.max(1, originator.getNivelActual()))
+            .nivelActual(Math.max(1, heroe != null ? heroe.getNivel() : originator.getNivelActual()))
             .salaActual(salaActual + 1)
             .agregarEstadoPersonaje("vida", vidaActual)
+            .agregarEstadoPersonaje("experiencia", experienciaActual)
             .agregarEstadoPersonaje("claseHeroe", obtenerClaseHeroe())
             .agregarEstadoPersonaje("enemigosDerrotados", enemigosDerrota)
             .agregarEstadoPersonaje("oroAcumulado", oroAcumulado)
@@ -974,7 +996,14 @@ public class InteractiveGame implements GameRuntimeCoordinator {
         String claseHeroe = valorString(estadoPersonaje, "claseHeroe", "Guerrero");
         this.heroe = crearHeroeSegunClase(claseHeroe, nombreJugador);
 
-        int vidaObjetivo = valorEntero(estadoPersonaje, "vida", heroe.getVida());
+        int nivelGuardado = memento.getNivelActual();
+        for (int i = 1; i < nivelGuardado; i++) {
+            this.heroe.subirNivel();
+        }
+        int expGuardada = valorEntero(estadoPersonaje, "experiencia", 0);
+        this.heroe.ganarExperiencia(expGuardada);
+
+        int vidaObjetivo = valorEntero(estadoPersonaje, "vida", heroe.getVidaMaxima());
         ajustarVida(heroe, vidaObjetivo);
 
         this.temaActual = crearTemaDesdeNombre(valorString(estadoMazmorra, "tema", "Fuego"));
