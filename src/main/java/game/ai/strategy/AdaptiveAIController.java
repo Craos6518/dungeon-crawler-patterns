@@ -25,7 +25,6 @@ public class AdaptiveAIController {
     private final AggressiveStrategy agresiva;
     private final DefensiveStrategy defensiva;
     private final IntelligentStrategy inteligente;
-    private final RandomStrategy aleatoria;
     
     // Umbrales de vida para cambio de estrategia (en porcentaje)
     private static final double UMBRAL_AGRESIVO = 0.75;      // > 75% = Agresivo
@@ -48,7 +47,6 @@ public class AdaptiveAIController {
         this.agresiva = new AggressiveStrategy();
         this.defensiva = new DefensiveStrategy();
         this.inteligente = new IntelligentStrategy();
-        this.aleatoria = new RandomStrategy();
         
         // Establecer estrategia inicial basada en vida actual
         this.estrategiaActual = agresiva;
