@@ -12,7 +12,7 @@ Dungeon Crawler Académico es un videojuego por consola desarrollado en Java 17 
 - **RF-05**: Sistema de Combate por Turnos.
 - **RF-06**: Acciones en Combate (Atacar, Defender, Usar Item, Habilidad).
 - **RF-07**: IA de Enemigos (Agresiva, Defensiva, Inteligente).
-- **RF-08**: Sistema de Experiencia y Nivel (Parcial, no implementado en flujo interactivo).
+- **RF-08**: Sistema de Experiencia y Nivel (Implementado con `LevelUpCommand` en flujo interactivo).
 - **RF-09**: Inventario Jerárquico (Composite).
 - **RF-10**: Efectos de Estado (Decorator).
 - **RF-11**: Guardar Partida (Memento).
@@ -39,13 +39,13 @@ Estructura compuesta (Mochila -> Bolsa -> Items).
 | Requisito | Patrón | Implementación Principal |
 |-----------|--------|--------------------------|
 | Selección de héroe | Factory Method | `game.domain.personaje.factory` |
-| Mazmorra temática | Abstract Factory + Builder | `game.dungeon.builder`, `game.dungeon.theme` |
+| Mazmorra temática/procedural | Abstract Factory + Builder | `game.dungeon.builder`, `game.dungeon.theme`, `game.state.domain.setup` |
 | Combate por turnos | Command + Strategy | `game.combat.engine`, `game.command.actions`, `game.ai.strategy` |
 | Inventario | Composite | `game.items.model` |
 | Efectos de estado | Decorator | `game.effects.status` |
 | Eventos | Observer | `game.events.observer` |
 | Guardado/Carga | Memento + Facade | `game.persistence.memento` |
-| Estados del juego | State | `game.state.game` |
+| Estados del juego | State | `game.state.domain`, `game.refactoring` |
 
 ## 5. Criterios de Aceptación y Cierre (Épicas)
 ### EP-001: Creación Flexible de Personajes (Factory Method)
@@ -54,7 +54,7 @@ Estructura compuesta (Mochila -> Bolsa -> Items).
 
 ### EP-002: Generación de Mazmorras Temáticas (Abstract Factory + Builder)
 - [x] 4 temas (Fuego, Hielo, Oscuridad, Veneno).
-- [x] Construcción paso a paso mediante Builder.
+- [x] Construcción procedural dinámica mediante Builder.
 
 ### EP-003: Sistema de Combate Integrado (Strategy + Command + Decorator + Observer)
 - [x] IA adaptable.
@@ -70,7 +70,7 @@ Estructura compuesta (Mochila -> Bolsa -> Items).
 - [x] Serialización a disco.
 
 ### EP-006: Orquestación Global de Flujo (State)
-- [x] Transiciones entre Menú, Exploración, Combate y GameOver.
+- [x] Transiciones entre Menú, Exploración, Combate y GameOver en runtime basado en DomainStates.
 
 ## 6. Contraste: Documentación vs Código
 - **Patrones**: 11 patrones implementados (incluyendo State).

@@ -219,6 +219,9 @@ public class ExplorationDomainState extends AbstractDomainGameState {
             System.out.println("   ☠️  El enemigo está envenenado!");
         }
 
+        int factorXp = esJefe ? 3 : 2;
+        enemigo.setExperienciaOtorgada(Math.max(25, enemigo.getVida() * factorXp));
+
         eventManager.notificar(new GameEvent(EventType.COMBATE_INICIADO)
             .agregarDato("atacante", sessionData.getHeroe().getNombre())
             .agregarDato("defensor", enemigo.getNombre())

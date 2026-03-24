@@ -22,9 +22,9 @@ El proyecto ha implementado exitosamente **11 patrones de diseño** (10 base + S
 - (No hay tareas de prioridad alta, todas implementadas para la entrega requerida).
 
 ### Prioridad Media
-- [ ] Generación procedural completa de salas (Builder dinámico).
-- [ ] Sistema de experiencia y nivel (LevelUpCommand).
-- [ ] Refactorización completa a DomainStates para desacoplamiento total de la UI.
+- [x] Generación procedural completa de salas (Builder dinámico).
+- [x] Sistema de experiencia y nivel (LevelUpCommand).
+- [x] Refactorización completa a DomainStates para desacoplamiento total de la UI.
 
 ### Prioridad Baja
 - [ ] Interfaz gráfica 2D (JavaFX o Swing).
@@ -34,4 +34,9 @@ El proyecto ha implementado exitosamente **11 patrones de diseño** (10 base + S
 El proyecto se encuentra en estado **Verde** (Listo para presentación). 
 - **Tests**: 107+ tests pasando.
 - **Demos**: 4+ demostradores académicos funcionales.
-- **Juego**: Modo interactivo 100% jugable desde consola.
+- **Juego**: Modo interactivo 100% jugable desde consola con runtime principal basado en DomainStates.
+
+## 4. Cambios Recientes Relevantes
+- Generación procedural dinámica de mazmorras integrada en SetupDomainState mediante Builder.
+- Sistema de experiencia y nivel encapsulado como comando con `LevelUpCommand`.
+- Arquitectura de ejecución principal migrada a DomainStates con flujo completo de menú, exploración, combate y checkpoint.

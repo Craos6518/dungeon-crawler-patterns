@@ -10,7 +10,7 @@ import game.domain.personaje.Personaje;
 import game.domain.personaje.factory.*;
 import game.dungeon.builder.ConcreteDungeonBuilder;
 import game.dungeon.builder.DungeonBuilder;
-import game.dungeon.builder.DungeonDirector;
+import game.dungeon.builder.ProceduralDungeonGenerator;
 import game.dungeon.model.Dungeon;
 import game.dungeon.model.Room;
 import game.dungeon.theme.*;
@@ -146,10 +146,10 @@ public class InteractiveGame implements GameRuntimeCoordinator {
     }
 
     public static void main(String[] args) {
-        InteractiveGame juego = new InteractiveGame();
-        juego.iniciar();
+        game.refactoring.RefactoredGameArchitecture.main(args);
     }
 
+    @SuppressWarnings("unused")
     private void iniciar() {
         mostrarTitulo();
         this.runtimeContext = new GameStateContext(new MenuRuntimeState(this));
@@ -335,16 +335,7 @@ public class InteractiveGame implements GameRuntimeCoordinator {
 
     private void construirMazmorra() {
         DungeonBuilder builder = new ConcreteDungeonBuilder();
-        DungeonDirector director = new DungeonDirector(builder);
-
-        String nombreTema = temaActual.getNombreTema();
-        mazmorra = switch (nombreTema) {
-            case "Fuego" -> director.construirMazmorraFuego();
-            case "Hielo" -> director.construirMazmorraBasica();
-            case "Oscuridad" -> director.construirMazmorraBasica();
-            case "Veneno" -> director.construirMazmorraBasica();
-            default -> director.construirMazmorraBasica();
-        };
+        mazmorra = ProceduralDungeonGenerator.generar(builder, temaActual, random);
 
         System.out.println("\n🏗️  Mazmorra construida: " + mazmorra.getNombre());
         System.out.println("   Salas: " + mazmorra.getSalas().size());

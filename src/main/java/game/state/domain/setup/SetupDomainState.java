@@ -6,7 +6,7 @@ import game.domain.personaje.factory.GuerreroFactory;
 import game.domain.personaje.factory.MagoFactory;
 import game.dungeon.builder.ConcreteDungeonBuilder;
 import game.dungeon.builder.DungeonBuilder;
-import game.dungeon.builder.DungeonDirector;
+import game.dungeon.builder.ProceduralDungeonGenerator;
 import game.dungeon.theme.DarkThemeFactory;
 import game.dungeon.theme.DungeonThemeFactory;
 import game.dungeon.theme.FireThemeFactory;
@@ -17,6 +17,8 @@ import game.events.observer.EventType;
 import game.items.model.ContainerItem;
 import game.state.domain.AbstractDomainGameState;
 import game.state.domain.GameSessionData;
+
+import java.util.Random;
 
 /**
  * Estado de dominio que encapsula la lógica de setup/configuración.
@@ -32,6 +34,7 @@ import game.state.domain.GameSessionData;
 public class SetupDomainState extends AbstractDomainGameState {
     
     private final GameSessionData sessionData;
+    private final Random random;
     
     /**
      * Callback cuando la configuración está completa
@@ -48,6 +51,7 @@ public class SetupDomainState extends AbstractDomainGameState {
     ) {
         this.sessionData = sessionData;
         this.setupCallback = setupCallback;
+        this.random = new Random();
     }
     
     @Override
@@ -184,16 +188,7 @@ public class SetupDomainState extends AbstractDomainGameState {
     
     private void construirMazmorra() {
         DungeonBuilder builder = new ConcreteDungeonBuilder();
-        DungeonDirector director = new DungeonDirector(builder);
-
-        String nombreTema = sessionData.getTemaActual().getNombreTema();
-        var mazmorra = switch (nombreTema) {
-            case "Fuego" -> director.construirMazmorraFuego();
-            case "Hielo" -> director.construirMazmorraBasica();
-            case "Oscuridad" -> director.construirMazmorraBasica();
-            case "Veneno" -> director.construirMazmorraBasica();
-            default -> director.construirMazmorraBasica();
-        };
+        var mazmorra = ProceduralDungeonGenerator.generar(builder, sessionData.getTemaActual(), random);
 
         sessionData.setMazmorra(mazmorra);
 
