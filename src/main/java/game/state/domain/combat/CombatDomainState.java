@@ -9,6 +9,7 @@ import game.command.actions.AttackCommand;
 import game.command.actions.DefendCommand;
 import game.command.actions.SkillCommand;
 import game.command.actions.Command;
+import game.command.actions.LevelUpCommand;
 import game.domain.personaje.Personaje;
 import game.events.observer.GameEvent;
 import game.events.observer.EventType;
@@ -165,6 +166,22 @@ public class CombatDomainState extends AbstractDomainGameState {
         if (sessionData.getHeroe().estaVivo()) {
             System.out.println("\n🎉 ¡VICTORIA!");
             sessionData.setEnemigosDerrota(sessionData.getEnemigosDerrota() + 1);
+
+            int xpGanada = enemigo.getExperienciaOtorgada();
+            if (xpGanada <= 0) {
+                xpGanada = Math.max(25, enemigo.getVida() * (esJefe ? 3 : 2));
+            }
+
+            LevelUpCommand levelUp = new LevelUpCommand(sessionData.getHeroe(), xpGanada);
+            commandInvoker.ejecutarComando(levelUp);
+
+            System.out.println("⭐ Has ganado " + xpGanada + " XP!");
+            if (levelUp.getNivelesGanados() > 0) {
+                System.out.println("🆙 ¡SUBISTE DE NIVEL! Ahora eres nivel "
+                    + sessionData.getHeroe().getNivel());
+                System.out.println("   HP restaurado completamente: " + sessionData.getHeroe().getVida());
+            }
+
             treasureCallback.mostrarTesoro();
             checkpointCallback.guardarCheckpoint();
 
