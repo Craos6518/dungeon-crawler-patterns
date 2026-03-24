@@ -1,9 +1,7 @@
 package game.state.domain;
 
-import game.events.observer.GameObserver;
 import game.persistence.memento.GameCaretaker;
 import game.persistence.memento.GameOriginator;
-import game.persistence.memento.GameMemento;
 import game.command.actions.CommandInvoker;
 import game.events.observer.EventManager;
 

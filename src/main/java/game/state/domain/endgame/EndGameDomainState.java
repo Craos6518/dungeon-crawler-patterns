@@ -1,13 +1,9 @@
 package game.state.domain.endgame;
 
-import game.events.observer.EventManager;
 import game.persistence.memento.GameCaretaker;
 import game.persistence.memento.GameMemento;
 import game.persistence.memento.GameOriginator;
 import game.state.domain.AbstractDomainGameState;
-import game.command.actions.CommandInvoker;
-
-import java.util.Scanner;
 
 /**
  * Estado de dominio que encapsula la lógica de fin de juego (Game Over).

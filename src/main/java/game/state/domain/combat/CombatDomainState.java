@@ -10,17 +10,12 @@ import game.command.actions.DefendCommand;
 import game.command.actions.SkillCommand;
 import game.command.actions.Command;
 import game.domain.personaje.Personaje;
-import game.events.observer.EventManager;
 import game.events.observer.GameEvent;
 import game.events.observer.EventType;
 import game.events.observer.StatisticsTracker;
 import game.items.model.SimpleItem;
-import game.persistence.memento.GameCaretaker;
-import game.persistence.memento.GameMemento;
-import game.persistence.memento.GameOriginator;
 import game.state.domain.AbstractDomainGameState;
 import game.state.domain.GameSessionData;
-import game.command.actions.CommandInvoker;
 
 import java.util.ArrayList;
 import java.util.List;

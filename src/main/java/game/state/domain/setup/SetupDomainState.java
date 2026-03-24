@@ -12,15 +12,11 @@ import game.dungeon.theme.DungeonThemeFactory;
 import game.dungeon.theme.FireThemeFactory;
 import game.dungeon.theme.IceThemeFactory;
 import game.dungeon.theme.PoisonThemeFactory;
-import game.events.observer.EventManager;
 import game.events.observer.GameEvent;
 import game.events.observer.EventType;
 import game.items.model.ContainerItem;
-import game.persistence.memento.GameCaretaker;
-import game.persistence.memento.GameOriginator;
 import game.state.domain.AbstractDomainGameState;
 import game.state.domain.GameSessionData;
-import game.command.actions.CommandInvoker;
 
 /**
  * Estado de dominio que encapsula la lógica de setup/configuración.

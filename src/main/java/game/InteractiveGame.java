@@ -1299,25 +1299,6 @@ public class InteractiveGame implements GameRuntimeCoordinator {
         }
     }
 
-    private String resolverNombreArchivo(String entrada, List<String> guardados) {
-        if (entrada == null) {
-            return null;
-        }
-        if (entrada.isEmpty()) {
-            return guardados.get(0);
-        }
-
-        try {
-            int indice = Integer.parseInt(entrada);
-            if (indice >= 1 && indice <= guardados.size()) {
-                return guardados.get(indice - 1);
-            }
-            return null;
-        } catch (NumberFormatException e) {
-            return entrada;
-        }
-    }
-
     private String leerLineaRequerida() {
         if (!scanner.hasNextLine()) {
             throw new InputClosedException();

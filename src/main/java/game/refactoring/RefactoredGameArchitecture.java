@@ -1,11 +1,8 @@
 package game.refactoring;
 
 import game.domain.personaje.Personaje;
-import game.dungeon.model.Dungeon;
-import game.dungeon.theme.DungeonThemeFactory;
 import game.events.observer.EventManager;
 import game.events.observer.StatisticsTracker;
-import game.items.model.ContainerItem;
 import game.items.model.SimpleItem;
 import game.persistence.memento.GameCaretaker;
 import game.persistence.memento.GameOriginator;
@@ -154,7 +151,7 @@ public class RefactoredGameArchitecture {
         }
         
         // 2. Exploración
-        boolean continuarExploracion = explorationState.ejecutar();
+        explorationState.ejecutar();
         
         // El flujo es manejado por los callbacks y estados internos
         System.out.println("Fin de la sesión de juego.");
