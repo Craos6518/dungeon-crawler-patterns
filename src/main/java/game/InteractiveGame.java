@@ -146,10 +146,10 @@ public class InteractiveGame implements GameRuntimeCoordinator {
     }
 
     public static void main(String[] args) {
-        game.refactoring.RefactoredGameArchitecture.main(args);
+        InteractiveGame juego = new InteractiveGame();
+        juego.iniciar();
     }
 
-    @SuppressWarnings("unused")
     private void iniciar() {
         mostrarTitulo();
         this.runtimeContext = new GameStateContext(new MenuRuntimeState(this));
