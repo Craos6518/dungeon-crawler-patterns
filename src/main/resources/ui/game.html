@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dungeon Crawler – UI v3 (Dark Fantasy)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <style>
+
+    /* ============================================================
+       DESIGN TOKENS — Layout & Spacing (unchanged from v2)
+    ============================================================ */
+    :root {
+      --spacing-1:  8px;
+      --spacing-2:  16px;
+      --spacing-3:  24px;
+      --spacing-4:  32px;
+      --spacing-5:  40px;
+
+      --canvas-w:   1366px;
+      --canvas-h:   768px;
+      --col-count:  12;
+      --col-margin: 24px;
+      --col-gutter: 16px;
+      --col-unit:   85.5px;
+
+      --header-h:         80px;
+      --footer-explore-h: 120px;
+      --action-panel-h:   160px;
+      --combat-log-h:     80px;
+      --footer-inv-h:     72px;
+
+      --sidebar-left-w:  280px;
+      --sidebar-right-w: 300px;
+      --inv-cat-w:       200px;
+      --inv-detail-w:    300px;
+
+      --btn-h-sm: 40px;
+      --btn-h-md: 52px;
+
+      /* ── ACTIVE THEME: FIRE ── */
+      --theme-primary:    #E4572E;
+      --theme-secondary:  #FF9F1C;
+      --theme-bg:         #2B1A17;
+      --theme-bg-panel:   #1A0F0D;
+      --theme-accent:     #FFD166;
+      --theme-text:       #F5E6D3;
+      --theme-text-dim:   #99726A;
+      --theme-border:     #E4572E;
+      --theme-border-dim: #5C2A1A;
+    }
+
+    /* ============================================================
+       THEME OVERRIDES
+       Swap by adding class to <body>:
+         body.theme-ice    → ICE
+         body.theme-poison → POISON
+         body.theme-dark   → DARK
+       Default (no class) = FIRE
+    ============================================================ */
+
+    /* THEME: ICE
+    body.theme-ice {
+      --theme-primary:    #4EA8DE;
+      --theme-secondary:  #90E0EF;
+      --theme-bg:         #102A43;
+      --theme-bg-panel:   #081B2B;
+      --theme-accent:     #CAF0F8;
+      --theme-text:       #E0F7FF;
+      --theme-text-dim:   #4A7B99;
+      --theme-border:     #4EA8DE;
+      --theme-border-dim: #1A4B6E;
+    }
+    */
+
+    /* THEME: POISON
+    body.theme-poison {
+      --theme-primary:    #588157;
+      --theme-secondary:  #7FB069;
+      --theme-bg:         #1B2A1E;
+      --theme-bg-panel:   #0F1A12;
+      --theme-accent:     #B7E4C7;
+      --theme-text:       #D8F3DC;
+      --theme-text-dim:   #3E6B44;
+      --theme-border:     #588157;
+      --theme-border-dim: #2A4A2D;
+    }
+    */
+
+    /* THEME: DARK
+    body.theme-dark {
+      --theme-primary:    #6C5CE7;
+      --theme-secondary:  #A29BFE;
+      --theme-bg:         #121420;
+      --theme-bg-panel:   #0A0C15;
+      --theme-accent:     #C9C9FF;
+      --theme-text:       #E8E8FF;
+      --theme-text-dim:   #4A4A8A;
+      --theme-border:     #6C5CE7;
+      --theme-border-dim: #2A2060;
+    }
+    */
+
+    /* Active theme class declarations (uncomment comments above and use these) */
+    body.theme-ice    { --theme-primary:#4EA8DE;--theme-secondary:#90E0EF;--theme-bg:#102A43;--theme-bg-panel:#081B2B;--theme-accent:#CAF0F8;--theme-text:#E0F7FF;--theme-text-dim:#4A7B99;--theme-border:#4EA8DE;--theme-border-dim:#1A4B6E; }
+    body.theme-poison { --theme-primary:#588157;--theme-secondary:#7FB069;--theme-bg:#1B2A1E;--theme-bg-panel:#0F1A12;--theme-accent:#B7E4C7;--theme-text:#D8F3DC;--theme-text-dim:#3E6B44;--theme-border:#588157;--theme-border-dim:#2A4A2D; }
+    body.theme-dark   { --theme-primary:#6C5CE7;--theme-secondary:#A29BFE;--theme-bg:#121420;--theme-bg-panel:#0A0C15;--theme-accent:#C9C9FF;--theme-text:#E8E8FF;--theme-text-dim:#4A4A8A;--theme-border:#6C5CE7;--theme-border-dim:#2A2060; }
+
+    /* ============================================================
+       KEYFRAME ANIMATIONS
+    ============================================================ */
+    @keyframes pulse-border {
+      0%, 100% { border-color: var(--theme-accent); }
+      50%       { border-color: var(--theme-primary); }
+    }
+
+    @keyframes scanline {
+      0%   { background-position: 0 0; }
+      100% { background-position: 0 4px; }
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #0A0605;
+      font-family: 'VT323', monospace;
+      color: var(--theme-text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--spacing-3) 0;
+      gap: var(--spacing-3);
+    }
+
+    /* ============================================================
+       THEME SWITCHER BAR (outside game screens, debug/review only)
+    ============================================================ */
+    #theme-switcher {
+      display: flex;
+      gap: var(--spacing-1);
+      align-items: center;
+      padding: var(--spacing-1) var(--spacing-2);
+      background: #0A0605;
+      border: 1px solid #2A1A10;
+    }
+
+    #theme-switcher span {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: #4A3020;
+      margin-right: var(--spacing-1);
+      letter-spacing: .1em;
+    }
+
+    .theme-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 6px 10px;
+      background: #1A0F0D;
+      border: 1px solid #3A2010;
+      color: #99726A;
+      cursor: pointer;
+      transition: all 0.1s linear;
+      box-shadow: 2px 2px 0px #000;
+    }
+    .theme-btn:hover {
+      background: #3A2010;
+      color: #FFD166;
+      border-color: #FFD166;
+      box-shadow: 2px 2px 0px #FFD166;
+    }
+    .theme-btn.active {
+      background: #E4572E;
+      color: #1A0F0D;
+      border-color: #FFD166;
+    }
+
+    /* ============================================================
+       12-COLUMN GRID SYSTEM (unchanged)
+    ============================================================ */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(var(--col-count), var(--col-unit));
+      column-gap: var(--col-gutter);
+      padding-left:  var(--col-margin);
+      padding-right: var(--col-margin);
+      width: 100%;
+    }
+    .col-1  { grid-column: span 1; }
+    .col-2  { grid-column: span 2; }
+    .col-3  { grid-column: span 3; }
+    .col-4  { grid-column: span 4; }
+    .col-5  { grid-column: span 5; }
+    .col-6  { grid-column: span 6; }
+    .col-7  { grid-column: span 7; }
+    .col-8  { grid-column: span 8; }
+    .col-9  { grid-column: span 9; }
+    .col-10 { grid-column: span 10; }
+    .col-11 { grid-column: span 11; }
+    .col-12 { grid-column: span 12; }
+    .col-offset-1 { grid-column-start: 2; }
+    .col-offset-2 { grid-column-start: 3; }
+    .col-offset-3 { grid-column-start: 4; }
+
+    /* ============================================================
+       SCREEN VISIBILITY SYSTEM (unchanged structure)
+    ============================================================ */
+    .screen {
+      width: var(--canvas-w);
+      height: var(--canvas-h);
+      background: var(--theme-bg);
+      border: 2px solid var(--theme-border-dim);
+      box-shadow: 4px 4px 0px #000;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Production mode: only the active screen is shown */
+    .screen.active { display: flex; }
+
+    /* Screen label badge */
+    .screen::before {
+      content: attr(data-label);
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--theme-primary);
+      color: var(--theme-bg-panel);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      letter-spacing: .15em;
+      padding: 3px var(--spacing-1);
+      z-index: 100;
+      pointer-events: none;
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    /* ============================================================
+       TYPOGRAPHY
+    ============================================================ */
+    h2 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 16px;
+      color: var(--theme-accent);
+      letter-spacing: .04em;
+      line-height: 1.4;
+    }
+
+    p {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: var(--theme-text);
+      line-height: 1.5;
+    }
+
+    .zone-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      letter-spacing: .2em;
+      color: var(--theme-text-dim);
+      text-transform: uppercase;
+      margin-bottom: var(--spacing-1);
+      user-select: none;
+    }
+
+    /* ============================================================
+       HP BAR COMPONENT
+       Unified naming: hp-bar-* everywhere, no exceptions.
+       Java: getElementById("*-hp-fill").style.width = pct + "%"
+    ============================================================ */
+    .hp-bar-group {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-1);
+    }
+
+    .hp-bar-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--theme-text-dim);
+      letter-spacing: .1em;
+      white-space: nowrap;
+    }
+
+    .hp-bar-track {
+      height: 16px;
+      background: var(--theme-bg);
+      border: 2px solid var(--theme-border-dim);
+      position: relative;
+      overflow: hidden;
+    }
+    .hp-bar-track--sm { width: 140px; }
+    .hp-bar-track--lg { width: 100%; }
+
+    /* Loss segment behind fill */
+    .hp-bar-track::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #5C1A1A;
+      z-index: 0;
+    }
+
+    .hp-bar-fill {
+      height: 100%;
+      background: var(--theme-primary);
+      position: relative;
+      z-index: 1;
+      transition: width 0.3s ease;
+    }
+
+    .hp-bar-text {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: var(--theme-text-dim);
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    /* ============================================================
+       BUTTON SYSTEM
+       data-state="default|disabled|cooldown"
+       Java: element.setAttribute("data-state", "disabled")
+    ============================================================ */
+
+    /* Base — secondary */
+    .btn {
+      font-family: 'Press Start 2P', monospace;
+      cursor: pointer;
+      background: var(--theme-bg-panel);
+      color: var(--theme-accent);
+      border: 2px solid var(--theme-border-dim);
+      box-shadow: 2px 2px 0px #000;
+      font-size: 10px;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      height: var(--btn-h-sm);
+      letter-spacing: .08em;
+      transition: all 0.1s linear;
+      white-space: nowrap;
+    }
+    .btn:hover {
+      background: var(--theme-primary);
+      color: var(--theme-bg);
+      border-color: var(--theme-accent);
+      box-shadow: 2px 2px 0px var(--theme-accent);
+    }
+    .btn:active {
+      background: var(--theme-secondary);
+      transform: translate(1px, 1px);
+      box-shadow: 1px 1px 0px #000;
+    }
+
+    /* Primary */
+    .btn--primary {
+      border-width: 3px;
+      font-size: 12px;
+      padding: 12px 24px;
+      height: var(--btn-h-md);
+      min-width: 140px;
+      background: var(--theme-primary);
+      color: var(--theme-bg-panel);
+      border-color: var(--theme-accent);
+      box-shadow: 2px 2px 0px #000;
+    }
+    .btn--primary:hover {
+      background: var(--theme-accent);
+      color: var(--theme-bg-panel);
+      border-color: var(--theme-text);
+      box-shadow: 2px 2px 0px var(--theme-text);
+    }
+
+    /* Ghost / Tertiary */
+    .btn--ghost {
+      background: transparent;
+      border: 1px dashed var(--theme-border-dim);
+      color: var(--theme-text-dim);
+      font-size: 9px;
+      padding: 6px 12px;
+      box-shadow: none;
+    }
+    .btn--ghost:hover {
+      background: transparent;
+      border-color: var(--theme-text-dim);
+      color: var(--theme-text);
+      box-shadow: none;
+    }
+
+    /* Disabled state */
+    .btn[data-state="disabled"],
+    .btn--primary[data-state="disabled"] {
+      background: var(--theme-bg);
+      color: var(--theme-text-dim);
+      border-color: var(--theme-border-dim);
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+      box-shadow: none;
+    }
+
+    /* Cooldown state */
+    .btn[data-state="cooldown"] {
+      opacity: 0.6;
+      border-style: dashed;
+      cursor: not-allowed;
+    }
+
+    /* ============================================================
+       FIELD ROW
+    ============================================================ */
+    .field-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-1) 0;
+      border-bottom: 1px solid var(--theme-border-dim);
+    }
+    .field-row__key {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--theme-text-dim);
+      letter-spacing: .1em;
+    }
+    .field-row__val {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: var(--theme-text);
+    }
+
+    /* ============================================================
+       PLACEHOLDER ILLUSTRATION
+    ============================================================ */
+    .placeholder-img {
+      width: 100%;
+      background: var(--theme-bg-panel);
+      border: 1px dashed var(--theme-border-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--theme-border-dim);
+      letter-spacing: .1em;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    /* ============================================================
+       SHARED HEADER
+    ============================================================ */
+    .site-header {
+      width: 100%;
+      height: var(--header-h);
+      background: var(--theme-bg-panel);
+      border-bottom: 2px solid var(--theme-border-dim);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 var(--spacing-3);
+      flex-shrink: 0;
+    }
+
+    .hdr-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .hdr-dungeon-name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 14px;
+      color: var(--theme-accent);
+      letter-spacing: .06em;
+    }
+    .hdr-dungeon-theme {
+      font-family: 'VT323', monospace;
+      font-size: 14px;
+      color: var(--theme-text-dim);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .hdr-center {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      color: var(--theme-text);
+      text-align: center;
+      letter-spacing: .1em;
+    }
+
+    .hdr-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: var(--spacing-1);
+    }
+    .hdr-gold {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: var(--theme-accent);
+      letter-spacing: .08em;
+    }
+
+    /* ============================================================
+       MINIMAP NODES
+    ============================================================ */
+    .minimap-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .minimap-node {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--theme-border-dim);
+      background: var(--theme-bg-panel);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    /* [·] cleared room */
+    .minimap-node[data-room-index="0"] {
+      background: var(--theme-bg-panel);
+      color: var(--theme-text-dim);
+    }
+
+    /* [⚔] current room — pulse animation */
+    .minimap-node--active {
+      background: var(--theme-primary);
+      color: var(--theme-bg-panel);
+      border-color: var(--theme-accent);
+      border-width: 2px;
+      animation: pulse-border 1.5s ease-in-out infinite;
+    }
+
+    /* [?] pending rooms */
+    .minimap-node:not(.minimap-node--active)[title*="desconocida"] {
+      background: var(--theme-bg);
+      color: var(--theme-text-dim);
+      border-style: dashed;
+    }
+
+    /* [💀] final boss room */
+    .minimap-node[data-room-index="4"] {
+      background: #300;
+      color: #F00;
+      border-color: var(--theme-primary);
+    }
+
+    .minimap-connector {
+      font-family: 'VT323', monospace;
+      font-size: 14px;
+      color: var(--theme-border-dim);
+      user-select: none;
+    }
+
+    /* ============================================================
+       SCREEN 1 – EXPLORATION
+    ============================================================ */
+    #s1-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar: Map */
+    #s1-sidebar-map {
+      width: var(--sidebar-left-w);
+      background: var(--theme-bg-panel);
+      border-right: 1px solid var(--theme-border-dim);
+      padding: var(--spacing-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2);
+      flex-shrink: 0;
+    }
+
+    /* Center Panel */
+    #s1-center {
+      flex: 1;
+      padding: var(--spacing-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2);
+      overflow: hidden;
+    }
+
+    #s1-room-card {
+      flex: 1;
+      border: 2px solid var(--theme-border);
+      box-shadow: 4px 4px 0px var(--theme-border-dim);
+      background: var(--theme-bg-panel);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #s1-room-illustration {
+      flex: 1;
+    }
+
+    .room-card-footer {
+      padding: var(--spacing-2);
+      border-top: 1px solid var(--theme-border-dim);
+      background: var(--theme-bg-panel);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-1);
+    }
+
+    /* Right Sidebar: Room Info */
+    #s1-sidebar-info {
+      width: var(--sidebar-right-w);
+      background: var(--theme-bg-panel);
+      border-left: 1px solid var(--theme-border-dim);
+      padding: var(--spacing-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-1);
+      flex-shrink: 0;
+    }
+
+    /* Event log */
+    #s1-event-log {
+      flex: 1;
+      border: 1px dashed var(--theme-border-dim);
+      padding: var(--spacing-1);
+      margin-top: var(--spacing-1);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: var(--theme-bg);
+    }
+    #s1-event-log .log-entry {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: var(--theme-text-dim);
+    }
+    #s1-event-log .log-entry--placeholder {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--theme-border-dim);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: var(--spacing-2);
+    }
+
+    /* Footer Actions */
+    #s1-footer {
+      height: var(--footer-explore-h);
+      background: var(--theme-bg-panel);
+      border-top: 2px solid var(--theme-border-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-2);
+      padding: 0 var(--spacing-3);
+      flex-shrink: 0;
+    }
+
+    .btn-divider {
+      width: 1px;
+      height: var(--btn-h-sm);
+      background: var(--theme-border-dim);
+      flex-shrink: 0;
+    }
+
+    /* ============================================================
+       SCREEN 2 – COMBAT
+    ============================================================ */
+    #s2-main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Left 60%: Duel zone */
+    #s2-duel-zone {
+      flex: 6;
+      padding: var(--spacing-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2);
+      border-right: 1px solid var(--theme-border-dim);
+    }
+
+    #s2-duel-illustration {
+      flex: 1;
+      border: 2px solid var(--theme-border);
+      box-shadow: 4px 4px 0px var(--theme-border-dim);
+    }
+
+    .duel-name-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* Right 40%: Enemy status */
+    #s2-enemy-panel {
+      flex: 4;
+      background: var(--theme-bg-panel);
+      border-left: 1px solid var(--theme-border-dim);
+      padding: var(--spacing-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2);
+    }
+
+    .enemy-hp-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* Enemy name in panel */
+    #s2-enemy-name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      color: var(--theme-accent);
+      line-height: 1.5;
+    }
+
+    /* Tier badge */
+    .tier-badge {
+      display: inline-block;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      border: 1px solid var(--theme-border-dim);
+      padding: 4px var(--spacing-1);
+      letter-spacing: .2em;
+      color: var(--theme-text-dim);
+      text-transform: uppercase;
+      width: fit-content;
+      box-shadow: 2px 2px 0px #000;
+    }
+    .tier-badge[data-tier="menor"] { border-color: var(--theme-border-dim); color: var(--theme-text-dim); }
+    .tier-badge[data-tier="elite"] { border-color: var(--theme-secondary); color: var(--theme-secondary); }
+    .tier-badge[data-tier="jefe"]  { border-color: var(--theme-accent); color: var(--theme-accent); }
+
+    /* Status effect slots */
+    .status-effects-row {
+      display: flex;
+      gap: var(--spacing-1);
+    }
+    .status-slot {
+      width: 32px;
+      height: 32px;
+      border: 1px dashed var(--theme-border-dim);
+      background: var(--theme-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'VT323', monospace;
+      font-size: 14px;
+      color: var(--theme-border-dim);
+      box-shadow: 2px 2px 0px #000;
+    }
+    .status-slot[data-effect]:not([data-effect=""]) {
+      border-style: solid;
+      border-color: var(--theme-primary);
+      color: var(--theme-text);
+    }
+
+    /* Action Panel */
+    #s2-action-panel {
+      height: var(--action-panel-h);
+      background: var(--theme-bg-panel);
+      border-top: 2px solid var(--theme-border-dim);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--spacing-2);
+      padding: var(--spacing-2) var(--spacing-3);
+      align-items: stretch;
+      flex-shrink: 0;
+    }
+    #s2-action-panel .btn {
+      height: 100%;
+      font-size: 11px;
+    }
+
+    /* Combat Log */
+    #s2-combat-log {
+      height: var(--combat-log-h);
+      background: var(--theme-bg);
+      border-top: 1px solid var(--theme-border-dim);
+      padding: var(--spacing-1) var(--spacing-3);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .log-entry {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: var(--theme-text-dim);
+      letter-spacing: .02em;
+    }
+    .log-entry:first-of-type {
+      color: var(--theme-text);
+    }
+
+    /* ============================================================
+       SCREEN 3 – INVENTORY
+    ============================================================ */
+    #s3-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: var(--inv-cat-w) 1fr var(--inv-detail-w);
+      overflow: hidden;
+    }
+
+    /* Left: Categories */
+    #s3-cat-panel {
+      background: var(--theme-bg-panel);
+      border-right: 1px solid var(--theme-border-dim);
+      padding: var(--spacing-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-1);
+    }
+
+    .cat-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      padding: var(--spacing-1) var(--spacing-2);
+      background: var(--theme-bg);
+      border: 1px solid var(--theme-border-dim);
+      color: var(--theme-text-dim);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      height: var(--btn-h-sm);
+      box-shadow: 2px 2px 0px #000;
+      transition: all 0.1s linear;
+    }
+    .cat-btn:hover {
+      background: var(--theme-primary);
+      color: var(--theme-bg);
+      border-color: var(--theme-accent);
+    }
+    .cat-btn--active {
+      background: var(--theme-primary);
+      border-color: var(--theme-accent);
+      color: var(--theme-bg-panel);
+      box-shadow: 2px 2px 0px var(--theme-accent);
+    }
+
+    /* Center: Item List */
+    #s3-item-list {
+      padding: var(--spacing-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-1);
+      overflow-y: auto;
+      background: var(--theme-bg);
+    }
+
+    .inv-capacity-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: var(--spacing-1);
+    }
+    .inv-capacity-text {
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: var(--theme-text-dim);
+      letter-spacing: .1em;
+    }
+    .inv-capacity-sep {
+      margin: 0 2px;
+      color: var(--theme-border-dim);
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      padding: var(--spacing-1);
+      border: 1px solid var(--theme-border-dim);
+      background: var(--theme-bg-panel);
+      cursor: pointer;
+      transition: all 0.1s linear;
+      box-shadow: 2px 2px 0px #000;
+    }
+    .item-row:hover {
+      border-color: var(--theme-primary);
+      background: var(--theme-bg);
+    }
+    .item-row--selected {
+      border-color: var(--theme-accent);
+      border-width: 2px;
+      background: var(--theme-bg);
+      box-shadow: 2px 2px 0px var(--theme-accent);
+    }
+
+    .item-icon {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--theme-border-dim);
+      background: var(--theme-bg);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--theme-border-dim);
+    }
+
+    .item-name {
+      flex: 1;
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: var(--theme-text);
+      letter-spacing: .02em;
+    }
+
+    .item-type-badge {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--theme-text-dim);
+      border: 1px solid var(--theme-border-dim);
+      padding: 3px 6px;
+      white-space: nowrap;
+      background: var(--theme-bg);
+    }
+
+    /* Right: Detail Panel */
+    #s3-detail-panel {
+      background: var(--theme-bg-panel);
+      border-left: 1px solid var(--theme-border-dim);
+      padding: var(--spacing-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2);
+    }
+
+    #s3-detail-icon {
+      width: 64px;
+      height: 64px;
+      border: 2px solid var(--theme-border-dim);
+      background: var(--theme-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: var(--theme-border-dim);
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    .detail-type-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: var(--theme-primary);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .detail-effect-box {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: var(--theme-text);
+      border: 1px solid var(--theme-border-dim);
+      padding: var(--spacing-1);
+      background: var(--theme-bg);
+    }
+
+    .detail-stats-row {
+      border: 1px solid var(--theme-border-dim);
+      padding: 0 var(--spacing-1);
+      background: var(--theme-bg);
+      margin-top: auto;
+    }
+
+    /* Inventory Footer */
+    #s3-footer {
+      height: var(--footer-inv-h);
+      background: var(--theme-bg-panel);
+      border-top: 2px solid var(--theme-border-dim);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--spacing-3);
+      gap: var(--spacing-2);
+      flex-shrink: 0;
+    }
+
+  </style>
+</head>
+<body class="theme-fire">
+
+  <!-- THEME SWITCHER (review mode only — remove in production WebEngine build) -->
+  <div id="theme-switcher">
+    <span>TEMA:</span>
+    <button class="theme-btn active" id="tsw-fire"   onclick="setTheme('fire',   this)">🔥 Fuego</button>
+    <button class="theme-btn"        id="tsw-ice"    onclick="setTheme('ice',    this)">❄️ Hielo</button>
+    <button class="theme-btn"        id="tsw-poison" onclick="setTheme('poison', this)">☠️ Veneno</button>
+    <button class="theme-btn"        id="tsw-dark"   onclick="setTheme('dark',   this)">🌑 Oscuridad</button>
+  </div>
+
+  <!--
+  =======================================================================
+  JAVA INTEGRATION CONTRACT (unchanged from v2)
+  =======================================================================
+
+  SCREEN SWITCHING:
+    engine.executeScript(
+      "document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));" +
+      "document.getElementById('screen-exploration').classList.add('active');"
+    );
+
+  DATA BINDING:
+    hdr-dungeon-name   → state.dungeonName
+    hdr-room-progress  → "Sala " + state.room + " / " + state.totalRooms
+    hdr-player-hp-fill → style.width = state.playerHpPct + "%"
+    hdr-player-hp-text → state.playerHp + " / " + state.playerHpMax
+    hdr-gold           → "⬡ " + state.gold + " Monedas"
+
+  ACTION DISPATCH (alert bridge):
+    All buttons carry data-action="<id>".
+    Java registers: webEngine.setOnAlert(e -> dispatcher.handle(e.getData()))
+    Add to page JS: document.querySelectorAll('[data-action]').forEach(b =>
+      b.addEventListener('click', () => window.alert(b.dataset.action)));
+
+  ITEM BINDING:
+    s3-item-valor → item.getValorTotal()
+    s3-item-peso  → item.getPesoTotal() + " kg"
+    (NOT getValor/getPeso — those are Item.java legacy)
+  =======================================================================
+  -->
+
+
+  <!-- ================================================================
+       SCREEN 1: EXPLORATION
+  ================================================================ -->
+  <section class="screen active" id="screen-exploration" data-label="PANTALLA 1 · EXPLORACIÓN">
+
+    <header class="site-header" id="s1-header">
+      <div class="hdr-left">
+        <span class="hdr-dungeon-name" id="hdr-dungeon-name"
+              data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-dungeon-theme"
+              data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
+      </div>
+      <div class="hdr-center" id="hdr-room-progress"
+           data-bind="'Sala ' + state.room + ' / ' + state.totalRooms">
+        Sala 3 / 12
+      </div>
+      <div class="hdr-right">
+        <div class="hp-bar-group">
+          <span class="hp-bar-label">HP</span>
+          <div class="hp-bar-track hp-bar-track--sm"
+               role="progressbar" aria-label="Puntos de vida del jugador"
+               aria-valuenow="65" aria-valuemax="100">
+            <div class="hp-bar-fill" id="hdr-player-hp-fill"
+                 data-bind="state.playerHpPct + '%'" style="width:65%;"></div>
+          </div>
+          <span class="hp-bar-text" id="hdr-player-hp-text"
+                data-bind="state.playerHp + ' / ' + state.playerHpMax">65 / 100</span>
+        </div>
+        <span class="hdr-gold" id="hdr-gold"
+              data-bind="'⬡ ' + state.gold + ' Monedas'">⬡ 340 Monedas</span>
+      </div>
+    </header>
+
+    <div id="s1-body">
+
+      <!-- LEFT: MAP -->
+      <aside id="s1-sidebar-map" aria-label="Mapa de mazmorras">
+        <div class="zone-label">Mapa</div>
+        <nav class="minimap-row" id="s1-minimap-row" aria-label="Salas exploradas">
+          <div class="minimap-node" data-room-index="0" title="Sala inicial">·</div>
+          <span class="minimap-connector" aria-hidden="true">—</span>
+          <div class="minimap-node minimap-node--active" data-room-index="1" title="Sala actual">⚔</div>
+          <span class="minimap-connector" aria-hidden="true">—</span>
+          <div class="minimap-node" data-room-index="2" title="Sala desconocida">?</div>
+          <span class="minimap-connector" aria-hidden="true">—</span>
+          <div class="minimap-node" data-room-index="3" title="Sala desconocida">?</div>
+          <span class="minimap-connector" aria-hidden="true">—</span>
+          <div class="minimap-node" data-room-index="4" title="Jefe final">💀</div>
+        </nav>
+      </aside>
+
+      <!-- CENTER: ROOM CARD -->
+      <main id="s1-center">
+        <div id="s1-room-card">
+          <div class="placeholder-img" id="s1-room-illustration"
+               aria-label="Ilustración de sala en primera persona"
+               style="min-height:340px;">
+            ILUSTRACIÓN SALA (primera persona)
+          </div>
+          <div class="room-card-footer">
+            <h2 id="s1-room-name" data-bind="state.roomName">Sala del Guardián Caído</h2>
+            <p id="s1-room-desc" data-bind="state.roomDesc">
+              Las paredes de piedra rezuman humedad. Antorchas extintas cuelgan de sus soportes oxidados.
+              Un olor a muerte impregna el aire, y las huellas en el polvo sugieren que algo estuvo aquí recientemente.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <!-- RIGHT: ROOM INFO -->
+      <aside id="s1-sidebar-info" aria-label="Información de sala">
+        <div class="zone-label">Información de Sala</div>
+        <div class="field-row">
+          <span class="field-row__key">Dificultad</span>
+          <span class="field-row__val" id="s1-difficulty"
+                data-bind="state.roomDifficulty">Media</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Tiene Tesoro</span>
+          <span class="field-row__val" id="s1-has-treasure"
+                data-bind="state.roomHasTreasure ? 'Sí' : 'No'">Sí</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Tiene Enemigo</span>
+          <span class="field-row__val" id="s1-has-enemy"
+                data-bind="state.roomHasEnemy ? 'Sí' : 'No'">No</span>
+        </div>
+        <div class="zone-label" style="margin-top:var(--spacing-2);">Log de Eventos</div>
+        <div id="s1-event-log" aria-live="polite" aria-label="Registro de eventos">
+          <p class="log-entry log-entry--placeholder">Sin eventos aún</p>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer id="s1-footer">
+      <button class="btn btn--primary" id="btn-avanzar"
+              data-action="advanceRoom" data-state="default">Avanzar</button>
+      <div class="btn-divider" role="separator" aria-hidden="true"></div>
+      <button class="btn" id="btn-explorar"
+              data-action="searchTreasure" data-state="default">Explorar</button>
+      <button class="btn" id="btn-inventory"
+              data-action="openInventory" data-state="default">Inventario</button>
+      <button class="btn" id="btn-guardar"
+              data-action="saveGame" data-state="default">Guardar</button>
+      <div class="btn-divider" role="separator" aria-hidden="true"></div>
+      <button class="btn btn--ghost" id="btn-forzar-combate"
+              data-action="forceCombat" data-state="default">Forzar Combate</button>
+    </footer>
+
+  </section>
+
+
+  <!-- ================================================================
+       SCREEN 2: COMBAT
+  ================================================================ -->
+  <section class="screen" id="screen-combat" data-label="PANTALLA 2 · COMBATE">
+
+    <header class="site-header" id="s2-header">
+      <div class="hdr-left">
+        <span class="hdr-dungeon-name" id="hdr-dungeon-name-combat"
+              data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-combat"
+              data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
+      </div>
+      <div class="hdr-center" id="hdr-room-progress-combat"
+           data-bind="'Sala ' + state.room + ' / ' + state.totalRooms">
+        Sala 3 / 12
+      </div>
+      <div class="hdr-right">
+        <div class="hp-bar-group">
+          <span class="hp-bar-label">HP</span>
+          <div class="hp-bar-track hp-bar-track--sm"
+               role="progressbar" aria-label="HP del jugador"
+               aria-valuenow="65" aria-valuemax="100">
+            <div class="hp-bar-fill" id="hdr-player-hp-fill-combat"
+                 data-bind="state.playerHpPct + '%'" style="width:65%;"></div>
+          </div>
+          <span class="hp-bar-text" id="hdr-player-hp-text-combat"
+                data-bind="state.playerHp + ' / ' + state.playerHpMax">65 / 100</span>
+        </div>
+        <span class="hdr-gold" id="hdr-gold-combat"
+              data-bind="'⬡ ' + state.gold + ' Monedas'">⬡ 340 Monedas</span>
+      </div>
+    </header>
+
+    <main id="s2-main">
+
+      <!-- LEFT 60%: Duel -->
+      <section id="s2-duel-zone" aria-label="Vista de duelo">
+        <div class="placeholder-img" id="s2-duel-illustration"
+             aria-label="Ilustración de duelo en primera persona">
+          ILUSTRACIÓN DUELO (primera persona)
+        </div>
+        <div class="duel-name-row">
+          <h2 id="s2-enemy-name-duel" data-bind="state.enemy.name">Espectro de Malgrath</h2>
+        </div>
+      </section>
+
+      <!-- RIGHT 40%: Enemy status -->
+      <aside id="s2-enemy-panel" aria-label="Estado del enemigo">
+        <div class="zone-label">Estado del Enemigo</div>
+        <span id="s2-enemy-name" data-bind="state.enemy.name">Espectro de Malgrath</span>
+        <div class="enemy-hp-wrap">
+          <span class="hp-bar-label">HP Enemigo</span>
+          <div class="hp-bar-track hp-bar-track--lg"
+               role="progressbar" aria-label="HP del enemigo"
+               aria-valuenow="45" aria-valuemax="100">
+            <div class="hp-bar-fill" id="s2-enemy-hp-fill"
+                 data-bind="state.enemy.hpPct + '%'" style="width:45%;"></div>
+          </div>
+          <span class="hp-bar-text" id="s2-enemy-hp-text"
+                data-bind="state.enemy.hp + ' / ' + state.enemy.hpMax">45 / 100</span>
+        </div>
+        <div>
+          <span class="tier-badge" id="s2-enemy-tier"
+                data-tier="elite" data-bind="state.enemy.tier">Elite</span>
+        </div>
+        <div class="zone-label" style="margin-bottom:4px;">Efectos de Estado</div>
+        <div class="status-effects-row" id="s2-status-effects">
+          <div class="status-slot" id="s2-status-slot-1" data-effect="" aria-label="Efecto 1: vacío">—</div>
+          <div class="status-slot" id="s2-status-slot-2" data-effect="" aria-label="Efecto 2: vacío">—</div>
+          <div class="status-slot" id="s2-status-slot-3" data-effect="" aria-label="Efecto 3: vacío">—</div>
+          <div class="status-slot" id="s2-status-slot-4" data-effect="" aria-label="Efecto 4: vacío">—</div>
+        </div>
+      </aside>
+
+    </main>
+
+    <!-- ACTION PANEL -->
+    <section id="s2-action-panel" aria-label="Acciones de combate">
+      <button class="btn btn--primary" id="btn-atacar"
+              data-action="attack" data-state="default">Atacar</button>
+      <button class="btn" id="btn-defender"
+              data-action="defend" data-state="default">Defender</button>
+      <button class="btn" id="btn-usar-objeto"
+              data-action="useItem" data-state="default">Usar Objeto</button>
+      <button class="btn" id="btn-habilidad"
+              data-action="useSkill" data-state="default">Habilidad</button>
+    </section>
+
+    <!-- COMBAT LOG -->
+    <section id="s2-combat-log" aria-label="Log de combate" aria-live="polite">
+      <div class="zone-label">Log de Combate</div>
+      <p class="log-entry">[Turno 1] El Espectro de Malgrath te ataca. Pierdes 12 HP.</p>
+      <p class="log-entry">[Turno 2] Atacas al Espectro. Infliges 18 de daño.</p>
+      <p class="log-entry">[Turno 3] El Espectro usa Drenaje de Alma. Pierdes 8 HP.</p>
+    </section>
+
+  </section>
+
+
+  <!-- ================================================================
+       SCREEN 3: INVENTORY
+  ================================================================ -->
+  <section class="screen" id="screen-inventory" data-label="PANTALLA 3 · INVENTARIO">
+
+    <header class="site-header" id="s3-header">
+      <div class="hdr-left">
+        <span class="hdr-dungeon-name" id="hdr-dungeon-name-inv"
+              data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-inv"
+              data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
+      </div>
+      <div class="hdr-center" id="hdr-room-progress-inv"
+           data-bind="'Sala ' + state.room + ' / ' + state.totalRooms">
+        Sala 3 / 12
+      </div>
+      <div class="hdr-right">
+        <div class="hp-bar-group">
+          <span class="hp-bar-label">HP</span>
+          <div class="hp-bar-track hp-bar-track--sm"
+               role="progressbar" aria-label="HP del jugador"
+               aria-valuenow="65" aria-valuemax="100">
+            <div class="hp-bar-fill" id="hdr-player-hp-fill-inv"
+                 data-bind="state.playerHpPct + '%'" style="width:65%;"></div>
+          </div>
+          <span class="hp-bar-text" id="hdr-player-hp-text-inv"
+                data-bind="state.playerHp + ' / ' + state.playerHpMax">65 / 100</span>
+        </div>
+        <span class="hdr-gold" id="hdr-gold-inv"
+              data-bind="'⬡ ' + state.gold + ' Monedas'">⬡ 340 Monedas</span>
+      </div>
+    </header>
+
+    <div id="s3-body">
+
+      <!-- LEFT: Categories
+           Solo Consumible tiene lógica real en InteractiveGame.java.
+           Agregar botones aquí únicamente cuando se implemente el backend.
+      -->
+      <aside id="s3-cat-panel" aria-label="Categorías de objetos">
+        <div class="zone-label">Categorías</div>
+        <button class="cat-btn cat-btn--active" id="cat-consumable"
+                data-action="filterCategory"
+                aria-pressed="true">Consumible</button>
+      </aside>
+
+      <!-- CENTER: Item list -->
+      <main id="s3-item-list" aria-label="Lista de objetos">
+        <div class="inv-capacity-bar">
+          <span class="zone-label" style="margin-bottom:0;">Objetos</span>
+          <span class="inv-capacity-text">
+            <span id="s3-capacity-current" data-bind="state.inventory.itemCount">3</span>
+            <span class="inv-capacity-sep">/</span>
+            <span id="s3-capacity-max" data-bind="state.inventory.maxCapacity">20</span>
+          </span>
+        </div>
+
+        <!-- Poción de Vida ×2 (índices 0 y 1 en la lista del inventario) -->
+        <div class="item-row item-row--selected" id="item-row-1"
+             data-item-id="pocion-vida" data-item-index="0"
+             data-action="selectItem"
+             role="button" tabindex="0" aria-selected="true">
+          <div class="item-icon" aria-hidden="true">IMG</div>
+          <span class="item-name">Poción de Vida</span>
+          <span class="item-type-badge">Consumible</span>
+        </div>
+
+        <div class="item-row" id="item-row-2"
+             data-item-id="pocion-vida" data-item-index="1"
+             data-action="selectItem"
+             role="button" tabindex="0" aria-selected="false">
+          <div class="item-icon" aria-hidden="true">IMG</div>
+          <span class="item-name">Poción de Vida</span>
+          <span class="item-type-badge">Consumible</span>
+        </div>
+
+        <div class="item-row" id="item-row-3"
+             data-item-id="antidoto" data-item-index="2"
+             data-action="selectItem"
+             role="button" tabindex="0" aria-selected="false">
+          <div class="item-icon" aria-hidden="true">IMG</div>
+          <span class="item-name">Antídoto</span>
+          <span class="item-type-badge">Consumible</span>
+        </div>
+
+        <div class="item-row" id="item-row-4"
+             data-item-id="gema-fuego" data-item-index="3"
+             data-action="selectItem"
+             role="button" tabindex="0" aria-selected="false">
+          <div class="item-icon" aria-hidden="true">IMG</div>
+          <span class="item-name">Gema de Fuego</span>
+          <span class="item-type-badge">Gema</span>
+        </div>
+
+        <div class="item-row" id="item-row-5"
+             data-item-id="espada-flamigera" data-item-index="4"
+             data-action="selectItem"
+             role="button" tabindex="0" aria-selected="false">
+          <div class="item-icon" aria-hidden="true">IMG</div>
+          <span class="item-name">Espada Flamígera</span>
+          <span class="item-type-badge">Arma</span>
+        </div>
+
+        <div class="item-row" id="item-row-6"
+             data-item-id="runa-oscura" data-item-index="5"
+             data-action="selectItem"
+             role="button" tabindex="0" aria-selected="false">
+          <div class="item-icon" aria-hidden="true">IMG</div>
+          <span class="item-name">Runa Oscura</span>
+          <span class="item-type-badge">Runa</span>
+        </div>
+      </main>
+
+      <!-- RIGHT: Detail panel -->
+      <aside id="s3-detail-panel" aria-label="Detalle del objeto seleccionado">
+        <div class="zone-label">Detalle</div>
+        <div id="s3-detail-icon" aria-label="Icono del objeto">IMG</div>
+        <h2 id="s3-item-name" data-bind="state.selectedItem.name">Poción de Vida</h2>
+        <span class="detail-type-label" id="s3-item-type"
+              data-type="consumible" data-bind="state.selectedItem.type">Consumible</span>
+        <p id="s3-item-desc" data-bind="state.selectedItem.desc">
+          Un frasco de cristal sellado que contiene un líquido rojizo burbujeante.
+          Emana un leve resplandor caliente al tacto.
+        </p>
+        <div class="detail-effect-box" id="s3-item-effect"
+             data-bind="'Efecto: ' + state.selectedItem.effect">
+          Efecto: Restaura 50 HP al consumirse. Uso único.
+        </div>
+        <!--
+          s3-item-valor → item.getValorTotal()   (SimpleItem/ItemComponent)
+          s3-item-peso  → item.getPesoTotal()    (SimpleItem/ItemComponent)
+          NO usar getValor()/getPeso() — Item.java legacy
+        -->
+        <div class="detail-stats-row">
+          <div class="field-row">
+            <span class="field-row__key">Valor</span>
+            <span class="field-row__val" id="s3-item-valor"
+                  data-bind="item.getValorTotal()">50</span>
+          </div>
+          <div class="field-row">
+            <span class="field-row__key">Peso</span>
+            <span class="field-row__val" id="s3-item-peso"
+                  data-bind="item.getPesoTotal() + ' kg'">1 kg</span>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- FOOTER
+         btn-use-item-inv: siempre default mientras solo exista categoría Consumible.
+         Java dispatch: inv-use-item → buscarConsumiblePorNombre("poci") o ("antid")
+    -->
+    <footer id="s3-footer">
+      <button class="btn btn--primary" id="btn-use-item-inv"
+              data-action="useItem" data-state="default"
+              title="Disponible solo para Consumibles (usarPocion / usarAntidoto)">Usar</button>
+      <button class="btn" id="btn-back-inv"
+              data-action="closeInventory" data-state="default">Volver</button>
+    </footer>
+
+  </section>
+
+  <!-- THEME SWITCHER SCRIPT (review only — exclude from WebEngine build) -->
+  <script>
+    function setTheme(name, btn) {
+      /* Usa classList para no borrar otras clases de estado que Java pueda añadir al body */
+      document.body.classList.remove('theme-fire', 'theme-ice', 'theme-poison', 'theme-dark');
+      document.body.classList.add(name === 'fire' ? 'theme-fire' : 'theme-' + name);
+      document.querySelectorAll('.theme-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+  </script>
+
+  <!-- ================================================================
+       JAVA BRIDGE — Integración real con JavaFX WebEngine
+       Bridge: webEngine.setOnAlert(e -> dispatcher.handle(e.getData()))
+       Push:   engine.executeScript("window.updateGameState(" + json + ")")
+  ================================================================ -->
+  <script>
+    /* ── Selección de item en inventario (estado local JS) ── */
+    var _selectedItemIndex = null;
+    var _selectedItemId    = null;
+
+    /* ── sendCommand: encapsula el alert-bridge ── */
+    function sendCommand(action, payload) {
+      var msg = (payload !== undefined)
+        ? action + ':' + JSON.stringify(payload)
+        : action;
+      window.alert(msg);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+      /* ── Selección local de items (no despacha a Java) ── */
+      document.querySelectorAll('[data-action="selectItem"]').forEach(function(el) {
+        el.addEventListener('click', function() {
+          document.querySelectorAll('.item-row').forEach(function(r) {
+            r.classList.remove('item-row--selected');
+            r.setAttribute('aria-selected', 'false');
+          });
+          el.classList.add('item-row--selected');
+          el.setAttribute('aria-selected', 'true');
+          _selectedItemIndex = el.dataset.itemIndex;
+          _selectedItemId    = el.dataset.itemId;
+        });
+      });
+
+      /* ── Filtro local de categorías (no despacha a Java) ── */
+      document.querySelectorAll('[data-action="filterCategory"]').forEach(function(el) {
+        el.addEventListener('click', function() {
+          document.querySelectorAll('.cat-btn').forEach(function(b) {
+            b.classList.remove('cat-btn--active');
+            b.setAttribute('aria-pressed', 'false');
+          });
+          el.classList.add('cat-btn--active');
+          el.setAttribute('aria-pressed', 'true');
+        });
+      });
+
+      /* ── Botones de acción → Java via alert bridge ── */
+      var LOCAL_ACTIONS = { selectItem: true, filterCategory: true };
+      document.querySelectorAll('[data-action]').forEach(function(el) {
+        var action = el.dataset.action;
+        if (LOCAL_ACTIONS[action]) return; /* ya manejados arriba */
+        el.addEventListener('click', function() {
+          if (el.dataset.state === 'disabled' || el.dataset.state === 'cooldown') return;
+          if (action === 'useItem') {
+            sendCommand('useItem', { itemIndex: _selectedItemIndex, itemId: _selectedItemId });
+          } else if (action === 'useSkill') {
+            sendCommand('useSkill', {});
+          } else {
+            sendCommand(action);
+          }
+        });
+      });
+    });
+
+    /* ── updateGameState: Java llama engine.executeScript("window.updateGameState(..)") ── */
+    window.updateGameState = function(state) {
+      if (!state) return;
+
+      function setText(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = (val !== null && val !== undefined) ? String(val) : '';
+      }
+      function setWidth(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.style.width = val;
+      }
+
+      /* Header compartido (3 pantallas) */
+      var prog   = 'Sala ' + (state.room || 0) + ' / ' + (state.totalRooms || 0);
+      var gold   = '\u29A1 ' + (state.gold || 0) + ' Monedas';
+      var hpPct  = (state.playerHpPct  || 0) + '%';
+      var hpText = (state.playerHp     || 0) + ' / ' + (state.playerHpMax || 0);
+      ['', '-combat', '-inv'].forEach(function(sfx) {
+        setText ('hdr-dungeon-name'    + sfx, state.dungeonName  || '');
+        setText ('hdr-dungeon-theme'   + sfx, state.dungeonTheme || '');
+        setText ('hdr-room-progress'   + sfx, prog);
+        setText ('hdr-gold'            + sfx, gold);
+        setWidth('hdr-player-hp-fill'  + sfx, hpPct);
+        setText ('hdr-player-hp-text'  + sfx, hpText);
+      });
+
+      /* Tema visual */
+      if (state.theme) {
+        document.body.classList.remove('theme-fire','theme-ice','theme-poison','theme-dark');
+        document.body.classList.add('theme-' + state.theme);
+      }
+
+      /* Pantalla activa */
+      if (state.screen) {
+        var screenMap = { exploration:'screen-exploration', combat:'screen-combat', inventory:'screen-inventory' };
+        document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+        var target = screenMap[state.screen];
+        if (target) document.getElementById(target).classList.add('active');
+      }
+
+      /* Exploración */
+      setText('s1-room-name',    state.roomName        || '');
+      setText('s1-room-desc',    state.roomDesc        || '');
+      setText('s1-difficulty',   state.roomDifficulty  || '');
+      setText('s1-has-treasure', state.roomHasTreasure ? 'S\u00ED' : 'No');
+      setText('s1-has-enemy',    state.roomHasEnemy    ? 'S\u00ED' : 'No');
+
+      if (Array.isArray(state.eventLog)) {
+        var elog = document.getElementById('s1-event-log');
+        if (elog) {
+          elog.innerHTML = '';
+          if (state.eventLog.length === 0) {
+            var ph = document.createElement('p');
+            ph.className = 'log-entry log-entry--placeholder';
+            ph.textContent = 'Sin eventos a\u00FAn';
+            elog.appendChild(ph);
+          } else {
+            state.eventLog.forEach(function(line) {
+              var p = document.createElement('p'); p.className = 'log-entry'; p.textContent = line; elog.appendChild(p);
+            });
+          }
+        }
+      }
+
+      /* Combate */
+      if (state.enemy) {
+        var en = state.enemy;
+        setText ('s2-enemy-name-duel', en.name || '');
+        setText ('s2-enemy-name',      en.name || '');
+        setText ('s2-enemy-hp-text',   (en.hp || 0) + ' / ' + (en.hpMax || 0));
+        setWidth('s2-enemy-hp-fill',   (en.hpPct || 0) + '%');
+        var tierEl = document.getElementById('s2-enemy-tier');
+        if (tierEl) { tierEl.textContent = en.tier || ''; tierEl.dataset.tier = (en.tier||'').toLowerCase(); }
+      }
+
+      if (Array.isArray(state.combatLog)) {
+        var clog = document.getElementById('s2-combat-log');
+        if (clog) {
+          var zl = clog.querySelector('.zone-label');
+          clog.innerHTML = '';
+          if (zl) clog.appendChild(zl);
+          state.combatLog.forEach(function(line) {
+            var p = document.createElement('p'); p.className = 'log-entry'; p.textContent = line; clog.appendChild(p);
+          });
+        }
+      }
+
+      /* Inventario */
+      if (state.inventory) {
+        setText('s3-capacity-current', state.inventory.itemCount   || 0);
+        setText('s3-capacity-max',     state.inventory.maxCapacity || 0);
+      }
+      if (state.selectedItem) {
+        var si = state.selectedItem;
+        setText('s3-item-name',   si.name   || '');
+        setText('s3-item-desc',   si.desc   || '');
+        setText('s3-item-effect', 'Efecto: ' + (si.effect || ''));
+        setText('s3-item-valor',  si.valor != null ? String(si.valor)    : '');
+        setText('s3-item-peso',   si.peso  != null ? si.peso + ' kg'     : '');
+        var typeEl = document.getElementById('s3-item-type');
+        if (typeEl) { typeEl.textContent = si.type || ''; if (si.type) typeEl.dataset.type = si.type.toLowerCase(); }
+      }
+
+      /* Estados de botones: state.buttons = { "btn-avanzar": "disabled", ... } */
+      if (state.buttons && typeof state.buttons === 'object') {
+        Object.keys(state.buttons).forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.dataset.state = state.buttons[id];
+        });
+      }
+    };
+  </script>
+
+</body>
+</html>
