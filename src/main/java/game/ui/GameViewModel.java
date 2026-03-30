@@ -37,6 +37,8 @@ public class GameViewModel {
     public boolean roomHasTreasure;
     public boolean roomHasEnemy;
     public List<String> eventLog;
+    /** "cleared" | "current" | "unknown" | "boss" */
+    public List<String> minimapSymbols;
 
     // ── Pantalla Combate ──────────────────────────────────────────
     public EnemyInfo    enemy;
@@ -44,7 +46,9 @@ public class GameViewModel {
 
     // ── Pantalla Inventario ───────────────────────────────────────
     public InventoryInfo inventory;
+    public List<InventoryItemInfo> inventoryItems;
     public ItemInfo      selectedItem;
+    public Integer       selectedItemIndex;
 
     // ── Estados de botones ────────────────────────────────────────
     /**
@@ -67,6 +71,14 @@ public class GameViewModel {
     public static class InventoryInfo {
         public int itemCount;
         public int maxCapacity;
+    }
+
+    public static class InventoryItemInfo {
+        public int    index;
+        public String id;
+        public String name;
+        public String type;
+        public String effect;
     }
 
     public static class ItemInfo {
@@ -96,7 +108,7 @@ public class GameViewModel {
         vm.theme         = theme;
 
         vm.dungeonName   = dungeon.getNombre();
-        vm.dungeonTheme  = dungeon.getNivelDificultad(); // reutiliza campo descriptivo
+        vm.dungeonTheme  = String.valueOf(dungeon.getNivelDificultad()); // reutiliza campo descriptivo
         vm.room          = roomIndex + 1;
         vm.totalRooms    = dungeon.getSalas().size();
         vm.gold          = gold;
@@ -107,7 +119,7 @@ public class GameViewModel {
 
         vm.roomName         = room.getNombre();
         vm.roomDesc         = room.getDescripcion();
-        vm.roomDifficulty   = room.getDificultad();
+        vm.roomDifficulty   = String.valueOf(room.getDificultad());
         vm.roomHasTreasure  = room.tieneTesoro();
         vm.roomHasEnemy     = room.tieneEnemigo();
         vm.eventLog         = eventLog != null ? eventLog : List.of();
@@ -130,7 +142,7 @@ public class GameViewModel {
         vm.theme         = theme;
 
         vm.dungeonName   = dungeon.getNombre();
-        vm.dungeonTheme  = dungeon.getNivelDificultad();
+        vm.dungeonTheme  = String.valueOf(dungeon.getNivelDificultad());
         vm.room          = roomIndex + 1;
         vm.totalRooms    = dungeon.getSalas().size();
         vm.gold          = gold;

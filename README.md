@@ -8,6 +8,9 @@ Proyecto académico desarrollado en **Java 17** para demostrar la aplicación de
 # Compilar proyecto
 mvn clean compile
 
+# Ejecutar UI HTML integrada con JavaFX WebView
+mvn javafx:run
+
 # Ejecutar juego interactivo
 mvn exec:java -Dexec.mainClass="game.InteractiveGame"
 

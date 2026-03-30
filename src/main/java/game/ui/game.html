@@ -564,6 +564,12 @@
       border-color: var(--theme-primary);
     }
 
+    .minimap-node--boss {
+      background: #300;
+      color: #F00;
+      border-color: var(--theme-primary);
+    }
+
     .minimap-connector {
       font-family: 'VT323', monospace;
       font-size: 14px;
@@ -1327,59 +1333,60 @@
           </span>
         </div>
 
-        <!-- Poción de Vida ×2 (índices 0 y 1 en la lista del inventario) -->
-        <div class="item-row item-row--selected" id="item-row-1"
-             data-item-id="pocion-vida" data-item-index="0"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="true">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Poción de Vida</span>
-          <span class="item-type-badge">Consumible</span>
-        </div>
+        <div id="s3-item-rows">
+          <div class="item-row item-row--selected" id="item-row-1"
+               data-item-id="pocion-vida" data-item-index="0"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="true">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Poción de Vida</span>
+            <span class="item-type-badge">Consumible</span>
+          </div>
 
-        <div class="item-row" id="item-row-2"
-             data-item-id="pocion-vida" data-item-index="1"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Poción de Vida</span>
-          <span class="item-type-badge">Consumible</span>
-        </div>
+          <div class="item-row" id="item-row-2"
+               data-item-id="pocion-vida" data-item-index="1"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="false">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Poción de Vida</span>
+            <span class="item-type-badge">Consumible</span>
+          </div>
 
-        <div class="item-row" id="item-row-3"
-             data-item-id="antidoto" data-item-index="2"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Antídoto</span>
-          <span class="item-type-badge">Consumible</span>
-        </div>
+          <div class="item-row" id="item-row-3"
+               data-item-id="antidoto" data-item-index="2"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="false">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Antídoto</span>
+            <span class="item-type-badge">Consumible</span>
+          </div>
 
-        <div class="item-row" id="item-row-4"
-             data-item-id="gema-fuego" data-item-index="3"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Gema de Fuego</span>
-          <span class="item-type-badge">Gema</span>
-        </div>
+          <div class="item-row" id="item-row-4"
+               data-item-id="gema-fuego" data-item-index="3"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="false">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Gema de Fuego</span>
+            <span class="item-type-badge">Gema</span>
+          </div>
 
-        <div class="item-row" id="item-row-5"
-             data-item-id="espada-flamigera" data-item-index="4"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Espada Flamígera</span>
-          <span class="item-type-badge">Arma</span>
-        </div>
+          <div class="item-row" id="item-row-5"
+               data-item-id="espada-flamigera" data-item-index="4"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="false">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Espada Flamígera</span>
+            <span class="item-type-badge">Arma</span>
+          </div>
 
-        <div class="item-row" id="item-row-6"
-             data-item-id="runa-oscura" data-item-index="5"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Runa Oscura</span>
-          <span class="item-type-badge">Runa</span>
+          <div class="item-row" id="item-row-6"
+               data-item-id="runa-oscura" data-item-index="5"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="false">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Runa Oscura</span>
+            <span class="item-type-badge">Runa</span>
+          </div>
         </div>
       </main>
 
@@ -1454,57 +1461,174 @@
     var _selectedItemIndex = null;
     var _selectedItemId    = null;
 
-    /* ── sendCommand: encapsula el alert-bridge ── */
+    /* ── sendCommand: usa javabridge si existe; fallback a alert bridge ── */
     function sendCommand(action, payload) {
-      var msg = (payload !== undefined)
-        ? action + ':' + JSON.stringify(payload)
-        : action;
+      var safePayload = payload || {};
+      if (window.javabridge && typeof window.javabridge.dispatch === 'function') {
+        window.javabridge.dispatch(action, JSON.stringify(safePayload));
+        return;
+      }
+
+      var msg = action + ':' + JSON.stringify(safePayload);
       window.alert(msg);
+    }
+
+    function selectInventoryRow(el) {
+      document.querySelectorAll('.item-row').forEach(function(row) {
+        row.classList.remove('item-row--selected');
+        row.setAttribute('aria-selected', 'false');
+      });
+      el.classList.add('item-row--selected');
+      el.setAttribute('aria-selected', 'true');
+      _selectedItemIndex = el.dataset.itemIndex;
+      _selectedItemId = el.dataset.itemId;
+    }
+
+    function renderMinimap(symbols) {
+      var row = document.getElementById('s1-minimap-row');
+      if (!row) return;
+
+      row.innerHTML = '';
+      if (!Array.isArray(symbols) || symbols.length === 0) {
+        return;
+      }
+
+      symbols.forEach(function(symbol, index) {
+        var status = String(symbol || '').toLowerCase();
+        var node = document.createElement('div');
+        node.className = 'minimap-node';
+        node.dataset.roomIndex = String(index);
+
+        if (status === 'current') {
+          node.classList.add('minimap-node--active');
+          node.title = 'Sala actual';
+          node.textContent = '⚔';
+        } else if (status === 'cleared') {
+          node.title = 'Sala despejada';
+          node.textContent = '·';
+        } else if (status === 'boss') {
+          node.classList.add('minimap-node--boss');
+          node.title = 'Sala final';
+          node.textContent = '💀';
+        } else {
+          node.title = 'Sala desconocida';
+          node.textContent = '?';
+        }
+
+        row.appendChild(node);
+
+        if (index < symbols.length - 1) {
+          var connector = document.createElement('span');
+          connector.className = 'minimap-connector';
+          connector.textContent = '-';
+          row.appendChild(connector);
+        }
+      });
+    }
+
+    function renderInventoryItems(items, selectedIndex) {
+      var rowsContainer = document.getElementById('s3-item-rows');
+      if (!rowsContainer) return;
+
+      rowsContainer.innerHTML = '';
+
+      if (!Array.isArray(items) || items.length === 0) {
+        var empty = document.createElement('p');
+        empty.className = 'log-entry log-entry--placeholder';
+        empty.textContent = 'Inventario vacío';
+        rowsContainer.appendChild(empty);
+        _selectedItemIndex = null;
+        _selectedItemId = null;
+        return;
+      }
+
+      var selectedFound = false;
+
+      items.forEach(function(item, idx) {
+        var itemIndex = item && item.index != null ? Number(item.index) : idx;
+        var isSelected = selectedIndex != null
+          ? Number(selectedIndex) === itemIndex
+          : idx === 0;
+
+        var row = document.createElement('div');
+        row.className = 'item-row' + (isSelected ? ' item-row--selected' : '');
+        row.id = 'item-row-' + (idx + 1);
+        row.dataset.itemId = item && item.id ? String(item.id) : ('item-' + itemIndex);
+        row.dataset.itemIndex = String(itemIndex);
+        row.dataset.action = 'selectItem';
+        row.setAttribute('role', 'button');
+        row.setAttribute('tabindex', '0');
+        row.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+
+        var icon = document.createElement('div');
+        icon.className = 'item-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.textContent = 'IMG';
+
+        var name = document.createElement('span');
+        name.className = 'item-name';
+        name.textContent = item && item.name ? String(item.name) : 'Objeto';
+
+        var type = document.createElement('span');
+        type.className = 'item-type-badge';
+        type.textContent = item && item.type ? String(item.type) : 'Desconocido';
+
+        row.appendChild(icon);
+        row.appendChild(name);
+        row.appendChild(type);
+        rowsContainer.appendChild(row);
+
+        if (isSelected) {
+          selectedFound = true;
+          _selectedItemIndex = row.dataset.itemIndex;
+          _selectedItemId = row.dataset.itemId;
+        }
+      });
+
+      if (!selectedFound && rowsContainer.firstElementChild) {
+        var firstRow = rowsContainer.querySelector('.item-row');
+        if (firstRow) {
+          selectInventoryRow(firstRow);
+        }
+      }
     }
 
     document.addEventListener('DOMContentLoaded', function () {
 
-      /* ── Selección local de items (no despacha a Java) ── */
-      document.querySelectorAll('[data-action="selectItem"]').forEach(function(el) {
-        el.addEventListener('click', function() {
-          document.querySelectorAll('.item-row').forEach(function(r) {
-            r.classList.remove('item-row--selected');
-            r.setAttribute('aria-selected', 'false');
-          });
-          el.classList.add('item-row--selected');
-          el.setAttribute('aria-selected', 'true');
-          _selectedItemIndex = el.dataset.itemIndex;
-          _selectedItemId    = el.dataset.itemId;
-        });
-      });
+      document.addEventListener('click', function(event) {
+        var el = event.target.closest('[data-action]');
+        if (!el) return;
 
-      /* ── Filtro local de categorías (no despacha a Java) ── */
-      document.querySelectorAll('[data-action="filterCategory"]').forEach(function(el) {
-        el.addEventListener('click', function() {
+        var action = el.dataset.action;
+
+        if (action === 'selectItem') {
+          selectInventoryRow(el);
+          return;
+        }
+
+        if (action === 'filterCategory') {
           document.querySelectorAll('.cat-btn').forEach(function(b) {
             b.classList.remove('cat-btn--active');
             b.setAttribute('aria-pressed', 'false');
           });
           el.classList.add('cat-btn--active');
           el.setAttribute('aria-pressed', 'true');
-        });
-      });
+          return;
+        }
 
-      /* ── Botones de acción → Java via alert bridge ── */
-      var LOCAL_ACTIONS = { selectItem: true, filterCategory: true };
-      document.querySelectorAll('[data-action]').forEach(function(el) {
-        var action = el.dataset.action;
-        if (LOCAL_ACTIONS[action]) return; /* ya manejados arriba */
-        el.addEventListener('click', function() {
-          if (el.dataset.state === 'disabled' || el.dataset.state === 'cooldown') return;
-          if (action === 'useItem') {
-            sendCommand('useItem', { itemIndex: _selectedItemIndex, itemId: _selectedItemId });
-          } else if (action === 'useSkill') {
-            sendCommand('useSkill', {});
-          } else {
-            sendCommand(action);
-          }
-        });
+        if (el.dataset.state === 'disabled' || el.dataset.state === 'cooldown') return;
+
+        if (action === 'useItem') {
+          sendCommand('useItem', { itemIndex: _selectedItemIndex, itemId: _selectedItemId });
+          return;
+        }
+
+        if (action === 'useSkill') {
+          sendCommand('useSkill', {});
+          return;
+        }
+
+        sendCommand(action);
       });
     });
 
@@ -1556,6 +1680,10 @@
       setText('s1-has-treasure', state.roomHasTreasure ? 'S\u00ED' : 'No');
       setText('s1-has-enemy',    state.roomHasEnemy    ? 'S\u00ED' : 'No');
 
+      if (Array.isArray(state.minimapSymbols)) {
+        renderMinimap(state.minimapSymbols);
+      }
+
       if (Array.isArray(state.eventLog)) {
         var elog = document.getElementById('s1-event-log');
         if (elog) {
@@ -1601,6 +1729,23 @@
         setText('s3-capacity-current', state.inventory.itemCount   || 0);
         setText('s3-capacity-max',     state.inventory.maxCapacity || 0);
       }
+
+      if (Array.isArray(state.inventoryItems)) {
+        renderInventoryItems(state.inventoryItems, state.selectedItemIndex);
+      }
+
+      if (state.selectedItemIndex !== undefined && state.selectedItemIndex !== null) {
+        _selectedItemIndex = String(state.selectedItemIndex);
+        if (Array.isArray(state.inventoryItems)) {
+          var selected = state.inventoryItems.find(function(item) {
+            return Number(item.index) === Number(state.selectedItemIndex);
+          });
+          if (selected && selected.id) {
+            _selectedItemId = String(selected.id);
+          }
+        }
+      }
+
       if (state.selectedItem) {
         var si = state.selectedItem;
         setText('s3-item-name',   si.name   || '');
@@ -1610,6 +1755,14 @@
         setText('s3-item-peso',   si.peso  != null ? si.peso + ' kg'     : '');
         var typeEl = document.getElementById('s3-item-type');
         if (typeEl) { typeEl.textContent = si.type || ''; if (si.type) typeEl.dataset.type = si.type.toLowerCase(); }
+      } else {
+        setText('s3-item-name',   'Sin selección');
+        setText('s3-item-desc',   'Selecciona un objeto para ver su detalle.');
+        setText('s3-item-effect', 'Efecto: -');
+        setText('s3-item-valor',  '-');
+        setText('s3-item-peso',   '-');
+        var typeElEmpty = document.getElementById('s3-item-type');
+        if (typeElEmpty) typeElEmpty.textContent = '-';
       }
 
       /* Estados de botones: state.buttons = { "btn-avanzar": "disabled", ... } */

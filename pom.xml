@@ -17,6 +17,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <junit.version>5.10.1</junit.version>
+        <javafx.version>17.0.11</javafx.version>
     </properties>
 
     <dependencies>
@@ -33,11 +34,42 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- JSON para puente UI -> Java y push de estado Java -> UI -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
+        <!-- JavaFX WebView para cargar game.html sin rehacer UI en Swing -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
         <testSourceDirectory>src/test/java</testSourceDirectory>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.html</include>
+                </includes>
+            </resource>
+        </resources>
         
         <plugins>
             <!-- Compilador -->
@@ -66,6 +98,16 @@
                 <version>3.1.0</version>
                 <configuration>
                     <mainClass>game.Main</mainClass>
+                </configuration>
+            </plugin>
+
+            <!-- Ejecucion de UI JavaFX/WebView -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>game.ui.GameWebApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>
