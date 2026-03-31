@@ -16,4 +16,8 @@ public class EnemigoBasico extends Personaje {
         objetivo.recibirDanio(danio);
         return new ResultadoAtaque(getNombre(), objetivo.getNombre(), danio, objetivo.getVida());
     }
+
+    public int getAtaqueBase() {
+        return ataqueBase;
+    }
 }

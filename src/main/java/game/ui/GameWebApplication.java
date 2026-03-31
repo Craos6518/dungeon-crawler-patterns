@@ -1,10 +1,8 @@
 package game.ui;
 
 import com.google.gson.Gson;
-import game.ui.integration.GamePresenter;
-import game.ui.integration.UiCommandDispatcher;
-import game.ui.integration.UiGameController;
-import game.ui.integration.UiJavaBridge;
+import game.application.runtime.GameRuntime;
+import game.ui.integration.WebGameAdapter;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Worker;
@@ -23,19 +21,18 @@ import java.nio.file.Path;
 public class GameWebApplication extends Application {
 
     private final Gson gson = new Gson();
-    private final UiGameController controller = new UiGameController();
-    private final GamePresenter presenter = new GamePresenter();
+    private final GameRuntime runtime = new GameRuntime();
 
-    private UiCommandDispatcher dispatcher;
+    private WebGameAdapter webAdapter;
     private WebEngine engine;
 
     @Override
     public void start(Stage stage) {
         WebView webView = new WebView();
         engine = webView.getEngine();
-        dispatcher = new UiCommandDispatcher(controller, this::pushStateToUi);
+        webAdapter = new WebGameAdapter(runtime, this::pushStateToUi);
 
-        engine.setOnAlert(event -> dispatcher.dispatchAlertMessage(event.getData()));
+        engine.setOnAlert(event -> webAdapter.dispatchAlertMessage(event.getData()));
 
         engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
@@ -53,7 +50,7 @@ public class GameWebApplication extends Application {
 
     private void registerBridge() {
         JSObject window = (JSObject) engine.executeScript("window");
-        window.setMember("javabridge", new UiJavaBridge(dispatcher));
+        window.setMember("javabridge", webAdapter.createBridge());
     }
 
     private void pushStateToUi() {
@@ -63,7 +60,7 @@ public class GameWebApplication extends Application {
 
         Runnable task = () -> {
             try {
-                String json = gson.toJson(presenter.present(controller));
+                String json = gson.toJson(webAdapter.presentViewModel());
                 engine.executeScript("window.updateGameState(" + json + ");");
             } catch (RuntimeException ignored) {
                 // Ignorado: la pagina puede no estar lista temporalmente.
@@ -78,17 +75,17 @@ public class GameWebApplication extends Application {
     }
 
     private String resolveGameHtmlLocation() {
-        var resource = getClass().getResource("/game/ui/game.html");
+        var resource = getClass().getResource("/ui/game.html");
         if (resource != null) {
             return resource.toExternalForm();
         }
 
-        Path fallback = Path.of(System.getProperty("user.dir"), "src", "main", "java", "game", "ui", "game.html");
+        Path fallback = Path.of(System.getProperty("user.dir"), "src", "main", "resources", "ui", "game.html");
         if (Files.exists(fallback)) {
             return fallback.toUri().toString();
         }
 
-        throw new IllegalStateException("No se encontro game.html en classpath ni en src/main/java/game/ui.");
+        throw new IllegalStateException("No se encontro game.html en classpath ni en src/main/resources/ui.");
     }
 
     public static void main(String[] args) {

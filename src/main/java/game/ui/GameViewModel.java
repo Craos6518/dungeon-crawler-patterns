@@ -13,7 +13,7 @@ import java.util.Map;
 public class GameViewModel {
 
     // ── Pantalla activa ──────────────────────────────────────────
-    /** "exploration" | "combat" | "inventory" */
+    /** "menu" | "exploration" | "combat" | "inventory" */
     public String screen;
 
     // ── Header compartido (3 pantallas) ──────────────────────────

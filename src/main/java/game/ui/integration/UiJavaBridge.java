@@ -11,7 +11,19 @@ public class UiJavaBridge {
         this.dispatcher = dispatcher;
     }
 
-    public void dispatch(String action, String payloadJson) {
-        dispatcher.dispatch(action, payloadJson);
+    public String dispatch(String commandJson) {
+        return dispatcher.dispatchCommandJsonAsString(commandJson);
+    }
+
+    public String dispatch(String action, String payloadJson) {
+        String safeAction = action == null ? "" : action;
+        String safePayload = payloadJson == null || payloadJson.isBlank() ? "{}" : payloadJson;
+        return dispatch("{\"action\":\"" + escapeJson(safeAction) + "\",\"payload\":" + safePayload + "}");
+    }
+
+    private static String escapeJson(String input) {
+        return input
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"");
     }
 }

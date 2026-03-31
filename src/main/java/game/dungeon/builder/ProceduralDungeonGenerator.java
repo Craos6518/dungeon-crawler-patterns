@@ -30,6 +30,50 @@ public final class ProceduralDungeonGenerator {
     private ProceduralDungeonGenerator() {
     }
 
+    private static final class RoomSeed {
+        private final String name;
+        private final String description;
+        private final int difficultyOffset;
+        private final boolean hasTreasure;
+        private final boolean hasEnemy;
+
+        private RoomSeed(
+            String name,
+            String description,
+            int difficultyOffset,
+            boolean hasTreasure,
+            boolean hasEnemy
+        ) {
+            this.name = name;
+            this.description = description;
+            this.difficultyOffset = difficultyOffset;
+            this.hasTreasure = hasTreasure;
+            this.hasEnemy = hasEnemy;
+        }
+    }
+
+    private static final class DungeonProfile {
+        private final String dungeonName;
+        private final int baseDifficulty;
+        private final RoomSeed[] rooms;
+        private final String bossRoomName;
+        private final String bossRoomDescription;
+
+        private DungeonProfile(
+            String dungeonName,
+            int baseDifficulty,
+            RoomSeed[] rooms,
+            String bossRoomName,
+            String bossRoomDescription
+        ) {
+            this.dungeonName = dungeonName;
+            this.baseDifficulty = baseDifficulty;
+            this.rooms = rooms;
+            this.bossRoomName = bossRoomName;
+            this.bossRoomDescription = bossRoomDescription;
+        }
+    }
+
     public static Dungeon generar(
         DungeonBuilder builder,
         DungeonThemeFactory tema,
@@ -42,6 +86,45 @@ public final class ProceduralDungeonGenerator {
         builder.reset();
 
         String nombreTema = tema.getNombreTema();
+        DungeonProfile profile = predefinedProfile(nombreTema);
+        if (profile != null) {
+            return buildFromProfile(builder, nombreTema, profile);
+        }
+
+        return buildProceduralFallback(builder, nombreTema, random);
+    }
+
+    private static Dungeon buildFromProfile(
+        DungeonBuilder builder,
+        String nombreTema,
+        DungeonProfile profile
+    ) {
+        builder
+            .setNombre(profile.dungeonName)
+            .setTema(nombreTema)
+            .setNivelDificultad(profile.baseDifficulty);
+
+        for (RoomSeed room : profile.rooms) {
+            int dificultadSala = profile.baseDifficulty + room.difficultyOffset;
+            builder.agregarSala(
+                room.name,
+                room.description,
+                dificultadSala,
+                room.hasTreasure,
+                room.hasEnemy
+            );
+        }
+
+        int dificultadJefe = profile.baseDifficulty + Math.max(3, profile.rooms.length / 2);
+        builder.setSalaJefe(profile.bossRoomName, profile.bossRoomDescription, dificultadJefe);
+        return builder.build();
+    }
+
+    private static Dungeon buildProceduralFallback(
+        DungeonBuilder builder,
+        String nombreTema,
+        Random random
+    ) {
         int dificultadBase = dificultadPorTema(nombreTema);
         int cantidadSalas = 4 + random.nextInt(5); // 4..8 salas normales
 
@@ -71,6 +154,77 @@ public final class ProceduralDungeonGenerator {
         );
 
         return builder.build();
+    }
+
+    private static DungeonProfile predefinedProfile(String tema) {
+        return switch (tema) {
+            case "Fuego" -> new DungeonProfile(
+                "Volcan de Ignareth",
+                3,
+                new RoomSeed[] {
+                    new RoomSeed("Entrada de Ignareth", "Acceso principal al volcan ancestral.", 0, false, false),
+                    new RoomSeed("Galeria de Obsidiana", "Pasillo de roca negra con fisuras termicas.", 0, false, true),
+                    new RoomSeed("Rio de Lava", "Un cauce de magma corta el camino central.", 1, false, true),
+                    new RoomSeed("Camara de Magma", "Camara de presion con brasas activas.", 1, true, true),
+                    new RoomSeed("Forja Infernal", "Antigua forja custodiada por bestias de fuego.", 2, true, true),
+                    new RoomSeed("Santuario de Brasas", "Sala ritual antes del trono del guardian.", 2, false, true),
+                    new RoomSeed("Trono de Pyraxis", "Nucleo volcanico donde espera Pyraxis.", 3, true, true)
+                },
+                "Nucleo de Ignareth",
+                "Camara final donde arde la Piedra del Fuego Eterno."
+            );
+            case "Hielo" -> new DungeonProfile(
+                "Catacumbas de Glaciurvh",
+                2,
+                new RoomSeed[] {
+                    new RoomSeed("Atrio Congelado", "Entrada cubierta de escarcha perpetua.", 0, false, false),
+                    new RoomSeed("Corredor de Escarcha", "Pasillo con rafagas heladas y visibilidad baja.", 0, false, true),
+                    new RoomSeed("Cripta del Viento Blanco", "Cripta resonante con frio cortante.", 1, false, true),
+                    new RoomSeed("Camara de Reliquias", "Deposito de artefactos congelados.", 1, true, true),
+                    new RoomSeed("Sala Sellada", "Compuerta antigua que exige precision para avanzar.", 2, false, true),
+                    new RoomSeed("Galeria del Silencio", "Zona de hielo compacto y eco apagado.", 2, true, true),
+                    new RoomSeed("Santuario de Glaciurvh", "Antecamera del dragon de invierno.", 3, false, true),
+                    new RoomSeed("Trono de Kryovaleth", "Camara del cristal primordial y su guardian.", 3, true, true)
+                },
+                "Corazon de Glaciurvh",
+                "Camara final del Cristal del Hielo Primordial."
+            );
+            case "Veneno" -> new DungeonProfile(
+                "Pantanos de Viridax",
+                3,
+                new RoomSeed[] {
+                    new RoomSeed("Entrada de Viridax", "Umbral de agua turbia y neblina toxica.", 0, false, false),
+                    new RoomSeed("Sendero de Esporas", "Camino inestable cubierto de esporas corrosivas.", 0, false, true),
+                    new RoomSeed("Humedal Corrosivo", "Estanque acido que desgasta equipo y cuerpo.", 1, false, true),
+                    new RoomSeed("Nido de Capullos", "Zona infestada con huevos y telas venenosas.", 1, true, true),
+                    new RoomSeed("Camara de Residuos", "Camara con vapores toxicos acumulados.", 2, false, true),
+                    new RoomSeed("Galeria de Miasma", "Galeria envenenada de visibilidad reducida.", 2, true, true),
+                    new RoomSeed("Guarida Tejida", "Antecamera biologica de la reina aracnida.", 3, false, true),
+                    new RoomSeed("Trono de Arachnovex", "Guarida final donde domina Arachnovex.", 3, true, true)
+                },
+                "Semilla Corrupta",
+                "Camara final de la Semilla de la Vida Corrupta."
+            );
+            case "Oscuridad" -> new DungeonProfile(
+                "Ciudadela de Umbrakar",
+                4,
+                new RoomSeed[] {
+                    new RoomSeed("Portal de Umbrakar", "Acceso principal envuelto en sombras densas.", 0, false, false),
+                    new RoomSeed("Corredor del Olvido", "Pasillo oscuro con ecos que confunden la memoria.", 0, false, true),
+                    new RoomSeed("Biblioteca Prohibida", "Estanterias malditas con runas en penumbra.", 1, true, true),
+                    new RoomSeed("Calabozos de Penumbra", "Celdas antiguas donde acechan vigias oscuros.", 1, false, true),
+                    new RoomSeed("Salon de Huesos", "Camara ceremonial cubierta de restos ancestrales.", 2, true, true),
+                    new RoomSeed("Patio de Ecos", "Patio interno donde las sombras replican pasos.", 2, false, true),
+                    new RoomSeed("Camara del Laberinto", "Zona mutable que altera la orientacion.", 3, true, true),
+                    new RoomSeed("Galeria Sin Memoria", "Galeria donde el tiempo parece fragmentado.", 3, false, true),
+                    new RoomSeed("Santuario del Fragmento", "Antecamera del Fragmento de la Oscuridad Absoluta.", 4, true, true),
+                    new RoomSeed("Trono de Malachar", "Camara final donde aguarda Malachar.", 4, true, true)
+                },
+                "Corazon de Umbrakar",
+                "Camara final del Fragmento de la Oscuridad Absoluta."
+            );
+            default -> null;
+        };
     }
 
     private static int dificultadPorTema(String tema) {

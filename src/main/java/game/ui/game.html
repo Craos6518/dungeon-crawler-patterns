@@ -1461,16 +1461,64 @@
     var _selectedItemIndex = null;
     var _selectedItemId    = null;
 
-    /* ── sendCommand: usa javabridge si existe; fallback a alert bridge ── */
+    /* ── sendCommand: envia contrato { action, payload } en JSON ── */
     function sendCommand(action, payload) {
       var safePayload = payload || {};
+      var commandJson = JSON.stringify({ action: action, payload: safePayload });
+
       if (window.javabridge && typeof window.javabridge.dispatch === 'function') {
-        window.javabridge.dispatch(action, JSON.stringify(safePayload));
+        var backendResponse = window.javabridge.dispatch(commandJson);
+        handleBackendResponse(backendResponse);
         return;
       }
 
-      var msg = action + ':' + JSON.stringify(safePayload);
-      window.alert(msg);
+      window.alert(commandJson);
+    }
+
+    function handleBackendResponse(rawResponse) {
+      if (!rawResponse) return;
+
+      var response = rawResponse;
+      if (typeof rawResponse === 'string') {
+        try {
+          response = JSON.parse(rawResponse);
+        } catch (_) {
+          return;
+        }
+      }
+
+      if (!response || typeof response !== 'object') return;
+
+      if (response.data) {
+        window.updateGameState(response.data);
+      }
+
+      if (response.status === 'error' && response.message) {
+        appendBackendError(String(response.message));
+        console.error('[BackendError] ' + response.message);
+      }
+    }
+
+    function appendBackendError(message) {
+      var activeCombat = document.getElementById('screen-combat')
+        && document.getElementById('screen-combat').classList.contains('active');
+
+      if (activeCombat) {
+        var clog = document.getElementById('s2-combat-log');
+        if (!clog) return;
+        var p = document.createElement('p');
+        p.className = 'log-entry';
+        p.textContent = '[SYS] ' + message;
+        clog.appendChild(p);
+        return;
+      }
+
+      var elog = document.getElementById('s1-event-log');
+      if (!elog) return;
+      var e = document.createElement('p');
+      e.className = 'log-entry';
+      e.textContent = '[SYS] ' + message;
+      elog.appendChild(e);
     }
 
     function selectInventoryRow(el) {
@@ -1480,7 +1528,7 @@
       });
       el.classList.add('item-row--selected');
       el.setAttribute('aria-selected', 'true');
-      _selectedItemIndex = el.dataset.itemIndex;
+      _selectedItemIndex = Number(el.dataset.itemIndex);
       _selectedItemId = el.dataset.itemId;
     }
 
@@ -1580,7 +1628,7 @@
 
         if (isSelected) {
           selectedFound = true;
-          _selectedItemIndex = row.dataset.itemIndex;
+          _selectedItemIndex = Number(row.dataset.itemIndex);
           _selectedItemId = row.dataset.itemId;
         }
       });
@@ -1619,7 +1667,15 @@
         if (el.dataset.state === 'disabled' || el.dataset.state === 'cooldown') return;
 
         if (action === 'useItem') {
-          sendCommand('useItem', { itemIndex: _selectedItemIndex, itemId: _selectedItemId });
+          sendCommand('useItem', {
+            itemIndex: Number.isFinite(_selectedItemIndex) ? _selectedItemIndex : null,
+            itemId: _selectedItemId
+          });
+          return;
+        }
+
+        if (action === 'attack') {
+          sendCommand('attack', { targetId: 'current' });
           return;
         }
 
@@ -1735,7 +1791,7 @@
       }
 
       if (state.selectedItemIndex !== undefined && state.selectedItemIndex !== null) {
-        _selectedItemIndex = String(state.selectedItemIndex);
+        _selectedItemIndex = Number(state.selectedItemIndex);
         if (Array.isArray(state.inventoryItems)) {
           var selected = state.inventoryItems.find(function(item) {
             return Number(item.index) === Number(state.selectedItemIndex);

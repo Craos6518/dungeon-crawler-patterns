@@ -1,8 +1,9 @@
 package game.ui.integration;
 
+import game.application.state.GameSession;
 import game.dungeon.model.Dungeon;
 import game.dungeon.model.Room;
-import game.items.model.SimpleItem;
+import game.domain.inventory.Item;
 import game.ui.GameViewModel;
 
 import java.text.Normalizer;
@@ -15,64 +16,64 @@ import java.util.Locale;
  */
 public class GamePresenter {
 
-    public GameViewModel present(UiGameController controller) {
-        Dungeon dungeon = controller.getMazmorra();
-        Room room = controller.getSalaActualRoom();
+    public GameViewModel present(GameSession session) {
+        Dungeon dungeon = session.dungeon().model();
+        Room room = session.dungeon().currentRoom().model();
 
         GameViewModel vm;
-        if (controller.hasActiveEnemy()) {
+        if (session.hasActiveEnemy()) {
             vm = GameViewModel.ofCombate(
                 dungeon,
-                controller.getHeroe(),
-                controller.getEnemigoActual(),
-                controller.getSalaActualIndex(),
-                controller.getOroAcumulado(),
-                controller.getThemeKey(),
-                controller.getCombatLog()
+                session.player().character(),
+                session.combat().currentEnemy().character(),
+                session.dungeon().currentRoomIndex(),
+                session.player().gold(),
+                session.dungeon().themeKey(),
+                session.combatLog()
             );
         } else {
             vm = GameViewModel.ofExploracion(
                 dungeon,
                 room,
-                controller.getHeroe(),
-                controller.getSalaActualIndex(),
-                controller.getOroAcumulado(),
-                controller.getThemeKey(),
-                controller.getEventLog()
+                session.player().character(),
+                session.dungeon().currentRoomIndex(),
+                session.player().gold(),
+                session.dungeon().themeKey(),
+                session.eventLog()
             );
         }
 
-        vm.screen = controller.getPantallaActiva();
-        vm.theme = controller.getThemeKey();
-        vm.dungeonTheme = controller.getThemeName();
+        vm.screen = session.activeScreen();
+        vm.theme = session.dungeon().themeKey();
+        vm.dungeonTheme = session.dungeon().themeName();
 
-        vm.eventLog = controller.getEventLog();
-        vm.combatLog = controller.getCombatLog();
+        vm.eventLog = session.eventLog();
+        vm.combatLog = session.combatLog();
 
-        vm.roomHasEnemy = controller.isEnemyPendingInCurrentRoom();
-        vm.roomHasTreasure = controller.isTreasurePendingInCurrentRoom();
+        vm.roomHasEnemy = session.isEnemyPendingInCurrentRoom();
+        vm.roomHasTreasure = session.isTreasurePendingInCurrentRoom();
 
-        vm.minimapSymbols = controller.getMinimapSymbols();
-        vm.buttons = controller.getButtonsState();
+        vm.minimapSymbols = session.dungeon().minimapSymbols();
+        vm.buttons = session.buttonsState();
 
         vm.inventory = new GameViewModel.InventoryInfo();
-        List<SimpleItem> items = controller.getInventoryItems();
+        List<Item> items = session.inventory().items();
         vm.inventory.itemCount = items.size();
-        vm.inventory.maxCapacity = controller.getInventoryCapacity();
+        vm.inventory.maxCapacity = session.inventory().capacity();
 
         vm.inventoryItems = new ArrayList<>();
         for (int i = 0; i < items.size(); i++) {
-            SimpleItem item = items.get(i);
+            Item item = items.get(i);
             GameViewModel.InventoryItemInfo row = new GameViewModel.InventoryItemInfo();
             row.index = i;
-            row.id = slugify(item.getNombre()) + "-" + i;
-            row.name = item.getNombre();
-            row.type = item.getTipo();
+            row.id = item.getId();
+            row.name = item.getName();
+            row.type = item.getType();
             row.effect = inferEffectSummary(item);
             vm.inventoryItems.add(row);
         }
 
-        int selectedIndex = controller.getSelectedItemIndex();
+        int selectedIndex = session.inventory().selectedIndex();
         if (!items.isEmpty() && (selectedIndex < 0 || selectedIndex >= items.size())) {
             selectedIndex = 0;
         }
@@ -88,20 +89,20 @@ public class GamePresenter {
         return vm;
     }
 
-    private static GameViewModel.ItemInfo toItemInfo(SimpleItem item) {
+    private static GameViewModel.ItemInfo toItemInfo(Item item) {
         GameViewModel.ItemInfo info = new GameViewModel.ItemInfo();
-        info.name = item.getNombre();
-        info.type = item.getTipo();
-        info.desc = item.getDescripcion();
+        info.name = item.getName();
+        info.type = item.getType();
+        info.desc = item.getDescription();
         info.effect = inferEffectSummary(item);
-        info.valor = item.getValorTotal();
-        info.peso = item.getPesoTotal();
+        info.valor = item.getValue();
+        info.peso = item.getWeight();
         return info;
     }
 
-    private static String inferEffectSummary(SimpleItem item) {
-        String nombre = normalize(item.getNombre());
-        String tipo = normalize(item.getTipo());
+    private static String inferEffectSummary(Item item) {
+        String nombre = normalize(item.getName());
+        String tipo = normalize(item.getType());
 
         if (nombre.contains("poci")) {
             return "Recupera 50 HP";
@@ -120,11 +121,6 @@ public class GamePresenter {
         }
 
         return "Objeto util de aventura";
-    }
-
-    private static String slugify(String text) {
-        String normalized = normalize(text);
-        return normalized.replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
     }
 
     private static String normalize(String text) {
