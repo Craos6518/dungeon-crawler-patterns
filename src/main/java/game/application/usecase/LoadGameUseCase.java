@@ -22,9 +22,13 @@ public class LoadGameUseCase {
         slot = Math.max(1, Math.min(3, slot));
 
         String fileName = "Slot_" + slot;
+        GameMemento memento = session.caretaker().cargarDesdeDisco(fileName);
 
+        restoreFromMemento(fileName, memento);
+    }
+
+    public void restoreFromMemento(String fileName, GameMemento memento) {
         UseCaseTransactionSupport.runAtomically(session, () -> {
-            GameMemento memento = session.caretaker().cargarDesdeDisco(fileName);
             GameSessionMementoMapper.restoreStrict(session, memento);
 
             session.appendEvent("Partida cargada desde " + fileName + ".save");

@@ -161,7 +161,9 @@ public final class GameSessionMementoMapper {
 
         int totalRooms = session.dungeon().totalRooms();
         int roomIndex = readInt(dungeonState.get("salaActualIndex"), Math.max(0, memento.getSalaActual() - 1));
-        if (strict && (roomIndex < 0 || roomIndex >= totalRooms)) {
+        String estadoActual = String.valueOf(dungeonState.get("estadoActual"));
+        boolean isMenuScreen = "menu".equalsIgnoreCase(estadoActual) || (estadoActual != null && estadoActual.toLowerCase().contains("menu"));
+        if (strict && (roomIndex < 0 || roomIndex >= totalRooms) && !isMenuScreen) {
             throw corrupt("salaActualIndex fuera de rango");
         }
 

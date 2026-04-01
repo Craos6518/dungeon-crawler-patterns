@@ -24,6 +24,7 @@ import game.application.usecase.SearchTreasureUseCase;
 import game.application.usecase.SelectInventoryItemUseCase;
 import game.application.usecase.UseItemUseCase;
 import game.application.usecase.UseSkillUseCase;
+import game.persistence.memento.GameMemento;
 import game.ui.GameViewModel;
 import game.ui.integration.GamePresenter;
 
@@ -53,7 +54,6 @@ public class GameRuntime implements GameCommandHandler {
     private AdvanceTurnUseCase advanceTurnUseCase;
     private SearchTreasureUseCase searchTreasureUseCase;
     private SaveGameUseCase saveGameUseCase;
-    private LoadGameUseCase loadGameUseCase;
     private ForceCombatUseCase forceCombatUseCase;
     private AttackUseCase attackUseCase;
     private DefendUseCase defendUseCase;
@@ -127,7 +127,6 @@ public class GameRuntime implements GameCommandHandler {
         this.advanceTurnUseCase = new AdvanceTurnUseCase(session);
         this.searchTreasureUseCase = new SearchTreasureUseCase(session);
         this.saveGameUseCase = new SaveGameUseCase(session);
-        this.loadGameUseCase = new LoadGameUseCase(session);
         this.forceCombatUseCase = new ForceCombatUseCase(session);
         this.attackUseCase = new AttackUseCase(session);
         this.defendUseCase = new DefendUseCase(session);
@@ -178,7 +177,8 @@ public class GameRuntime implements GameCommandHandler {
 
         map.put("loadGame", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
             int slot = resolveSlotOrPreferred(payload.slot);
-            loadGameUseCase.execute(slot);
+            GameSession loadedSession = loadSessionFromSlot(slot);
+            bindSession(loadedSession);
             preferredSaveSlot = slot;
         }, this::validateLoadPayload));
 
@@ -269,6 +269,30 @@ public class GameRuntime implements GameCommandHandler {
             return preferredSaveSlot;
         }
         return clampSlot(requestedSlot);
+    }
+
+    private GameSession loadSessionFromSlot(int slot) {
+        String fileName = "Slot_" + slot;
+        GameMemento memento = session.caretaker().cargarDesdeDisco(fileName);
+
+        String theme = resolveThemeFromMemento(memento);
+        GameSession restoredSession = GameSessionFactory.createSessionForTheme(theme);
+        new LoadGameUseCase(restoredSession).restoreFromMemento(fileName, memento);
+        return restoredSession;
+    }
+
+    private static String resolveThemeFromMemento(GameMemento memento) {
+        if (memento == null || memento.getEstadoMazmorra() == null) {
+            return "fire";
+        }
+
+        Object rawTheme = memento.getEstadoMazmorra().get("tema");
+        if (rawTheme == null) {
+            return "fire";
+        }
+
+        String theme = String.valueOf(rawTheme).trim();
+        return theme.isBlank() ? "fire" : theme;
     }
 
     private static int clampSlot(int slot) {
