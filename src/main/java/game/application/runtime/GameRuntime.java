@@ -25,6 +25,7 @@ import game.application.usecase.SelectInventoryItemUseCase;
 import game.application.usecase.UseItemUseCase;
 import game.application.usecase.UseSkillUseCase;
 import game.persistence.memento.GameMemento;
+import game.persistence.memento.SaveSlotNotFoundException;
 import game.ui.GameViewModel;
 import game.ui.integration.GamePresenter;
 
@@ -273,6 +274,9 @@ public class GameRuntime implements GameCommandHandler {
 
     private GameSession loadSessionFromSlot(int slot) {
         String fileName = "Slot_" + slot;
+        if (!session.caretaker().existeEnDisco(fileName)) {
+            throw new SaveSlotNotFoundException("Slot vacio: " + fileName + ".save no existe.");
+        }
         GameMemento memento = session.caretaker().cargarDesdeDisco(fileName);
 
         String theme = resolveThemeFromMemento(memento);

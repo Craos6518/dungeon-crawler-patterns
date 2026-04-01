@@ -84,6 +84,8 @@ public final class GameSessionMementoMapper {
             .agregarEstadoInventario("items", items)
             .agregarEstadoInventario("selectedIndex", session.inventory().selectedIndex())
             .agregarEstadoMazmorra("tema", session.dungeon().themeName())
+            .agregarEstadoMazmorra("schemaVersion", 1)
+            .agregarEstadoMazmorra("totalRooms", session.dungeon().totalRooms())
             .agregarEstadoMazmorra("estadoActual", currentScreen)
             .agregarEstadoMazmorra("salaActualIndex", session.dungeon().currentRoomIndex())
             .agregarEstadoMazmorra("salasTesoroResuelto", new ArrayList<>(session.dungeon().treasureResolvedRooms()))
@@ -117,6 +119,10 @@ public final class GameSessionMementoMapper {
         Map<String, Object> characterState = memento.getEstadoPersonaje();
         Map<String, Object> inventoryState = memento.getEstadoInventario();
         Map<String, Object> dungeonState = memento.getEstadoMazmorra();
+
+        if (strict && (characterState == null || inventoryState == null || dungeonState == null)) {
+            throw corrupt("secciones de estado faltantes");
+        }
 
         int level = readInt(characterState.get("nivel"), memento.getNivelActual());
         int experience = readInt(characterState.get("experiencia"), 0);
@@ -160,6 +166,22 @@ public final class GameSessionMementoMapper {
         session.inventory().replaceItems(restoredItems, selectedIndex);
 
         int totalRooms = session.dungeon().totalRooms();
+        Integer schemaVersion = readNullableInt(dungeonState.get("schemaVersion"));
+        if (strict && schemaVersion != null && schemaVersion > 1) {
+            throw corrupt("version de guardado no soportada");
+        }
+        if (strict && schemaVersion != null && schemaVersion < 1) {
+            throw corrupt("schemaVersion invalido");
+        }
+
+        Integer savedTotalRooms = readNullableInt(dungeonState.get("totalRooms"));
+        if (strict && savedTotalRooms != null && savedTotalRooms <= 0) {
+            throw corrupt("totalRooms invalido");
+        }
+        if (strict && savedTotalRooms != null && savedTotalRooms != totalRooms) {
+            throw corrupt("estructura de mazmorra incompatible");
+        }
+
         int roomIndex = readInt(dungeonState.get("salaActualIndex"), Math.max(0, memento.getSalaActual() - 1));
         String estadoActual = String.valueOf(dungeonState.get("estadoActual"));
         boolean isMenuScreen = "menu".equalsIgnoreCase(estadoActual) || (estadoActual != null && estadoActual.toLowerCase().contains("menu"));

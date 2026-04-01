@@ -1,5 +1,7 @@
 package game.persistence.memento;
 
+import game.domain.DomainRuleViolationException;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,16 +68,15 @@ public class GameCaretaker {
         if (memento == null) {
             throw new IllegalArgumentException("El memento no puede ser null");
         }
-        
-        String rutaCompleta = directoriGuardado + nombreArchivo + ".save";
+
+        File archivo = resolveSaveFile(nombreArchivo);
         
         try (ObjectOutputStream oos = new ObjectOutputStream(
-                new FileOutputStream(rutaCompleta))) {
+                new FileOutputStream(archivo))) {
             oos.writeObject(memento);
-            System.out.println("Partida guardada exitosamente en: " + rutaCompleta);
+            System.out.println("Partida guardada exitosamente en: " + archivo.getPath());
         } catch (IOException e) {
-            System.out.println("Error al guardar la partida: " + e.getMessage());
-            throw new RuntimeException("No se pudo guardar la partida", e);
+            throw new DomainRuleViolationException("No se pudo guardar la partida.", e);
         }
     }
     
@@ -83,17 +84,37 @@ public class GameCaretaker {
      * Carga un memento desde disco
      */
     public GameMemento cargarDesdeDisco(String nombreArchivo) {
-        String rutaCompleta = directoriGuardado + nombreArchivo + ".save";
+        File archivo = resolveSaveFile(nombreArchivo);
+
+        if (!archivo.exists() || !archivo.isFile()) {
+            throw new SaveSlotNotFoundException("Slot vacio: " + archivo.getName() + " no existe.");
+        }
+        if (!archivo.canRead()) {
+            throw new DomainRuleViolationException("No se puede leer el slot " + archivo.getName() + ".");
+        }
         
         try (ObjectInputStream ois = new ObjectInputStream(
-                new FileInputStream(rutaCompleta))) {
-            GameMemento memento = (GameMemento) ois.readObject();
-            System.out.println("Partida cargada exitosamente desde: " + rutaCompleta);
+                new FileInputStream(archivo))) {
+            Object loaded = ois.readObject();
+            if (!(loaded instanceof GameMemento memento)) {
+                throw new SaveDataCorruptionException("Guardado corrupto: formato de datos incompatible.");
+            }
+            System.out.println("Partida cargada exitosamente desde: " + archivo.getPath());
             return memento;
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Error al cargar la partida: " + e.getMessage());
-            throw new RuntimeException("No se pudo cargar la partida", e);
+        } catch (SaveDataCorruptionException ex) {
+            throw ex;
+        } catch (FileNotFoundException e) {
+            throw new SaveSlotNotFoundException("Slot vacio: " + archivo.getName() + " no existe.");
+        } catch (InvalidClassException | StreamCorruptedException | OptionalDataException
+                 | ClassNotFoundException | ClassCastException e) {
+            throw new SaveDataCorruptionException("Guardado corrupto: formato incompatible o datos invalidos.", e);
+        } catch (IOException e) {
+            throw new DomainRuleViolationException("No se pudo cargar la partida.", e);
         }
+    }
+
+    public boolean existeEnDisco(String nombreArchivo) {
+        return resolveSaveFile(nombreArchivo).isFile();
     }
     
     /**
@@ -117,8 +138,7 @@ public class GameCaretaker {
      * Elimina un archivo de guardado
      */
     public boolean eliminarGuardado(String nombreArchivo) {
-        String rutaCompleta = directoriGuardado + nombreArchivo + ".save";
-        File archivo = new File(rutaCompleta);
+        File archivo = resolveSaveFile(nombreArchivo);
         
         if (archivo.exists()) {
             boolean eliminado = archivo.delete();
@@ -150,5 +170,24 @@ public class GameCaretaker {
      */
     public List<GameMemento> getHistorial() {
         return new ArrayList<>(historial);
+    }
+
+    private File resolveSaveFile(String nombreArchivo) {
+        String normalizedName = normalizeSaveName(nombreArchivo);
+        return new File(directoriGuardado, normalizedName + ".save");
+    }
+
+    private static String normalizeSaveName(String nombreArchivo) {
+        if (nombreArchivo == null) {
+            throw new IllegalArgumentException("El nombre de archivo no puede ser null");
+        }
+        String normalized = nombreArchivo.trim();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("El nombre de archivo no puede estar vacio");
+        }
+        if (normalized.contains("/") || normalized.contains("\\")) {
+            throw new IllegalArgumentException("El nombre de archivo no puede contener separadores de ruta");
+        }
+        return normalized;
     }
 }

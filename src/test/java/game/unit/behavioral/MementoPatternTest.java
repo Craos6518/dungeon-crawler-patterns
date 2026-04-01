@@ -1,5 +1,6 @@
 package game.unit.behavioral;
 
+import game.domain.DomainRuleViolationException;
 import game.persistence.memento.GameCaretaker;
 import game.persistence.memento.GameMemento;
 import game.persistence.memento.GameOriginator;
@@ -7,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -176,6 +179,29 @@ public class MementoPatternTest {
         
         assertEquals("Héroe de Prueba", juegoNuevo.getNombreJugador());
         assertEquals(salaGuardada, juegoNuevo.getSalaActual());
+    }
+
+    @Test
+    public void testLoadMissingSlotThrowsDomainError() {
+        DomainRuleViolationException ex = assertThrows(DomainRuleViolationException.class, () -> {
+            caretaker.cargarDesdeDisco("slot_que_no_existe");
+        });
+
+        assertTrue(ex.getMessage().contains("Slot vacio"));
+    }
+
+    @Test
+    public void testLoadCorruptedFileThrowsDomainError() throws IOException {
+        File corrupt = new File("./test-saves/corrupto.save");
+        try (FileOutputStream fos = new FileOutputStream(corrupt)) {
+            fos.write(new byte[] {0x01, 0x23, 0x45, 0x67});
+        }
+
+        DomainRuleViolationException ex = assertThrows(DomainRuleViolationException.class, () -> {
+            caretaker.cargarDesdeDisco("corrupto");
+        });
+
+        assertTrue(ex.getMessage().contains("Guardado corrupto"));
     }
     
     @Test

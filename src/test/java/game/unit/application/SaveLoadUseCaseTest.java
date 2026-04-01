@@ -92,6 +92,24 @@ class SaveLoadUseCaseTest {
     }
 
     @Test
+    void loadRejectsMissingSlotAndKeepsSessionUntouched() {
+        var session = GameSessionFactory.createDemoSession();
+        session.caretaker().eliminarGuardado("Slot_3");
+
+        int roomBefore = session.dungeon().currentRoomIndex();
+        int goldBefore = session.player().gold();
+        String screenBefore = session.activeScreen();
+
+        LoadGameUseCase load = new LoadGameUseCase(session);
+        DomainRuleViolationException ex = assertThrows(DomainRuleViolationException.class, () -> load.execute(3));
+
+        assertTrue(ex.getMessage().contains("Slot vacio"));
+        assertEquals(roomBefore, session.dungeon().currentRoomIndex());
+        assertEquals(goldBefore, session.player().gold());
+        assertEquals(screenBefore, session.activeScreen());
+    }
+
+    @Test
     void loadRejectsCorruptMementoAndKeepsSessionUntouched() {
         var session = GameSessionFactory.createDemoSession();
 

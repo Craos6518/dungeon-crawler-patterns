@@ -5,6 +5,7 @@ import game.application.state.GameSessionMementoMapper;
 import game.events.observer.EventType;
 import game.events.observer.GameEvent;
 import game.persistence.memento.GameMemento;
+import game.persistence.memento.SaveSlotNotFoundException;
 
 /**
  * Caso de uso: restaurar estado completo de partida desde disco.
@@ -22,6 +23,9 @@ public class LoadGameUseCase {
         slot = Math.max(1, Math.min(3, slot));
 
         String fileName = "Slot_" + slot;
+        if (!session.caretaker().existeEnDisco(fileName)) {
+            throw new SaveSlotNotFoundException("Slot vacio: " + fileName + ".save no existe.");
+        }
         GameMemento memento = session.caretaker().cargarDesdeDisco(fileName);
 
         restoreFromMemento(fileName, memento);
