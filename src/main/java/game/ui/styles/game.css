@@ -1176,6 +1176,14 @@
       display: flex; flex-direction: column; gap: var(--spacing-1);
       position: relative;
     }
+    .hero-card[data-state="disabled"],
+    .hero-card--disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      pointer-events: none;
+      transform: none;
+      box-shadow: 2px 2px 0 #000;
+    }
     .hero-card:hover { border-color:var(--theme-primary); transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--theme-border-dim); }
     .hero-card--selected { border-color:var(--theme-accent); border-width:3px; box-shadow:4px 4px 0 var(--theme-accent); animation:pulse-border 1.5s ease-in-out infinite; }
     .hero-card__icon { font-size:36px; text-align:center; padding:var(--spacing-1) 0; }
@@ -1192,6 +1200,15 @@
     .theme-picker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:var(--spacing-1); }
     .theme-card { border:2px solid var(--theme-border-dim); background:var(--theme-bg); padding:var(--spacing-1) var(--spacing-2); cursor:pointer; transition:all .12s linear; box-shadow:2px 2px 0 #000; text-align:center; display:flex; flex-direction:column; gap:4px; }
     .theme-card:hover { border-color:var(--theme-accent); transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--theme-border-dim); }
+    .theme-card[data-state="disabled"],
+    .theme-card--disabled {
+      opacity: .42;
+      cursor: not-allowed;
+      pointer-events: none;
+      transform: none;
+      box-shadow: 2px 2px 0 #000;
+      filter: grayscale(.35);
+    }
     .theme-card__name { font-family:'Press Start 2P',monospace; font-size:9px; color:var(--theme-accent); letter-spacing:.06em; }
     .theme-card__sub { font-size:18px; color:var(--theme-text-dim); }
 
@@ -1289,4 +1306,114 @@
     .gameover-btn:hover { border-color:#CC0000; background:rgba(80,0,0,.3); }
     .gameover-btn--restore { border-color:var(--theme-accent); color:var(--theme-accent); }
     .gameover-btn[data-state="disabled"] { opacity:.4; cursor:not-allowed; pointer-events:none; }
+
+    /* ============================================================
+       LORE WINDOW – HISTORIA DEL MUNDO / MAZMORRAS / GUARDIANES
+    ============================================================ */
+    body.lore-open {
+      overflow: hidden;
+    }
+
+    .lore-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 5, 4, 0.78);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-3);
+      z-index: 9999;
+    }
+
+    .lore-overlay.lore-overlay--visible {
+      display: flex;
+    }
+
+    .lore-window {
+      width: min(900px, 100%);
+      max-height: min(720px, calc(100vh - (var(--spacing-3) * 2)));
+      overflow-y: auto;
+      background:
+        radial-gradient(circle at 15% 12%, rgba(255, 209, 102, 0.08), transparent 32%),
+        radial-gradient(circle at 86% 80%, rgba(228, 87, 46, 0.1), transparent 30%),
+        var(--theme-bg-panel);
+      border: 2px solid var(--theme-border);
+      box-shadow: 7px 7px 0 #000;
+      padding: var(--spacing-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2);
+    }
+
+    .lore-window__eyebrow {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      letter-spacing: .18em;
+      color: var(--theme-primary);
+      text-transform: uppercase;
+    }
+
+    .lore-window__title {
+      margin: 0;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 20px;
+      line-height: 1.45;
+      color: var(--theme-accent);
+      letter-spacing: .05em;
+    }
+
+    .lore-window__subtitle {
+      margin: 0;
+      font-family: 'VT323', monospace;
+      font-size: 28px;
+      line-height: 1.15;
+      color: var(--theme-text-dim);
+    }
+
+    .lore-window__body {
+      border: 1px dashed var(--theme-border-dim);
+      background: var(--theme-bg);
+      padding: var(--spacing-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-1);
+    }
+
+    .lore-window__line {
+      margin: 0;
+      font-family: 'VT323', monospace;
+      font-size: 25px;
+      line-height: 1.25;
+      color: var(--theme-text);
+    }
+
+    .lore-window__line::before {
+      content: '✦ ';
+      color: var(--theme-primary);
+    }
+
+    .lore-window__actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 980px) {
+      .lore-window {
+        padding: var(--spacing-2);
+        max-height: calc(100vh - (var(--spacing-2) * 2));
+      }
+
+      .lore-window__title {
+        font-size: 16px;
+      }
+
+      .lore-window__subtitle {
+        font-size: 24px;
+      }
+
+      .lore-window__line {
+        font-size: 22px;
+      }
+    }
 

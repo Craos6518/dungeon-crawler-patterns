@@ -6,6 +6,351 @@
     var _completedThemes = [];
     var _selectedSaveSlot  = 1;
     var _selectedLootIndex = null;
+    var _loreQueue = [];
+    var _loreVisible = false;
+    var _loreState = {
+      worldShown: false,
+      heroStoryShown: false,
+      guardianShown: {},
+      endingShown: {},
+      previousFrame: null
+    };
+
+    var LORE_THEME_BOOK = {
+      fire: {
+        dungeonName: 'El Volcan de Ignareth',
+        dungeonIntroTitle: 'Primera Mazmorra',
+        dungeonIntroSubtitle: 'Bajo Ignareth arde un fuego que consume memorias',
+        dungeonIntroLines: [
+          'Bajo la montana de Ignareth arde un fuego que no consume madera sino memorias.',
+          'Pyraxis, Salamandra Ancestral, guarda la Piedra del Fuego Eterno desde que el mundo era joven.',
+          'No es solo un monstruo: es la guardiana legitima del artefacto, maldita a su rol eterno.',
+          'Pasillos de obsidiana negra y rios de lava forjan un ciclo de fuego y renacimiento.'
+        ],
+        guardianName: 'Pyraxis',
+        guardianTitle: 'Salamandra Ancestral · Piedra del Fuego Eterno',
+        guardianLines: [
+          'Guardiana maldita de la primera llama del mundo; prisionera eterna de su deber.',
+          'Estadisticas: vida 85 · ataque 95 · defensa 70 · velocidad 75.',
+          'Habilidades: Llamarada Eterna, Renacimiento de Cenizas, Aura Abrasadora.'
+        ],
+        endingTitle: 'El Corazon del Volcan se ha Apagado',
+        endingSubtitle: 'Final de Volcan de Ignareth',
+        endingLines: [
+          'Al derrotar a Pyraxis, la lava se enfria y el volcan entra en un largo letargo.',
+          'La tierra comienza a sanar y el continente evita una erupcion catastrofica.',
+          'Desbloqueo: Armadura de Obsidiana.'
+        ]
+      },
+      ice: {
+        dungeonName: 'Las Catacumbas de Glaciurvh',
+        dungeonIntroTitle: 'Segunda Mazmorra',
+        dungeonIntroSubtitle: 'Bajo la llanura helada duerme el invierno sin fin',
+        dungeonIntroLines: [
+          'Al norte del continente, donde el sol no toca la tierra, yace la Llanura del Silencio Helado.',
+          'Bajo ella, las catacumbas guardan el Cristal del Hielo Primordial.',
+          'Kryovaleth, Dragon de Invierno, fue formado por siglos de nieve acumulada y dolor congelado.',
+          'Aqui el hielo no solo congela el cuerpo: ralentiza pensamientos y adormece la voluntad.'
+        ],
+        guardianName: 'Kryovaleth',
+        guardianTitle: 'Dragon de Invierno · Cristal del Hielo Primordial',
+        guardianLines: [
+          'No nacio: se formo de siglos de nieve y dolor.',
+          'Estadisticas: vida 90 · ataque 70 · defensa 95 · velocidad 40.',
+          'Habilidades: Aliento Gelido, Prision de Escarcha, Silencio Invernal.'
+        ],
+        endingTitle: 'El Invierno Eterno se Derrite',
+        endingSubtitle: 'Final de Catacumbas de Glaciurvh',
+        endingLines: [
+          'Kryovaleth se hace anicos, y con el, su hechizo de invierno sin fin.',
+          'Los glaciares retroceden y la primavera regresa a las tierras congeladas.',
+          'Desbloqueo: Espada Glacial.'
+        ]
+      },
+      poison: {
+        dungeonName: 'Los Pantanos de Viridax',
+        dungeonIntroTitle: 'Tercera Mazmorra',
+        dungeonIntroSubtitle: 'Vida retorcida, veneno y degeneracion lenta',
+        dungeonIntroLines: [
+          'En Viridax, la vida se pudre en patrones hermosos y peligrosos.',
+          'La Semilla de la Vida Corrupta creo un ecosistema de veneno y degradacion.',
+          'Arachnovex, la Reina Tejedora, ha consumido tantos aventureros que sus ojos reflejan almas atrapadas.',
+          'El veneno no mata de golpe: corrompe capa por capa, como un decorador no deseado sobre una base sana.'
+        ],
+        guardianName: 'Arachnovex',
+        guardianTitle: 'Reina Tejedora · Semilla de la Vida Corrupta',
+        guardianLines: [
+          'Cada uno de sus ocho ojos refleja un alma atrapada.',
+          'Estadisticas: vida 80 · ataque 80 · defensa 75 · velocidad 85.',
+          'Habilidades: Red de Corrupcion, Veneno Degenerador, Telarana Viva.'
+        ],
+        endingTitle: 'El Pantano Purificado',
+        endingSubtitle: 'Final de Pantanos de Viridax',
+        endingLines: [
+          'Con Arachnovex destruido, el veneno que corrompia el pantano se neutraliza.',
+          'Las aguas se vuelven cristalinas y flora y fauna recuperan su forma natural.',
+          'Desbloqueo: Arco de Tejo Toxico.'
+        ]
+      },
+      dark: {
+        dungeonName: 'La Ciudadela de Umbrakar',
+        dungeonIntroTitle: 'Cuarta Mazmorra',
+        dungeonIntroSubtitle: 'La encarnacion del olvido y la memoria fragmentada',
+        dungeonIntroLines: [
+          'La Ciudadela de Umbrakar surgio cuando el Fragmento de la Oscuridad Absoluta cayo del cielo.',
+          'Sus pasillos cambian, sus salas se reorganizan y todo intento de orientacion colapsa.',
+          'Malachar no es un ser vivo: es la abstraccion del olvido.',
+          'Sin un memento solido, quienes entran son sobrescritos y regresan sin identidad.'
+        ],
+        guardianName: 'Malachar',
+        guardianTitle: 'Senor del Vacio · Fragmento de la Oscuridad Absoluta',
+        guardianLines: [
+          'No es un ser vivo, sino una abstraccion: la encarnacion del olvido.',
+          'Estadisticas: vida 75 · ataque 85 · defensa 60 · velocidad 95.',
+          'Habilidades: Sobrescritura Total, Fragmentacion de Memoria, Ciclo del Olvido.'
+        ],
+        endingTitle: 'La Sombra se Disipa',
+        endingSubtitle: 'Final de Ciudadela de Umbrakar',
+        endingLines: [
+          'La caida de Malachar libera a la ciudadela de su control sombrio.',
+          'La luz del sol vuelve a entrar y los espiritus atrapados son liberados.',
+          'Desbloqueo: Daga de las Sombras.'
+        ]
+      }
+    };
+
+    var HERO_LORE_BOOK = {
+      guerrero: {
+        title: 'Kael Ferrum',
+        subtitle: 'El Ultimo Guardian · Guerrero',
+        lines: [
+          'Vida 100 · Ataque 18 · Defensa 25 · Veloc 10.',
+          'Hijo de un herrero del sur de Valdrath, Kael perdio a su familia cuando Ignareth envio sus primeras oleadas de criaturas a la superficie.',
+          'No busca gloria ni riquezas: solo quiere que ninguna familia mas pague su precio.',
+          'Lleva tatuado en el antebrazo izquierdo el simbolo de su aldea, un recuerdo que ninguna sombra puede borrarle.'
+        ],
+        theme: 'fire'
+      },
+      mago: {
+        title: 'Sylara Vex',
+        subtitle: 'Archivista del Vacio · Maga',
+        lines: [
+          'Vida 55 · Ataque 30 · Defensa 8 · Veloc 22.',
+          'Sylara estudio en la Academia de Valdrath hasta hallar registros prohibidos: los planos originales del Archimago Thessanor.',
+          'Comprendio que las mazmorras no son caos: son sistemas disenados, como codigo que pocos pueden leer.',
+          'Entrar en ellas es leer arquitectura arcana ajena, y ella domina el arte de descifrar patrones invisibles para otros.'
+        ],
+        theme: 'ice'
+      },
+      arquero: {
+        title: 'Thoran Silvis',
+        subtitle: 'Explorador de la Bruma · Arquero',
+        lines: [
+          'Vida 75 · Ataque 24 · Defensa 15 · Veloc 20.',
+          'Criado entre los bosques de Mirval, Thoran aprendio que la distancia entre cazador y presa es sagrada.',
+          'Cuando los pantanos de Viridax se expandieron hacia el norte, su hogar desaparecio bajo la maleza venenosa en semanas.',
+          'Ahora viaja ligero, con el recuerdo del bosque vivo guardado en cada flecha.'
+        ],
+        theme: 'poison'
+      }
+    };
+
+    function normalizeHeroType(heroType) {
+      var normalized = String(heroType || '').trim().toLowerCase();
+      if (normalized === 'guerrero' || normalized === 'mago' || normalized === 'arquero') {
+        return normalized;
+      }
+      return 'guerrero';
+    }
+
+    function resolveHeroLore(heroType) {
+      return HERO_LORE_BOOK[normalizeHeroType(heroType)] || HERO_LORE_BOOK.guerrero;
+    }
+
+    function normalizeThemeKey(themeKey) {
+      var normalized = String(themeKey || '').trim().toLowerCase();
+      if (normalized === 'fire' || normalized === 'ice' || normalized === 'poison' || normalized === 'dark') {
+        return normalized;
+      }
+      return 'fire';
+    }
+
+    function resolveThemeLore(themeKey) {
+      return LORE_THEME_BOOK[normalizeThemeKey(themeKey)] || LORE_THEME_BOOK.fire;
+    }
+
+    function buildHeroLoreEntry(heroType) {
+      var lore = resolveHeroLore(heroType);
+      return {
+        chapter: 'CRONICAS DEL HEROE',
+        title: lore.title,
+        subtitle: lore.subtitle,
+        lines: lore.lines,
+        theme: lore.theme
+      };
+    }
+
+    function buildWorldLoreEntry() {
+      return {
+        chapter: 'CRONICAS DE ERANTHIA',
+        title: 'El Mundo de Eranthia',
+        subtitle: 'Los Albores del Tiempo',
+        lines: [
+          'En los albores del tiempo, cuando los dioses caminaban entre mortales, el Archimago Valdur Thessanor forjo cuatro artefactos de poder inconmensurable.',
+          'La Piedra del Fuego Eterno, el Cristal del Hielo Primordial, la Semilla de la Vida Corrupta y el Fragmento de la Oscuridad Absoluta fueron sellados en el corazon de cuatro mazmorras.',
+          'Cinco siglos despues, el equilibrio se rompe: los sellos se debilitan y las criaturas de las profundidades despiertan hambrientas.',
+          'El Consejo de Magos de Valdrath emite una ultima llamada: se necesita un heroe de codigo noble para restaurar el mundo.',
+          'Las mazmorras obedecen patrones ancestrales; quien entiende sus reglas anticipa el peligro, quien las ignora perece en el caos.'
+        ],
+        theme: 'fire'
+      };
+    }
+
+    function buildDungeonLoreEntry(themeKey) {
+      var lore = resolveThemeLore(themeKey);
+      return {
+        chapter: 'CRONICAS DE MAZMORRA',
+        title: lore.dungeonIntroTitle,
+        subtitle: lore.dungeonName + ' · ' + lore.dungeonIntroSubtitle,
+        lines: lore.dungeonIntroLines,
+        theme: normalizeThemeKey(themeKey)
+      };
+    }
+
+    function buildGuardianLoreEntry(themeKey) {
+      var lore = resolveThemeLore(themeKey);
+      return {
+        chapter: 'CRONICAS DEL GUARDIAN',
+        title: lore.guardianName,
+        subtitle: lore.guardianTitle,
+        lines: lore.guardianLines,
+        theme: normalizeThemeKey(themeKey)
+      };
+    }
+
+    function buildEndingLoreEntry(themeKey) {
+      var lore = resolveThemeLore(themeKey);
+      return {
+        chapter: 'EPILOGO DE MAZMORRA',
+        title: lore.endingTitle,
+        subtitle: lore.endingSubtitle,
+        lines: lore.endingLines,
+        theme: normalizeThemeKey(themeKey)
+      };
+    }
+
+    function renderLoreBody(lines) {
+      var body = document.getElementById('lore-window-body');
+      if (!body) return;
+      body.innerHTML = '';
+      (Array.isArray(lines) ? lines : []).forEach(function(line) {
+        var p = document.createElement('p');
+        p.className = 'lore-window__line';
+        p.textContent = String(line || '');
+        body.appendChild(p);
+      });
+    }
+
+    function showLoreWindow(entry) {
+      var overlay = document.getElementById('lore-window-overlay');
+      if (!overlay || !entry) return;
+
+      setNodeText('lore-window-eyebrow', entry.chapter || 'CRONICAS');
+      setNodeText('lore-window-title', entry.title || 'Relato');
+      setNodeText('lore-window-subtitle', entry.subtitle || '');
+      renderLoreBody(entry.lines || []);
+
+      overlay.dataset.theme = normalizeThemeKey(entry.theme || 'fire');
+      overlay.classList.add('lore-overlay--visible');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lore-open');
+      _loreVisible = true;
+    }
+
+    function showNextLoreWindow() {
+      if (_loreVisible || _loreQueue.length === 0) return;
+      showLoreWindow(_loreQueue.shift());
+    }
+
+    function enqueueLoreWindow(entry) {
+      if (!entry) return;
+      _loreQueue.push(entry);
+      showNextLoreWindow();
+    }
+
+    function dismissLoreWindow() {
+      var overlay = document.getElementById('lore-window-overlay');
+      if (!overlay) return;
+      overlay.classList.remove('lore-overlay--visible');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('lore-open');
+      _loreVisible = false;
+      showNextLoreWindow();
+    }
+
+    function resetCampaignNarrativeState() {
+      _loreState.worldShown = false;
+      _loreState.heroStoryShown = false;
+      _loreState.guardianShown = {};
+      _loreState.endingShown = {};
+      _loreState.previousFrame = null;
+    }
+
+    function startNewCampaignNarrativeFlow() {
+      resetCampaignNarrativeState();
+      _loreState.worldShown = true;
+      enqueueLoreWindow(buildWorldLoreEntry());
+    }
+
+    function queueHeroAndDungeonLoreForSelection(themeKey) {
+      var normalizedTheme = normalizeThemeKey(themeKey);
+
+      if (!_heroSelectionLocked && !_loreState.heroStoryShown) {
+        _loreState.heroStoryShown = true;
+        enqueueLoreWindow(buildHeroLoreEntry(_selectedHeroType));
+      }
+
+      enqueueLoreWindow(buildDungeonLoreEntry(normalizedTheme));
+    }
+
+    function openWorldLoreWindow() {
+      _loreState.worldShown = true;
+      enqueueLoreWindow(buildWorldLoreEntry());
+    }
+
+    function evaluateLoreTriggers(state) {
+      var currentTheme = normalizeThemeKey(state.theme || 'fire');
+
+      var currentFrame = {
+        screen: String(state.screen || ''),
+        theme: currentTheme,
+        room: Number(state.room || 0),
+        totalRooms: Number(state.totalRooms || 0),
+        roomHasEnemy: !!state.roomHasEnemy,
+        enemyTier: state.enemy && state.enemy.tier ? String(state.enemy.tier).toLowerCase() : ''
+      };
+
+      if (currentFrame.screen === 'combat' && currentFrame.enemyTier === 'jefe' && !_loreState.guardianShown[currentTheme]) {
+        _loreState.guardianShown[currentTheme] = true;
+        enqueueLoreWindow(buildGuardianLoreEntry(currentTheme));
+      }
+
+      var previous = _loreState.previousFrame;
+      var bossJustDefeated = previous
+        && previous.screen === 'combat'
+        && previous.enemyTier === 'jefe'
+        && currentFrame.screen === 'exploration'
+        && currentFrame.totalRooms > 0
+        && currentFrame.room === currentFrame.totalRooms
+        && !currentFrame.roomHasEnemy;
+
+      if (bossJustDefeated && !_loreState.endingShown[currentTheme]) {
+        _loreState.endingShown[currentTheme] = true;
+        enqueueLoreWindow(buildEndingLoreEntry(currentTheme));
+      }
+
+      _loreState.previousFrame = currentFrame;
+    }
 
     function setNodeText(id, val) {
       var el = document.getElementById(id);
@@ -194,6 +539,22 @@
 
     document.addEventListener('DOMContentLoaded', function () {
 
+      var loreOverlay = document.getElementById('lore-window-overlay');
+      if (loreOverlay) {
+        loreOverlay.addEventListener('click', function(e) {
+          if (e.target === loreOverlay) {
+            dismissLoreWindow();
+          }
+        });
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && _loreVisible) {
+          e.preventDefault();
+          dismissLoreWindow();
+        }
+      });
+
       /* ── Selección de héroe (local) ── */
       document.querySelectorAll('[data-action="selectHero"]').forEach(function(card) {
         card.addEventListener('click', function() {
@@ -281,10 +642,36 @@
         if (LOCAL_ACTIONS[action]) return;
         el.addEventListener('click', function() {
           if (el.dataset.state === 'disabled' || el.dataset.state === 'cooldown') return;
+          if (action === 'openWorldLore') {
+            openWorldLoreWindow();
+            return;
+          } else if (action === 'dismissLoreWindow') {
+            dismissLoreWindow();
+            return;
+          } else if (action === 'goToHeroSelect') {
+            startNewCampaignNarrativeFlow();
+            sendCommand('goToHeroSelect', {});
+            return;
+          } else if (action === 'newGame') {
+            startNewCampaignNarrativeFlow();
+            sendCommand('newGame', {});
+            return;
+          } else if (action === 'heroNewGame') {
+            queueHeroAndDungeonLoreForSelection(el.dataset.theme || 'fire');
+            sendCommand('heroNewGame', { heroType: _selectedHeroType || 'guerrero', theme: el.dataset.theme || 'fire' });
+            return;
+          } else if (action === 'startGame') {
+            if (!_loreState.worldShown) {
+              _loreState.worldShown = true;
+              enqueueLoreWindow(buildWorldLoreEntry());
+            }
+            enqueueLoreWindow(buildDungeonLoreEntry(el.dataset.theme || 'fire'));
+            sendCommand('startGame', { theme: el.dataset.theme || 'fire' });
+            return;
+          }
+
           if (action === 'useItem') {
             sendCommand('useItem', { itemIndex: Number.isFinite(_selectedItemIndex) ? _selectedItemIndex : null, itemId: _selectedItemId });
-          } else if (action === 'startGame') {
-            sendCommand('startGame', { theme: el.dataset.theme || 'fire' });
           } else if (action === 'loadGame') {
             var loadSlot = Number(el.dataset.slot || 1);
             sendCommand('loadGame', { slot: loadSlot });
@@ -297,10 +684,6 @@
             sendCommand('attack', { targetId: 'current' });
           } else if (action === 'useSkill') {
             sendCommand('useSkill', {});
-          } else if (action === 'goToHeroSelect') {
-            sendCommand('goToHeroSelect', {});
-          } else if (action === 'heroNewGame') {
-            sendCommand('heroNewGame', { heroType: _selectedHeroType || 'guerrero', theme: el.dataset.theme || 'fire' });
           } else if (action === 'showStats') {
             sendCommand('showStats', {});
           } else if (action === 'closeStats') {
@@ -319,8 +702,6 @@
             sendCommand('skipLoot', {});
           } else if (action === 'restoreGame') {
             sendCommand('restoreGame', {});
-          } else if (action === 'newGame') {
-            sendCommand('newGame', {});
           } else if (action === 'exitGame') {
             sendCommand('exitGame', {});
           } else if (action === 'backToMenu') {
@@ -561,4 +942,6 @@
           if (el) el.dataset.state = state.buttons[id];
         });
       }
+
+      evaluateLoreTriggers(state);
     };

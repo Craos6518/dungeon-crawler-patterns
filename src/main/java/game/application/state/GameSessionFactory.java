@@ -82,9 +82,9 @@ public final class GameSessionFactory {
 
     private static Player createPlayerForHero(String heroType) {
         Personaje hero = switch (heroType) {
-            case HERO_TYPE_MAGO -> new MagoFactory(100, 35).crearPersonaje(HERO_NAME_MAGO);
-            case HERO_TYPE_ARQUERO -> new ArqueroFactory(120, 28).crearPersonaje(HERO_NAME_ARQUERO);
-            default -> new GuerreroFactory(150, 25).crearPersonaje(HERO_NAME_GUERRERO);
+            case HERO_TYPE_MAGO -> new MagoFactory(55, 30).crearPersonaje(HERO_NAME_MAGO);
+            case HERO_TYPE_ARQUERO -> new ArqueroFactory(75, 24).crearPersonaje(HERO_NAME_ARQUERO);
+            default -> new GuerreroFactory(100, 18).crearPersonaje(HERO_NAME_GUERRERO);
         };
         return new Player(hero, Inventory.demo());
     }

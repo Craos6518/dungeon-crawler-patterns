@@ -453,12 +453,12 @@ public class GamePresenter {
             return arquero.getPrecision();
         }
         if (hero instanceof Guerrero) {
-            return 25;
+            return 18;
         }
         return switch (heroType) {
             case "mago" -> 30;
             case "arquero" -> 24;
-            default -> 25;
+            default -> 18;
         };
     }
 
@@ -466,7 +466,7 @@ public class GamePresenter {
         return switch (heroType) {
             case "mago" -> 30;
             case "arquero" -> 24;
-            default -> 25;
+            default -> 18;
         };
     }
 
