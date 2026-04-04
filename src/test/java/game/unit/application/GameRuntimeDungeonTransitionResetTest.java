@@ -45,10 +45,10 @@ class GameRuntimeDungeonTransitionResetTest {
 
         assertEquals(3, startedSession.player().level());
         assertEquals(40, startedSession.player().experience());
-        assertEquals(95, startedSession.player().maxHp());
+        assertEquals(105, startedSession.player().maxHp());
 
         // Al entrar a una nueva mazmorra de campaña, el héroe conserva progreso y se cura completo.
-        assertEquals(95, startedSession.player().hp());
+        assertEquals(105, startedSession.player().hp());
         assertEquals(900, startedSession.player().gold());
         assertEquals(12, startedSession.player().defeatedEnemies());
         assertEquals(4, startedSession.inventory().size());

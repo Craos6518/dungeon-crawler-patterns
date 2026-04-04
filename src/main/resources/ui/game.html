@@ -302,6 +302,10 @@
             data-action="openInventory" data-state="default">Usar Objeto</button>
       <button class="btn" id="btn-habilidad"
               data-action="useSkill" data-state="default">Habilidad</button>
+          <button class="btn" id="btn-quick-item"
+            data-action="consumeSelectedItem" data-state="default">Consumible Rápido</button>
+          <button class="btn" id="btn-retreat"
+            data-action="retreatCombat" data-state="default">Retirada</button>
     </section>
 
     <!-- COMBAT LOG -->
@@ -465,30 +469,30 @@
           <div class="hero-card hero-card--selected" id="hero-card-guerrero" data-hero="guerrero" data-action="selectHero" role="button" tabindex="0">
             <div class="hero-card__icon">🗡️</div><div class="hero-card__name">Guerrero</div><div class="hero-card__desc">alta vida y resistencia</div>
             <div class="hero-stat-row">
-              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">100</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:60%"></div></div><span class="hero-stat__val">18</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">25</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:45%"></div></div><span class="hero-stat__val">10</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">110</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:74%"></div></div><span class="hero-stat__val">20</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">26</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:48%"></div></div><span class="hero-stat__val">11</span></div>
             </div>
             <div class="hero-selected-badge">SELECCIONADO</div>
           </div>
           <div class="hero-card" id="hero-card-mago" data-hero="mago" data-action="selectHero" role="button" tabindex="0">
             <div class="hero-card__icon">🔮</div><div class="hero-card__name">Mago</div><div class="hero-card__desc">menor vida, alto daño</div>
             <div class="hero-stat-row">
-              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:55%"></div></div><span class="hero-stat__val">55</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">30</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:32%"></div></div><span class="hero-stat__val">8</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">22</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:59%"></div></div><span class="hero-stat__val">65</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">27</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:38%"></div></div><span class="hero-stat__val">10</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">23</span></div>
             </div>
             <div class="hero-selected-badge">SELECCIONADO</div>
           </div>
           <div class="hero-card" id="hero-card-arquero" data-hero="arquero" data-action="selectHero" role="button" tabindex="0">
             <div class="hero-card__icon">🏹</div><div class="hero-card__name">Arquero</div><div class="hero-card__desc">balance daño y supervivencia</div>
             <div class="hero-stat-row">
-              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:75%"></div></div><span class="hero-stat__val">75</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:80%"></div></div><span class="hero-stat__val">24</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:60%"></div></div><span class="hero-stat__val">15</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:91%"></div></div><span class="hero-stat__val">20</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:77%"></div></div><span class="hero-stat__val">85</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:85%"></div></div><span class="hero-stat__val">23</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:65%"></div></div><span class="hero-stat__val">17</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:91%"></div></div><span class="hero-stat__val">21</span></div>
             </div>
             <div class="hero-selected-badge">SELECCIONADO</div>
           </div>
@@ -522,10 +526,10 @@
           <div>
             <div class="stats-section-title">ATRIBUTOS</div>
             <div class="stat-chip-row">
-              <div class="stat-chip"><span class="stat-chip__val" id="stats-hp">100</span><span class="stat-chip__lbl">vida</span></div>
-              <div class="stat-chip"><span class="stat-chip__val" id="stats-atk">18</span><span class="stat-chip__lbl">ataque</span></div>
-              <div class="stat-chip"><span class="stat-chip__val" id="stats-def">25</span><span class="stat-chip__lbl">defensa</span></div>
-              <div class="stat-chip"><span class="stat-chip__val" id="stats-spd">10</span><span class="stat-chip__lbl">velocidad</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-hp">110</span><span class="stat-chip__lbl">vida</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-atk">20</span><span class="stat-chip__lbl">ataque</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-def">26</span><span class="stat-chip__lbl">defensa</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-spd">11</span><span class="stat-chip__lbl">velocidad</span></div>
             </div>
           </div>
           <div>
@@ -540,7 +544,7 @@
         </div>
         <div>
           <div class="stats-section-title">ESTADO ACTUAL</div>
-          <div class="field-row"><span class="field-row__key">HP</span><div class="hp-bar-group" style="flex:1;"><div class="hp-bar-track" style="flex:1;width:auto;"><div class="hp-bar-fill" id="stats-hp-fill" style="width:100%;"></div></div><span class="hp-bar-text" id="stats-hp-text">100 / 100</span></div></div>
+          <div class="field-row"><span class="field-row__key">HP</span><div class="hp-bar-group" style="flex:1;"><div class="hp-bar-track" style="flex:1;width:auto;"><div class="hp-bar-fill" id="stats-hp-fill" style="width:100%;"></div></div><span class="hp-bar-text" id="stats-hp-text">110 / 110</span></div></div>
           <div class="field-row"><span class="field-row__key">Oro</span><span class="field-row__val" id="stats-gold-display">⦡ 0 Monedas</span></div>
           <div class="field-row"><span class="field-row__key">Mazmorra</span><span class="field-row__val" id="stats-dungeon">—</span></div>
         </div>

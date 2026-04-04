@@ -34,7 +34,7 @@ class CombatSystemTest {
     @Test
     void defenseMitigatesNonLethalEnemyHit() {
         Player player = Player.demo();
-        player.receiveDamage(140); // 10 HP restantes
+        player.receiveDamage(100); // 10 HP restantes
 
         Enemy enemy = new Enemy(new EnemigoBasico("Lobo", 80, 6));
         CombatSystem system = new CombatSystem();
@@ -60,7 +60,7 @@ class CombatSystemTest {
     @Test
     void defenseDoesNotRevivePlayerAfterLethalHit() {
         Player player = Player.demo();
-        player.receiveDamage(147); // 3 HP restantes
+        player.receiveDamage(107); // 3 HP restantes
 
         Enemy enemy = new Enemy(new EnemigoBasico("Lobo", 80, 6));
         CombatSystem system = new CombatSystem();

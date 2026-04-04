@@ -92,7 +92,7 @@ class UiCommandDispatcherContractTest {
         );
 
         assertEquals("error", response.status);
-        assertTrue(response.message.contains("Selecciona un objeto valido"));
+        assertTrue(response.message.contains("itemIndex fuera de rango"));
     }
 
     @Test

@@ -8,6 +8,7 @@ import game.domain.character.Player;
 import game.domain.inventory.Item;
 import game.domain.turn.TurnManager;
 
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -195,6 +196,30 @@ public class Combat {
         return result;
     }
 
+    public CombatResult retreatAttempt(String heroType, String themeKey) {
+        CombatResult result = new CombatResult();
+        if (!isActive()) {
+            throw new DomainRuleViolationException("No hay un enemigo activo en esta sala.");
+        }
+
+        if (!startPlayerTurn(result)) {
+            return result;
+        }
+
+        result.actionExecuted = true;
+        int chance = computeRetreatChance(heroType);
+        if (random.nextInt(100) < chance) {
+            result.retreatSuccessful = true;
+            finish();
+            return result;
+        }
+
+        resolveEnemyTurn(themeKey, result);
+        resolver.resolveDefeat(player, result);
+        result.warning = "No pudiste escapar.";
+        return result;
+    }
+
     public void resolveTurn() {
         // Punto de extension para secuencias multi-actor; por ahora, cada accion resuelve su propio turno.
     }
@@ -225,5 +250,14 @@ public class Combat {
         result.enemyDamage = enemyTurn.finalDamage;
         result.mitigatedDamage = enemyTurn.mitigatedDamage;
         result.poisonApplied = enemyTurn.poisonApplied;
+    }
+
+    private int computeRetreatChance(String heroType) {
+        String normalized = heroType == null ? "" : heroType.trim().toLowerCase(Locale.ROOT);
+        return switch (normalized) {
+            case "arquero" -> 80;
+            case "mago" -> 70;
+            default -> 60;
+        };
     }
 }

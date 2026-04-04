@@ -7,6 +7,7 @@ import game.items.model.SimpleItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
  * Agregado de inventario. Controla seleccion, uso y consistencia de items.
@@ -150,6 +151,29 @@ public class Inventory {
 
     public boolean isSelectedConsumable() {
         return selectedItem().map(Item::isConsumable).orElse(false);
+    }
+
+    public OptionalInt firstConsumableIndex() {
+        List<SimpleItem> simples = simpleItems();
+        for (int i = 0; i < simples.size(); i++) {
+            if (Item.from(simples.get(i), i).isConsumable()) {
+                return OptionalInt.of(i);
+            }
+        }
+        return OptionalInt.empty();
+    }
+
+    public OptionalInt selectedConsumableIndex() {
+        clampSelection();
+
+        if (selectedItemIndex >= 0) {
+            Optional<Item> selected = getByIndex(selectedItemIndex);
+            if (selected.isPresent() && selected.get().isConsumable()) {
+                return OptionalInt.of(selectedItemIndex);
+            }
+        }
+
+        return firstConsumableIndex();
     }
 
     public void clampSelection() {

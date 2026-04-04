@@ -1,5 +1,6 @@
 package game.application.state;
 
+import game.balance.GameBalance;
 import game.domain.character.Player;
 import game.domain.combat.Combat;
 import game.domain.exploration.Dungeon;
@@ -28,10 +29,6 @@ import java.util.Random;
  * Fabrica de sesion inicial para la UI web.
  */
 public final class GameSessionFactory {
-
-    private static final String HERO_NAME_GUERRERO = "Guerrero";
-    private static final String HERO_NAME_MAGO = "Mago";
-    private static final String HERO_NAME_ARQUERO = "Arquero";
     private static final String HERO_TYPE_GUERRERO = "guerrero";
     private static final String HERO_TYPE_MAGO = "mago";
     private static final String HERO_TYPE_ARQUERO = "arquero";
@@ -81,10 +78,12 @@ public final class GameSessionFactory {
     }
 
     private static Player createPlayerForHero(String heroType) {
-        Personaje hero = switch (heroType) {
-            case HERO_TYPE_MAGO -> new MagoFactory(55, 30).crearPersonaje(HERO_NAME_MAGO);
-            case HERO_TYPE_ARQUERO -> new ArqueroFactory(75, 24).crearPersonaje(HERO_NAME_ARQUERO);
-            default -> new GuerreroFactory(100, 18).crearPersonaje(HERO_NAME_GUERRERO);
+        GameBalance.HeroProfile profile = GameBalance.hero(heroType);
+
+        Personaje hero = switch (profile.type()) {
+            case HERO_TYPE_MAGO -> new MagoFactory(profile.hp(), profile.attack()).crearPersonaje(profile.displayName());
+            case HERO_TYPE_ARQUERO -> new ArqueroFactory(profile.hp(), profile.attack()).crearPersonaje(profile.displayName());
+            default -> new GuerreroFactory(profile.hp(), profile.attack()).crearPersonaje(profile.displayName());
         };
         return new Player(hero, Inventory.demo());
     }

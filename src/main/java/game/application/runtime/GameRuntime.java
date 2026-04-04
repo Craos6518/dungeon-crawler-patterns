@@ -19,6 +19,7 @@ import game.application.usecase.DefendUseCase;
 import game.application.usecase.ForceCombatUseCase;
 import game.application.usecase.LoadGameUseCase;
 import game.application.usecase.MoveInventorySelectionUseCase;
+import game.application.usecase.RetreatCombatUseCase;
 import game.application.usecase.SaveGameUseCase;
 import game.application.usecase.SearchTreasureUseCase;
 import game.application.usecase.SelectInventoryItemUseCase;
@@ -61,6 +62,7 @@ public class GameRuntime implements GameCommandHandler {
     private ForceCombatUseCase forceCombatUseCase;
     private AttackUseCase attackUseCase;
     private DefendUseCase defendUseCase;
+    private RetreatCombatUseCase retreatCombatUseCase;
     private UseItemUseCase useItemUseCase;
     private UseSkillUseCase useSkillUseCase;
     private SelectInventoryItemUseCase selectInventoryItemUseCase;
@@ -134,6 +136,7 @@ public class GameRuntime implements GameCommandHandler {
         this.forceCombatUseCase = new ForceCombatUseCase(session);
         this.attackUseCase = new AttackUseCase(session);
         this.defendUseCase = new DefendUseCase(session);
+        this.retreatCombatUseCase = new RetreatCombatUseCase(session);
         this.useItemUseCase = new UseItemUseCase(session);
         this.useSkillUseCase = new UseSkillUseCase(session);
         this.selectInventoryItemUseCase = new SelectInventoryItemUseCase(session);
@@ -174,21 +177,34 @@ public class GameRuntime implements GameCommandHandler {
             session.appendEvent("Inventario abierto.");
         }, this::validateEmptyPayload));
 
+        map.put("toggleInventory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            if ("inventory".equals(session.activeScreen())) {
+                session.setActiveScreen(session.hasActiveEnemy() ? "combat" : "exploration");
+            } else {
+                session.setActiveScreen("inventory");
+                session.inventory().clampSelection();
+                session.appendEvent("Inventario abierto.");
+            }
+        }, this::validateEmptyPayload));
+
         map.put("closeInventory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.setActiveScreen(session.hasActiveEnemy() ? "combat" : "exploration");
         }, this::validateEmptyPayload));
 
         map.put("saveGame", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
-            int slot = resolveSlotOrPreferred(payload.slot);
-            saveGameUseCase.execute(slot);
-            preferredSaveSlot = slot;
+            executeSaveToSlot(payload.slot);
         }, this::validateSavePayload));
 
         map.put("loadGame", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
-            int slot = resolveSlotOrPreferred(payload.slot);
-            GameSession loadedSession = loadSessionFromSlot(slot);
-            bindSession(loadedSession);
-            preferredSaveSlot = slot;
+            executeLoadFromSlot(payload.slot);
+        }, this::validateLoadPayload));
+
+        map.put("quickSave", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
+            executeSaveToSlot(payload.slot);
+        }, this::validateSavePayload));
+
+        map.put("quickLoad", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
+            executeLoadFromSlot(payload.slot);
         }, this::validateLoadPayload));
 
         map.put("forceCombat", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
@@ -203,9 +219,17 @@ public class GameRuntime implements GameCommandHandler {
             defendUseCase.execute();
         }, this::validateDefendPayload));
 
+        map.put("retreatCombat", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            retreatCombatUseCase.execute();
+        }, this::validateDefendPayload));
+
         map.put("useItem", TypedCommandHandler.of(UseItemCommandRequest.class, Set.of(), payload -> {
             useItemUseCase.execute(payload);
         }, this::validateUseItemPayload));
+
+        map.put("consumeSelectedItem", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            executeConsumeSelectedItem();
+        }, this::validateEmptyPayload));
 
         map.put("useSkill", TypedCommandHandler.of(UseSkillCommandRequest.class, Set.of(), payload -> {
             useSkillUseCase.execute(payload);
@@ -219,7 +243,15 @@ public class GameRuntime implements GameCommandHandler {
             moveInventorySelectionUseCase.moveUp();
         }, this::validateEmptyPayload));
 
+        map.put("inventoryPrevious", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            moveInventorySelectionUseCase.moveUp();
+        }, this::validateEmptyPayload));
+
         map.put("inventoryDown", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            moveInventorySelectionUseCase.moveDown();
+        }, this::validateEmptyPayload));
+
+        map.put("inventoryNext", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             moveInventorySelectionUseCase.moveDown();
         }, this::validateEmptyPayload));
 
@@ -285,22 +317,16 @@ public class GameRuntime implements GameCommandHandler {
         }, this::validateEmptyPayload));
 
         map.put("saveToSlot", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
-            int slot = resolveSlotOrPreferred(payload.slot);
-            saveGameUseCase.execute(slot);
-            preferredSaveSlot = slot;
+            executeSaveToSlot(payload.slot);
         }, this::validateSavePayload));
 
         map.put("loadFromSlot", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
-            int slot = resolveSlotOrPreferred(payload.slot);
-            GameSession loadedSession = loadSessionFromSlot(slot);
-            bindSession(loadedSession);
-            preferredSaveSlot = slot;
+            executeLoadFromSlot(payload.slot);
         }, this::validateLoadPayload));
 
         map.put("restoreGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             // Carga el slot preferido (ultimo usado) al restaurar tras game over.
-            GameSession loadedSession = loadSessionFromSlot(preferredSaveSlot);
-            bindSession(loadedSession);
+            executeLoadFromSlot(preferredSaveSlot);
         }, this::validateEmptyPayload));
 
         map.put("newGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
@@ -406,6 +432,30 @@ public class GameRuntime implements GameCommandHandler {
     private void validateLoadPayload(JsonObject payload) {
         validateEmptyPayload(payload);
         validateOptionalIntegerField(payload, "slot", MIN_SLOT, MAX_SLOT);
+    }
+
+    private void executeSaveToSlot(Integer requestedSlot) {
+        int slot = resolveSlotOrPreferred(requestedSlot);
+        saveGameUseCase.execute(slot);
+        preferredSaveSlot = slot;
+    }
+
+    private void executeLoadFromSlot(Integer requestedSlot) {
+        int slot = resolveSlotOrPreferred(requestedSlot);
+        GameSession loadedSession = loadSessionFromSlot(slot);
+        bindSession(loadedSession);
+        preferredSaveSlot = slot;
+    }
+
+    private void executeConsumeSelectedItem() {
+        int consumableIndex = session.inventory().selectedConsumableIndex().orElse(-1);
+        if (consumableIndex < 0) {
+            throw new InvalidRuntimeCommandException("No hay consumibles disponibles en el inventario.");
+        }
+
+        UseItemCommandRequest request = new UseItemCommandRequest();
+        request.itemIndex = consumableIndex;
+        useItemUseCase.execute(request);
     }
 
     private int resolveSlotOrPreferred(Integer requestedSlot) {
@@ -563,6 +613,15 @@ public class GameRuntime implements GameCommandHandler {
     private void validateSelectItemPayload(JsonObject payload) {
         validateEmptyPayload(payload);
         validateRequiredIntegerField(payload, "itemIndex", 0, Integer.MAX_VALUE);
+
+        int index = payload.get("itemIndex").getAsInt();
+        int itemCount = session.inventory().size();
+        if (itemCount == 0) {
+            throw new InvalidRuntimeCommandException("Inventario vacio: no hay items para seleccionar.");
+        }
+        if (index >= itemCount) {
+            throw new InvalidRuntimeCommandException("itemIndex fuera de rango para inventario actual.");
+        }
     }
 
     private void validateUseItemPayload(JsonObject payload) {
@@ -577,6 +636,10 @@ public class GameRuntime implements GameCommandHandler {
 
         if (hasIndex) {
             validateRequiredIntegerField(payload, "itemIndex", 0, Integer.MAX_VALUE);
+            int itemIndex = payload.get("itemIndex").getAsInt();
+            if (itemIndex >= session.inventory().size()) {
+                throw new InvalidRuntimeCommandException("itemIndex fuera de rango para inventario actual.");
+            }
         }
         if (hasId) {
             validateOptionalStringField(payload, "itemId", false);

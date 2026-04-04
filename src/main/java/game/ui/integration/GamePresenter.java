@@ -1,5 +1,6 @@
 package game.ui.integration;
 
+import game.balance.GameBalance;
 import game.application.state.GameSession;
 import game.dungeon.model.Dungeon;
 import game.dungeon.model.Room;
@@ -229,9 +230,10 @@ public class GamePresenter {
         st.heroHp = Math.max(0, readInt(charState.get("vida"), 0));
         st.heroHpMax = Math.max(0, readInt(charState.get("vidaMaxima"), st.heroHp));
         st.heroHpPct = safePct(st.heroHp, st.heroHpMax);
-        st.heroAtk = inferHeroAttackFromType(heroType);
-        st.heroDef = inferHeroDefense(heroType);
-        st.heroSpeed = inferHeroSpeed(heroType);
+        GameBalance.HeroProfile profile = GameBalance.hero(heroType);
+        st.heroAtk = profile.attack();
+        st.heroDef = profile.defense();
+        st.heroSpeed = profile.speed();
         st.goldTotal = Math.max(0, readInt(charState.get("oroAcumulado"), 0));
         st.itemsCollected = extractItemsCount(inventoryState);
         st.roomsExplored = Math.max(1, memento.getSalaActual());
@@ -450,6 +452,8 @@ public class GamePresenter {
     }
 
     private static int inferHeroAttack(Personaje hero, String heroType) {
+        GameBalance.HeroProfile profile = GameBalance.hero(heroType);
+
         if (hero instanceof Mago mago) {
             return mago.getPoderMagico();
         }
@@ -457,21 +461,9 @@ public class GamePresenter {
             return arquero.getPrecision();
         }
         if (hero instanceof Guerrero) {
-            return 18;
+            return profile.attack();
         }
-        return switch (heroType) {
-            case "mago" -> 30;
-            case "arquero" -> 24;
-            default -> 18;
-        };
-    }
-
-    private static int inferHeroAttackFromType(String heroType) {
-        return switch (heroType) {
-            case "mago" -> 30;
-            case "arquero" -> 24;
-            default -> 18;
-        };
+        return profile.attack();
     }
 
     private static int extractItemsCount(Map<String, Object> inventoryState) {
@@ -486,19 +478,11 @@ public class GamePresenter {
     }
 
     private static int inferHeroDefense(String heroType) {
-        return switch (heroType) {
-            case "mago" -> 8;
-            case "arquero" -> 15;
-            default -> 25;
-        };
+        return GameBalance.hero(heroType).defense();
     }
 
     private static int inferHeroSpeed(String heroType) {
-        return switch (heroType) {
-            case "mago" -> 22;
-            case "arquero" -> 20;
-            default -> 10;
-        };
+        return GameBalance.hero(heroType).speed();
     }
 
     private static int safePct(int current, int max) {

@@ -25,6 +25,7 @@ public class GameWebApplication extends Application {
 
     private WebGameAdapter webAdapter;
     private WebEngine engine;
+    private String lastStateJson = "";
 
     @Override
     public void start(Stage stage) {
@@ -51,6 +52,7 @@ public class GameWebApplication extends Application {
     private void registerBridge() {
         JSObject window = (JSObject) engine.executeScript("window");
         window.setMember("javabridge", webAdapter.createBridge());
+        lastStateJson = "";
     }
 
     private void pushStateToUi() {
@@ -61,6 +63,12 @@ public class GameWebApplication extends Application {
         Runnable task = () -> {
             try {
                 String json = gson.toJson(webAdapter.presentViewModel());
+
+                if (json.equals(lastStateJson)) {
+                    return;
+                }
+                lastStateJson = json;
+
                 engine.executeScript("window.updateGameState(" + json + ");");
             } catch (RuntimeException ignored) {
                 // Ignorado: la pagina puede no estar lista temporalmente.

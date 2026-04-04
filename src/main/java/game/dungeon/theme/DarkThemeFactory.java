@@ -1,5 +1,6 @@
 package game.dungeon.theme;
 
+import game.balance.GameBalance;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Orco;
 import game.domain.personaje.Personaje;
@@ -24,8 +25,9 @@ public class DarkThemeFactory implements DungeonThemeFactory {
 
     @Override
     public Personaje crearJefe() {
-        return new Personaje("Malachar", 200) {
-            private final int poderOscuro = 35;
+        GameBalance.BossProfile profile = GameBalance.boss("dark");
+        return new Personaje(profile.name(), profile.hp()) {
+            private final int poderOscuro = profile.attack();
             
             @Override
             public game.combat.model.ResultadoAtaque atacar(Personaje objetivo) {

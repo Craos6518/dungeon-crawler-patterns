@@ -8,6 +8,7 @@ public class CombatResult {
     public boolean actionExecuted;
     public boolean enemyDefeated;
     public boolean playerDefeated;
+    public boolean retreatSuccessful;
 
     public int playerDamage;
     public int enemyDamage;

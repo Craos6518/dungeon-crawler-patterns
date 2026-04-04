@@ -6,6 +6,9 @@
     var _completedThemes = [];
     var _selectedSaveSlot  = 1;
     var _selectedLootIndex = null;
+    var _currentScreen = 'menu';
+    var _dispatchQueue = [];
+    var _dispatchLocked = false;
     var _loreQueue = [];
     var _loreVisible = false;
     var _loreState = {
@@ -27,10 +30,10 @@
           'No es solo un monstruo: es la guardiana legitima del artefacto, maldita a su rol eterno.',
           'Pasillos de obsidiana negra y rios de lava forjan un ciclo de fuego y renacimiento.'
         ],
-        guardianName: 'Pyraxis',
-        guardianTitle: 'Guardiana de Ignareth · Salamandra Ancestral',
+        guardianName: 'Pyraxis el Corazon de Ceniza',
+        guardianTitle: 'Guardian de Ignareth · Salamandra Ancestral',
         guardianLines: [
-          'VIDA 150 · ATAQUE 28 · DEFENSA 20.',
+          'VIDA 165 · ATAQUE 27 · DEFENSA 22.',
           'Antes de ser guardiana, Pyraxis fue un ser libre.',
           'La maldicion de Thessanor la encadeno a la Piedra del Fuego Eterno: mientras el artefacto exista, ella no puede morir, pero tampoco puede abandonar las cavernas.',
           'Cada aventurero que derrota reaviva en ella la esperanza de que alguno sea lo suficientemente fuerte como para liberarla.'
@@ -53,10 +56,10 @@
           'Kryovaleth, Dragon de Invierno, fue formado por siglos de nieve acumulada y dolor congelado.',
           'Aqui el hielo no solo congela el cuerpo: ralentiza pensamientos y adormece la voluntad.'
         ],
-        guardianName: 'Kryovaleth',
-        guardianTitle: 'Espiritu del Invierno · Dragon de Hielo',
+        guardianName: 'Kryovaleth Vigia del Invierno',
+        guardianTitle: 'Centinela del Invierno · Dragon de Hielo',
         guardianLines: [
-          'VIDA 140 · ATAQUE 24 · DEFENSA 30.',
+          'VIDA 155 · ATAQUE 26 · DEFENSA 30.',
           'No recuerda haber sido creado: simplemente existe, como el frio.',
           'Sus estrategias de combate son adaptativas; comienza defensivo, evaluando al rival, y solo ataca cuando la victoria esta garantizada al 97%.',
           'Es la personificacion del patron Strategy en su forma mas pura.'
@@ -79,10 +82,10 @@
           'Arachnovex, la Reina Tejedora, ha consumido tantos aventureros que sus ojos reflejan almas atrapadas.',
           'El veneno no mata de golpe: corrompe capa por capa, como un decorador no deseado sobre una base sana.'
         ],
-        guardianName: 'Arachnovex',
-        guardianTitle: 'La Reina Tejedora · Arana Primigenia',
+        guardianName: 'Arachnovex Matriarca Toxica',
+        guardianTitle: 'Reina Tejedora · Arana Primigenia',
         guardianLines: [
-          'VIDA 120 · ATAQUE 20 · DEFENSA 13.',
+          'VIDA 145 · ATAQUE 23 · DEFENSA 16.',
           'Arachnovex teje trampas con la misma precision con que un programador disena una trampa en el codigo.',
           'Sus ataques no son directos: aplican veneno, quemadura y entumecimiento en capas sucesivas, decoradores apilados uno sobre otro.',
           'La presa colapsa sin entender que la mato.'
@@ -105,10 +108,10 @@
           'Malachar no es un ser vivo: es la abstraccion del olvido.',
           'Sin un memento solido, quienes entran son sobrescritos y regresan sin identidad.'
         ],
-        guardianName: 'Malachar',
-        guardianTitle: 'El Sin-Nombre · Senor del Vacio',
+        guardianName: 'Malachar Heraldo del Vacio',
+        guardianTitle: 'El Sin-Nombre · Heraldo del Vacio',
         guardianLines: [
-          'VIDA 200 · ATAQUE 35 · DEFENSA 25.',
+          'VIDA 220 · ATAQUE 34 · DEFENSA 28.',
           'Malachar no ataca el cuerpo: ataca el estado.',
           'Su habilidad mas temida, Borrar Memoria, revierte al heroe a su estado anterior sin guardar, como un rollback de Memento.',
           'Derrotarlo requiere no solo fuerza, sino un sistema de persistencia impecable.'
@@ -128,7 +131,7 @@
         title: 'Kael Ferrum',
         subtitle: 'El Ultimo Guardian · Guerrero',
         lines: [
-          'Vida 100 · Ataque 18 · Defensa 25 · Veloc 10.',
+          'Vida 110 · Ataque 20 · Defensa 26 · Veloc 11.',
           'Hijo de un herrero del sur de Valdrath, Kael perdio a su familia cuando Ignareth envio sus primeras oleadas de criaturas a la superficie.',
           'No busca gloria ni riquezas: solo quiere que ninguna familia mas pague su precio.',
           'Lleva tatuado en el antebrazo izquierdo el simbolo de su aldea, un recuerdo que ninguna sombra puede borrarle.'
@@ -139,7 +142,7 @@
         title: 'Sylara Vex',
         subtitle: 'Archivista del Vacio · Maga',
         lines: [
-          'Vida 55 · Ataque 30 · Defensa 8 · Veloc 22.',
+          'Vida 65 · Ataque 27 · Defensa 10 · Veloc 23.',
           'Sylara estudio en la Academia de Valdrath hasta hallar registros prohibidos: los planos originales del Archimago Thessanor.',
           'Comprendio que las mazmorras no son caos: son sistemas disenados, como codigo que pocos pueden leer.',
           'Entrar en ellas es leer arquitectura arcana ajena, y ella domina el arte de descifrar patrones invisibles para otros.'
@@ -150,7 +153,7 @@
         title: 'Thoran Silvis',
         subtitle: 'Explorador de la Bruma · Arquero',
         lines: [
-          'Vida 75 · Ataque 24 · Defensa 15 · Veloc 20.',
+          'Vida 85 · Ataque 23 · Defensa 17 · Veloc 21.',
           'Criado entre los bosques de Mirval, Thoran aprendio que la distancia entre cazador y presa es sagrada.',
           'Cuando los pantanos de Viridax se expandieron hacia el norte, su hogar desaparecio bajo la maleza venenosa en semanas.',
           'Ahora viaja ligero, con el recuerdo del bosque vivo guardado en cada flecha.'
@@ -361,9 +364,79 @@
       if (el) el.textContent = (val !== null && val !== undefined) ? String(val) : '';
     }
 
-    /* ── sendCommand: encapsula el alert-bridge ── */
+    function showTransientSystemMessage(message) {
+      if (!message) return;
+
+      var targets = [
+        document.getElementById('s2-combat-log'),
+        document.getElementById('s1-event-log')
+      ];
+
+      for (var i = 0; i < targets.length; i++) {
+        var target = targets[i];
+        if (!target) continue;
+
+        var p = document.createElement('p');
+        p.className = 'log-entry';
+        p.textContent = '[SYS] ' + message;
+        target.appendChild(p);
+        return;
+      }
+    }
+
+    function applyBridgeResponse(rawResponse) {
+      if (!rawResponse) return;
+
+      var parsed;
+      try {
+        parsed = typeof rawResponse === 'string' ? JSON.parse(rawResponse) : rawResponse;
+      } catch (err) {
+        console.warn('Respuesta backend invalida:', rawResponse);
+        return;
+      }
+
+      if (parsed && parsed.data) {
+        window.updateGameState(parsed.data);
+      }
+
+      if (parsed && parsed.status === 'error' && parsed.message) {
+        showTransientSystemMessage(parsed.message);
+      }
+    }
+
+    function dispatchNow(command) {
+      var serialized = JSON.stringify(command);
+
+      if (window.javabridge && typeof window.javabridge.dispatch === 'function') {
+        try {
+          var response = window.javabridge.dispatch(serialized);
+          applyBridgeResponse(response);
+          return;
+        } catch (err) {
+          console.warn('Fallo dispatch directo; usando fallback alert.', err);
+        }
+      }
+
+      // Fallback de compatibilidad para puentes antiguos.
+      window.alert(serialized);
+    }
+
+    function flushDispatchQueue() {
+      if (_dispatchLocked) return;
+      _dispatchLocked = true;
+
+      while (_dispatchQueue.length > 0) {
+        var command = _dispatchQueue.shift();
+        dispatchNow(command);
+      }
+
+      _dispatchLocked = false;
+    }
+
+    /* ── sendCommand: puente robusto JS -> JavaFX ── */
     function sendCommand(action, payload) {
-      window.alert(JSON.stringify({ action: action, payload: payload || {} }));
+      _dispatchQueue.push({ action: action, payload: payload || {} });
+      flushDispatchQueue();
     }
 
     /* ── Selección de héroe ── */
@@ -556,6 +629,54 @@
         if (e.key === 'Escape' && _loreVisible) {
           e.preventDefault();
           dismissLoreWindow();
+        }
+      });
+
+      document.addEventListener('keydown', function(e) {
+        var target = e.target;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+          return;
+        }
+
+        if (e.key === 'F5') {
+          e.preventDefault();
+          sendCommand('quickSave', {});
+          return;
+        }
+
+        if (e.key === 'F9') {
+          e.preventDefault();
+          sendCommand('quickLoad', {});
+          return;
+        }
+
+        if (e.key === 'i' || e.key === 'I') {
+          e.preventDefault();
+          sendCommand('toggleInventory', {});
+          return;
+        }
+
+        if (_currentScreen === 'inventory' && e.key === 'ArrowUp') {
+          e.preventDefault();
+          sendCommand('inventoryPrevious', {});
+          return;
+        }
+
+        if (_currentScreen === 'inventory' && e.key === 'ArrowDown') {
+          e.preventDefault();
+          sendCommand('inventoryNext', {});
+          return;
+        }
+
+        if (_currentScreen === 'combat' && (e.key === 'q' || e.key === 'Q')) {
+          e.preventDefault();
+          sendCommand('consumeSelectedItem', {});
+          return;
+        }
+
+        if (_currentScreen === 'combat' && (e.key === 'r' || e.key === 'R')) {
+          e.preventDefault();
+          sendCommand('retreatCombat', {});
         }
       });
 
@@ -784,6 +905,7 @@
 
       /* Pantalla activa */
       if (state.screen) {
+        _currentScreen = String(state.screen);
         var screenMap = {
           menu:        'screen-menu',
           hero:        'screen-hero',

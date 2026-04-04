@@ -30,8 +30,8 @@ class GameRuntimeHeroSelectionTest {
         GameViewModel vm = runtime.presentViewModel();
 
         assertEquals("exploration", vm.screen);
-        assertEquals(55, vm.playerHpMax);
-        assertEquals(55, vm.playerHp);
+        assertEquals(65, vm.playerHpMax);
+        assertEquals(65, vm.playerHp);
     }
 
     @Test
@@ -49,8 +49,8 @@ class GameRuntimeHeroSelectionTest {
         GameViewModel vm = runtime.presentViewModel();
 
         assertEquals("exploration", vm.screen);
-        assertEquals(75, vm.playerHpMax);
-        assertEquals(75, vm.playerHp);
+        assertEquals(85, vm.playerHpMax);
+        assertEquals(85, vm.playerHp);
         assertEquals("ice", vm.theme);
     }
 
@@ -73,8 +73,8 @@ class GameRuntimeHeroSelectionTest {
 
         GameViewModel vm = runtime.presentViewModel();
         assertEquals("combat", vm.screen);
-        assertEquals(55, vm.playerHpMax);
-        assertTrue(vm.playerHp <= 55);
+        assertEquals(65, vm.playerHpMax);
+        assertTrue(vm.playerHp <= 65);
     }
 
     @Test
@@ -136,7 +136,7 @@ class GameRuntimeHeroSelectionTest {
 
         assertEquals("exploration", vm.screen);
         assertEquals("ice", vm.theme);
-        assertEquals(55, vm.playerHpMax);
+        assertEquals(65, vm.playerHpMax);
         assertTrue(vm.completedThemes.contains("fire"));
     }
 }

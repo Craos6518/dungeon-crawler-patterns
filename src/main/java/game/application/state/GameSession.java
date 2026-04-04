@@ -219,6 +219,8 @@ public class GameSession {
     }
 
     public void assertStableForSave() {
+        assertPersistenceInvariants();
+
         if (bootstrapMenuSession) {
             throw new DomainRuleViolationException("No se puede guardar antes de iniciar o cargar una partida.");
         }
@@ -289,6 +291,12 @@ public class GameSession {
         states.put("btn-habilidad", (heroAlive && combatScreen && combatActive)
             ? "default" : "disabled");
 
+        states.put("btn-retreat", (heroAlive && combatScreen && combatActive)
+            ? "default" : "disabled");
+
+        states.put("btn-quick-item", (heroAlive && combatScreen && combatActive && hasConsumable)
+            ? "default" : "disabled");
+
         states.put("btn-use-item-inv", (heroAlive && inventoryScreen && selectedConsumable)
             ? "default" : "disabled");
 
@@ -301,6 +309,23 @@ public class GameSession {
         target.add(value);
         while (target.size() > maxSize) {
             target.remove(0);
+        }
+    }
+
+    private void assertPersistenceInvariants() {
+        inventory().clampSelection();
+
+        int itemCount = inventory().size();
+        int selectedIndex = inventory().selectedIndex();
+
+        if (itemCount == 0 && selectedIndex != -1) {
+            throw new DomainRuleViolationException("Inventario inconsistente: seleccion invalida para inventario vacio.");
+        }
+        if (itemCount > 0 && (selectedIndex < 0 || selectedIndex >= itemCount)) {
+            throw new DomainRuleViolationException("Inventario inconsistente: indice seleccionado fuera de rango.");
+        }
+        if ("combat".equals(activeScreen) && !combat.isActive()) {
+            throw new DomainRuleViolationException("Estado inconsistente: pantalla de combate sin enemigo activo.");
         }
     }
 

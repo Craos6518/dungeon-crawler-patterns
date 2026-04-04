@@ -1,5 +1,6 @@
 package game.domain.character;
 
+import game.balance.GameBalance;
 import game.command.actions.LevelUpCommand;
 import game.domain.personaje.Personaje;
 import game.domain.personaje.factory.GuerreroFactory;
@@ -23,7 +24,8 @@ public class Player {
     }
 
     public static Player demo() {
-        Personaje hero = new GuerreroFactory(150, 25).crearPersonaje("Aventurero");
+        GameBalance.HeroProfile profile = GameBalance.hero("guerrero");
+        Personaje hero = new GuerreroFactory(profile.hp(), profile.attack()).crearPersonaje("Aventurero");
         return new Player(hero, Inventory.demo());
     }
 
