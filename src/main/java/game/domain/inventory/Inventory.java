@@ -130,7 +130,9 @@ public class Inventory {
         }
 
         Item selected = candidate.get();
-        container.remover(selected.getRaw());
+        if (!removeSimpleItem(selected.getRaw())) {
+            throw new IllegalStateException("No se pudo remover el item seleccionado del inventario.");
+        }
         clampSelection();
         return selected;
     }
@@ -140,7 +142,9 @@ public class Inventory {
         Item selected = getByIndex(index)
             .orElseThrow(() -> new IllegalStateException("Selecciona un objeto valido para usar."));
 
-        container.remover(selected.getRaw());
+        if (!removeSimpleItem(selected.getRaw())) {
+            throw new IllegalStateException("No se pudo remover el item seleccionado del inventario.");
+        }
         clampSelection();
         return selected;
     }
@@ -189,12 +193,40 @@ public class Inventory {
 
     public List<SimpleItem> simpleItems() {
         List<SimpleItem> simples = new ArrayList<>();
-        for (ItemComponent component : container.obtenerItems()) {
-            if (component instanceof SimpleItem simple) {
-                simples.add(simple);
+        collectSimpleItems(container, simples);
+        return simples;
+    }
+
+    private boolean removeSimpleItem(SimpleItem target) {
+        return removeSimpleItemRecursive(container, target);
+    }
+
+    private static boolean removeSimpleItemRecursive(ContainerItem parent, SimpleItem target) {
+        List<ItemComponent> snapshot = new ArrayList<>(parent.obtenerItems());
+        for (ItemComponent component : snapshot) {
+            if (component == target) {
+                parent.remover(component);
+                return true;
+            }
+
+            if (component instanceof ContainerItem nested && removeSimpleItemRecursive(nested, target)) {
+                return true;
             }
         }
-        return simples;
+        return false;
+    }
+
+    private static void collectSimpleItems(ContainerItem parent, List<SimpleItem> sink) {
+        for (ItemComponent component : parent.obtenerItems()) {
+            if (component instanceof SimpleItem simple) {
+                sink.add(simple);
+                continue;
+            }
+
+            if (component instanceof ContainerItem nested) {
+                collectSimpleItems(nested, sink);
+            }
+        }
     }
 
     public void replaceItems(List<SimpleItem> restoredItems, Integer selectedIndex) {

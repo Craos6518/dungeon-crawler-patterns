@@ -21,6 +21,7 @@ public class Combat {
     private final Player player;
     private final TurnManager turnManager;
     private final CombatSystem system;
+    private final CombatStatusDecoratorPipeline decoratorPipeline;
     private final CombatResolver resolver;
     private final CommandInvoker invoker;
     private final Random random;
@@ -38,6 +39,7 @@ public class Combat {
         this.player = player;
         this.turnManager = turnManager;
         this.system = new CombatSystem();
+        this.decoratorPipeline = new CombatStatusDecoratorPipeline();
         this.resolver = new CombatResolver();
         this.invoker = new CommandInvoker();
         this.random = random;
@@ -532,9 +534,8 @@ public class Combat {
     }
 
     private boolean startPlayerTurn(CombatResult result) {
-        TurnManager.PoisonTick poisonTick = turnManager.tickPoison();
+        TurnManager.PoisonTick poisonTick = decoratorPipeline.applyPoisonTick(player, turnManager);
         if (poisonTick.active()) {
-            player.receiveDamage(poisonTick.damage());
             if (!player.isAlive()) {
                 result.playerDefeated = true;
                 return false;
@@ -627,7 +628,7 @@ public class Combat {
     }
 
     private int applyOutgoingModifiers(int baseDamage) {
-        double buffMultiplier = 1.0 + (offensiveBuffStacks * 0.15);
+        double buffMultiplier = decoratorPipeline.resolveOffensiveMultiplier(player, offensiveBuffStacks);
         double styleMultiplier = playerStyle.outgoingDamageMultiplier();
         int adjusted = (int) Math.round(baseDamage * buffMultiplier * styleMultiplier);
         return Math.max(1, adjusted);
@@ -640,7 +641,7 @@ public class Combat {
 
         double styleMitigationRatio = Math.max(0.0, 1.0 - playerStyle.incomingDamageMultiplier());
         int styleMitigation = (int) Math.round(enemyTurn.finalDamage * styleMitigationRatio);
-        int guardMitigation = guardBuffStacks * 3;
+        int guardMitigation = decoratorPipeline.resolveGuardMitigation(player, enemyTurn.finalDamage, guardBuffStacks);
         int totalMitigation = Math.min(enemyTurn.finalDamage, Math.max(0, styleMitigation + guardMitigation));
         if (totalMitigation <= 0) {
             return;

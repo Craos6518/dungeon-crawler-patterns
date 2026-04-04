@@ -66,6 +66,13 @@ public class StrengthEffect extends CharacterDecorator {
         return turnosRestantes;
     }
 
+    /**
+     * Multiplicador activo para flujos de combate que calculan dano fuera de atacar().
+     */
+    public double getMultiplicadorDanio() {
+        return efectoActivo() ? multiplicadorDanio : 1.0;
+    }
+
     @Override
     public String getNombre() {
         if (efectoActivo()) {

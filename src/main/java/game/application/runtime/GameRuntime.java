@@ -1,7 +1,6 @@
 package game.application.runtime;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import game.application.dto.AttackCommandRequest;
 import game.application.dto.LoadGameCommandRequest;
@@ -19,26 +18,19 @@ import game.application.usecase.ApplyCombatBuffUseCase;
 import game.application.usecase.AttackUseCase;
 import game.application.usecase.DefendUseCase;
 import game.application.usecase.ForceCombatUseCase;
-import game.application.usecase.LoadGameUseCase;
 import game.application.usecase.MoveInventorySelectionUseCase;
 import game.application.usecase.RetreatCombatUseCase;
 import game.application.usecase.RollbackCombatCheckpointUseCase;
 import game.application.usecase.SaveCombatCheckpointUseCase;
-import game.application.usecase.SaveGameUseCase;
 import game.application.usecase.SearchTreasureUseCase;
 import game.application.usecase.SelectInventoryItemUseCase;
 import game.application.usecase.SetCombatStyleUseCase;
 import game.application.usecase.UseItemUseCase;
 import game.application.usecase.UseSkillUseCase;
-import game.persistence.memento.GameMemento;
-import game.items.model.SimpleItem;
-import game.persistence.memento.SaveSlotNotFoundException;
 import game.ui.GameViewModel;
 import game.ui.integration.GamePresenter;
 
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -58,12 +50,17 @@ public class GameRuntime implements GameCommandHandler {
 
     private final Gson gson;
     private final GamePresenter presenter;
+    /** Colaborador para reglas de campaña y creación de nuevas sesiones de juego. */
+    private final CampaignSessionCoordinator campaignSessionCoordinator;
+    /** Colaborador para validación estructural/tipada de payloads por acción. */
+    private final RuntimePayloadValidator payloadValidator;
+    /** Colaborador para persistencia por slot y resolución de slot preferido. */
+    private final RuntimeSaveSlotManager saveSlotManager;
+
     private GameSession session;
-    private int preferredSaveSlot;
 
     private AdvanceTurnUseCase advanceTurnUseCase;
     private SearchTreasureUseCase searchTreasureUseCase;
-    private SaveGameUseCase saveGameUseCase;
     private ForceCombatUseCase forceCombatUseCase;
     private AttackUseCase attackUseCase;
     private DefendUseCase defendUseCase;
@@ -86,7 +83,16 @@ public class GameRuntime implements GameCommandHandler {
     public GameRuntime(GameSession session) {
         this.gson = new Gson();
         this.presenter = new GamePresenter();
-        this.preferredSaveSlot = MIN_SLOT;
+        this.campaignSessionCoordinator = new CampaignSessionCoordinator(SUPPORTED_THEME_KEYS, SUPPORTED_HERO_TYPES);
+        this.payloadValidator = new RuntimePayloadValidator(
+            () -> this.session,
+            SUPPORTED_THEME_KEYS,
+            SUPPORTED_HERO_TYPES,
+            MIN_SLOT,
+            MAX_SLOT,
+            campaignSessionCoordinator::normalizeHeroType
+        );
+        this.saveSlotManager = new RuntimeSaveSlotManager(MIN_SLOT, MAX_SLOT, SUPPORTED_HERO_TYPES);
         bindSession(session == null ? GameSessionFactory.createInitialMenuSession() : session);
         this.handlers = registerHandlers();
     }
@@ -139,9 +145,9 @@ public class GameRuntime implements GameCommandHandler {
 
     private void bindSession(GameSession session) {
         this.session = session;
+        this.saveSlotManager.bindSession(session);
         this.advanceTurnUseCase = new AdvanceTurnUseCase(session);
         this.searchTreasureUseCase = new SearchTreasureUseCase(session);
-        this.saveGameUseCase = new SaveGameUseCase(session);
         this.forceCombatUseCase = new ForceCombatUseCase(session);
         this.attackUseCase = new AttackUseCase(session);
         this.defendUseCase = new DefendUseCase(session);
@@ -160,35 +166,38 @@ public class GameRuntime implements GameCommandHandler {
         Map<String, TypedCommandHandler<?>> map = new LinkedHashMap<>();
 
         map.put("startGame", TypedCommandHandler.of(StartGameCommandRequest.class, Set.of(), payload -> {
-            String theme = resolveThemeOrDefault(payload.theme);
-            ensureThemeAvailableForCampaign(theme);
-
-            String heroType = resolveHeroTypeForNewRun(payload.heroType);
-            GameSession newSession = createSessionPreservingCampaignProgress(theme, heroType);
+            String theme = campaignSessionCoordinator.resolveThemeOrDefault(session, payload.theme);
+            campaignSessionCoordinator.ensureThemeAvailableForCampaign(session, theme);
+            String heroType = campaignSessionCoordinator.resolveHeroTypeForNewRun(session, payload.heroType);
+            GameSession newSession = campaignSessionCoordinator.createSessionPreservingCampaignProgress(
+                session,
+                theme,
+                heroType
+            );
             newSession.transitionTo(GameFlowState.EXPLORATION);
 
             bindSession(newSession);
-            preferredSaveSlot = MIN_SLOT;
-        }, this::validateStartGamePayload));
+            saveSlotManager.resetPreferredSaveSlot();
+        }, payloadValidator::validateStartGamePayload));
 
         map.put("openMainMenu", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.transitionTo(GameFlowState.MENU);
             session.appendEvent("Regresas al menu principal.");
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("advanceRoom", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             advanceTurnUseCase.execute();
-        }, this::validateAdvanceRoomPayload));
+        }, payloadValidator::validateAdvanceRoomPayload));
 
         map.put("searchTreasure", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             searchTreasureUseCase.execute();
-        }, this::validateSearchTreasurePayload));
+        }, payloadValidator::validateSearchTreasurePayload));
 
         map.put("openInventory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.transitionTo(GameFlowState.INVENTORY);
             session.inventory().clampSelection();
             session.appendEvent("Inventario abierto.");
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("toggleInventory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             if (session.activeState() == GameFlowState.INVENTORY) {
@@ -198,117 +207,117 @@ public class GameRuntime implements GameCommandHandler {
                 session.inventory().clampSelection();
                 session.appendEvent("Inventario abierto.");
             }
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("closeInventory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.transitionTo(session.hasActiveEnemy() ? GameFlowState.COMBAT : GameFlowState.EXPLORATION);
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("saveGame", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
-            executeSaveToSlot(payload.slot);
-        }, this::validateSavePayload));
+            saveSlotManager.saveToSlot(payload.slot);
+        }, payloadValidator::validateSavePayload));
 
         map.put("loadGame", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
-            executeLoadFromSlot(payload.slot);
-        }, this::validateLoadPayload));
+            bindSession(saveSlotManager.loadFromSlot(payload.slot));
+        }, payloadValidator::validateLoadPayload));
 
         map.put("quickSave", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
-            executeSaveToSlot(payload.slot);
-        }, this::validateSavePayload));
+            saveSlotManager.saveToSlot(payload.slot);
+        }, payloadValidator::validateSavePayload));
 
         map.put("quickLoad", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
-            executeLoadFromSlot(payload.slot);
-        }, this::validateLoadPayload));
+            bindSession(saveSlotManager.loadFromSlot(payload.slot));
+        }, payloadValidator::validateLoadPayload));
 
         map.put("forceCombat", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             forceCombatUseCase.execute();
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("attack", TypedCommandHandler.of(AttackCommandRequest.class, Set.of(), payload -> {
             attackUseCase.execute(payload);
-        }, this::validateAttackPayload));
+        }, payloadValidator::validateAttackPayload));
 
         map.put("defend", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             defendUseCase.execute();
-        }, this::validateDefendPayload));
+        }, payloadValidator::validateDefendPayload));
 
         map.put("retreatCombat", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             retreatCombatUseCase.execute();
-        }, this::validateDefendPayload));
+        }, payloadValidator::validateDefendPayload));
 
         map.put("setCombatStyle", TypedCommandHandler.of(JsonObject.class, Set.of("style"), payload -> {
             setCombatStyleUseCase.execute(payload.get("style").getAsString());
-        }, this::validateSetCombatStylePayload));
+        }, payloadValidator::validateSetCombatStylePayload));
 
         map.put("applyBuff", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             String buffType = payload.has("type") && !payload.get("type").isJsonNull()
                 ? payload.get("type").getAsString()
                 : "power";
             applyCombatBuffUseCase.execute(buffType);
-        }, this::validateApplyBuffPayload));
+        }, payloadValidator::validateApplyBuffPayload));
 
         map.put("saveCombatCheckpoint", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             saveCombatCheckpointUseCase.execute();
-        }, this::validateDefendPayload));
+        }, payloadValidator::validateDefendPayload));
 
         map.put("rollbackCombatCheckpoint", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             rollbackCombatCheckpointUseCase.execute();
-        }, this::validateDefendPayload));
+        }, payloadValidator::validateDefendPayload));
 
         map.put("useItem", TypedCommandHandler.of(UseItemCommandRequest.class, Set.of(), payload -> {
             useItemUseCase.execute(payload);
-        }, this::validateUseItemPayload));
+        }, payloadValidator::validateUseItemPayload));
 
         map.put("consumeSelectedItem", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             executeConsumeSelectedItem();
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("useSkill", TypedCommandHandler.of(UseSkillCommandRequest.class, Set.of(), payload -> {
             useSkillUseCase.execute(payload);
-        }, this::validateUseSkillPayload));
+        }, payloadValidator::validateUseSkillPayload));
 
         map.put("selectItem", TypedCommandHandler.of(SelectItemCommandRequest.class, Set.of("itemIndex"), payload -> {
             selectInventoryItemUseCase.execute(payload.itemIndex);
-        }, this::validateSelectItemPayload));
+        }, payloadValidator::validateSelectItemPayload));
 
         map.put("inventoryUp", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             moveInventorySelectionUseCase.moveUp();
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("inventoryPrevious", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             moveInventorySelectionUseCase.moveUp();
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("inventoryDown", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             moveInventorySelectionUseCase.moveDown();
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("inventoryNext", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             moveInventorySelectionUseCase.moveDown();
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("rerenderCurrentScreen", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            // No-op: la UI recibe estado completo en cada push.
-        }, this::validateEmptyPayload));
+            // Stub explicito: la UI recibe estado completo en cada push.
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("filterCategory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            // No-op: filtro de categoria se resuelve del lado de UI.
-        }, this::validateFilterCategoryPayload));
+            // Stub explicito: filtro de categoria se resuelve del lado de UI.
+        }, payloadValidator::validateFilterCategoryPayload));
 
         // ── Nuevas pantallas ────────────────────────────────────────
 
         map.put("goToHeroSelect", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.transitionTo(GameFlowState.HERO);
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("selectHero", TypedCommandHandler.of(StartGameCommandRequest.class, Set.of(), payload -> {
-            String heroType = normalizeHeroType(payload.heroType);
+            String heroType = campaignSessionCoordinator.normalizeHeroType(payload.heroType);
             if (heroType.isBlank()) {
                 return;
             }
 
             if (session.isHeroSelectionLocked()) {
-                String lockedHero = normalizeHeroType(session.heroType());
+                String lockedHero = campaignSessionCoordinator.normalizeHeroType(session.heroType());
                 if (lockedHero.isBlank()) {
                     session.setHeroType(heroType);
                     return;
@@ -323,176 +332,78 @@ public class GameRuntime implements GameCommandHandler {
             }
 
             session.setHeroType(heroType);
-        }, this::validateSelectHeroPayload));
+        }, payloadValidator::validateSelectHeroPayload));
 
         map.put("heroNewGame", TypedCommandHandler.of(StartGameCommandRequest.class, Set.of(), payload -> {
-            String theme = resolveThemeOrDefault(payload.theme);
-            ensureThemeAvailableForCampaign(theme);
-
-            String heroType = resolveHeroTypeForNewRun(payload.heroType);
-            GameSession newSession = createSessionPreservingCampaignProgress(theme, heroType);
+            String theme = campaignSessionCoordinator.resolveThemeOrDefault(session, payload.theme);
+            campaignSessionCoordinator.ensureThemeAvailableForCampaign(session, theme);
+            String heroType = campaignSessionCoordinator.resolveHeroTypeForNewRun(session, payload.heroType);
+            GameSession newSession = campaignSessionCoordinator.createSessionPreservingCampaignProgress(
+                session,
+                theme,
+                heroType
+            );
             newSession.transitionTo(GameFlowState.EXPLORATION);
             bindSession(newSession);
-            preferredSaveSlot = MIN_SLOT;
-        }, this::validateStartGamePayload));
+            saveSlotManager.resetPreferredSaveSlot();
+        }, payloadValidator::validateStartGamePayload));
 
         map.put("showStats", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.transitionTo(GameFlowState.STATS);
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("closeStats", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.transitionTo(GameFlowState.MENU);
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("openSaves", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.transitionTo(GameFlowState.SAVES);
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("saveToSlot", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
-            executeSaveToSlot(payload.slot);
-        }, this::validateSavePayload));
+            saveSlotManager.saveToSlot(payload.slot);
+        }, payloadValidator::validateSavePayload));
 
         map.put("loadFromSlot", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
-            executeLoadFromSlot(payload.slot);
-        }, this::validateLoadPayload));
+            bindSession(saveSlotManager.loadFromSlot(payload.slot));
+        }, payloadValidator::validateLoadPayload));
 
         map.put("restoreGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             // Carga el slot preferido (ultimo usado) al restaurar tras game over.
-            executeLoadFromSlot(preferredSaveSlot);
-        }, this::validateEmptyPayload));
+            bindSession(saveSlotManager.loadFromSlot(saveSlotManager.preferredSaveSlot()));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("newGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.transitionTo(GameFlowState.HERO);
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("exitGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             // No-op en web: el cierre lo maneja la aplicacion JavaFX.
             LOGGER.info("Comando exitGame recibido desde UI.");
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
-        // ── Loot / Tesoro (no-op hasta implementar TreasureRoomState) ──
+        // ── Loot / Tesoro ───────────────────────────────────────────────
         map.put("takeLoot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.takeSelectedTreasure();
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("selectLoot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            // Handler activo: selecciona botin real de la sala de tesoro.
             Integer lootIndex = payload.has("lootIndex") && !payload.get("lootIndex").isJsonNull()
                 ? payload.get("lootIndex").getAsInt()
                 : 0;
             session.selectTreasureLoot(lootIndex);
-        }, this::validateSelectLootPayload));
+        }, payloadValidator::validateSelectLootPayload));
 
         map.put("skipLoot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             session.skipTreasure();
-        }, this::validateEmptyPayload));
+        }, payloadValidator::validateEmptyPayload));
 
         map.put("selectSaveSlot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            // No-op: la seleccion de slot se maneja localmente en JS.
-        }, this::validateEmptyPayload));
+            // Stub explicito: la seleccion de slot se maneja localmente en JS.
+        }, payloadValidator::validateEmptyPayload));
 
         return map;
-    }
-
-    private void validateEmptyPayload(JsonObject payload) {
-        if (payload == null) {
-            throw new InvalidRuntimeCommandException("Payload obligatorio.");
-        }
-    }
-
-    private void validateSavePayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        validateOptionalIntegerField(payload, "slot", MIN_SLOT, MAX_SLOT);
-    }
-
-    private void validateStartGamePayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        if (!payload.has("theme") || payload.get("theme").isJsonNull()) {
-            if (payload.has("heroType") && !payload.get("heroType").isJsonNull()) {
-                validateOptionalStringField(payload, "heroType", false);
-                String normalizedHeroType = normalizeHeroType(payload.get("heroType").getAsString());
-                if (normalizedHeroType.isBlank()) {
-                    throw new InvalidRuntimeCommandException(
-                        "heroType invalido. Valores permitidos: " + String.join(", ", SUPPORTED_HERO_TYPES)
-                    );
-                }
-            }
-            return;
-        }
-
-        validateOptionalStringField(payload, "theme", false);
-        String normalizedTheme = payload.get("theme").getAsString().trim().toLowerCase(Locale.ROOT);
-        if (!SUPPORTED_THEME_KEYS.contains(normalizedTheme)) {
-            throw new InvalidRuntimeCommandException(
-                "theme invalido. Valores permitidos: " + String.join(", ", SUPPORTED_THEME_KEYS)
-            );
-        }
-
-        if (payload.has("heroType") && !payload.get("heroType").isJsonNull()) {
-            validateOptionalStringField(payload, "heroType", false);
-            String normalizedHeroType = normalizeHeroType(payload.get("heroType").getAsString());
-            if (normalizedHeroType.isBlank()) {
-                throw new InvalidRuntimeCommandException(
-                    "heroType invalido. Valores permitidos: " + String.join(", ", SUPPORTED_HERO_TYPES)
-                );
-            }
-        }
-    }
-
-    private void validateSelectHeroPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        validateRequiredStringField(payload, "heroType", false);
-        String normalizedHeroType = normalizeHeroType(payload.get("heroType").getAsString());
-        if (normalizedHeroType.isBlank()) {
-            throw new InvalidRuntimeCommandException(
-                "heroType invalido. Valores permitidos: " + String.join(", ", SUPPORTED_HERO_TYPES)
-            );
-        }
-    }
-
-    private void validateSelectLootPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        if (!session.hasPendingTreasure()) {
-            throw new InvalidRuntimeCommandException("No hay una sala de tesoro activa.");
-        }
-
-        validateOptionalIntegerField(payload, "lootIndex", 0, Integer.MAX_VALUE);
-
-        if (payload.has("lootIndex") && !payload.get("lootIndex").isJsonNull()) {
-            int requested = payload.get("lootIndex").getAsInt();
-            int lootSize = session.treasureLootOptions().size();
-            if (lootSize <= 0) {
-                throw new InvalidRuntimeCommandException("No hay botin disponible para seleccionar.");
-            }
-            if (requested >= lootSize) {
-                throw new InvalidRuntimeCommandException("lootIndex fuera de rango para el botin actual.");
-            }
-        }
-    }
-
-    private void validateAdvanceRoomPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-    }
-
-    private void validateSearchTreasurePayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-    }
-
-    private void validateLoadPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        validateOptionalIntegerField(payload, "slot", MIN_SLOT, MAX_SLOT);
-    }
-
-    private void executeSaveToSlot(Integer requestedSlot) {
-        int slot = resolveSlotOrPreferred(requestedSlot);
-        saveGameUseCase.execute(slot);
-        preferredSaveSlot = slot;
-    }
-
-    private void executeLoadFromSlot(Integer requestedSlot) {
-        int slot = resolveSlotOrPreferred(requestedSlot);
-        GameSession loadedSession = loadSessionFromSlot(slot);
-        bindSession(loadedSession);
-        preferredSaveSlot = slot;
     }
 
     private void executeConsumeSelectedItem() {
@@ -506,335 +417,8 @@ public class GameRuntime implements GameCommandHandler {
         useItemUseCase.execute(request);
     }
 
-    private int resolveSlotOrPreferred(Integer requestedSlot) {
-        if (requestedSlot == null) {
-            return preferredSaveSlot;
-        }
-        return clampSlot(requestedSlot);
-    }
-
-    private GameSession loadSessionFromSlot(int slot) {
-        String fileName = "Slot_" + slot;
-        if (!session.caretaker().existeEnDisco(fileName)) {
-            throw new SaveSlotNotFoundException("Slot vacio: " + fileName + ".save no existe.");
-        }
-        GameMemento memento = session.caretaker().cargarDesdeDisco(fileName);
-
-        String theme = resolveThemeFromMemento(memento);
-        String heroType = resolveHeroTypeFromMemento(memento);
-        GameSession restoredSession = GameSessionFactory.createSessionForTheme(theme, heroType);
-        new LoadGameUseCase(restoredSession).restoreFromMemento(fileName, memento);
-        return restoredSession;
-    }
-
-    private static String resolveThemeFromMemento(GameMemento memento) {
-        if (memento == null || memento.getEstadoMazmorra() == null) {
-            return "fire";
-        }
-
-        Object rawTheme = memento.getEstadoMazmorra().get("tema");
-        if (rawTheme == null) {
-            return "fire";
-        }
-
-        String theme = String.valueOf(rawTheme).trim();
-        return theme.isBlank() ? "fire" : theme;
-    }
-
-    private static String resolveHeroTypeFromMemento(GameMemento memento) {
-        if (memento == null || memento.getEstadoPersonaje() == null) {
-            return "guerrero";
-        }
-
-        Object rawHeroType = memento.getEstadoPersonaje().get("heroType");
-        if (rawHeroType == null) {
-            return "guerrero";
-        }
-
-        String heroType = String.valueOf(rawHeroType).trim().toLowerCase(Locale.ROOT);
-        if (SUPPORTED_HERO_TYPES.contains(heroType)) {
-            return heroType;
-        }
-        return "guerrero";
-    }
-
-    private String resolveThemeOrDefault(String rawTheme) {
-        String nextTheme = session.nextCampaignTheme();
-        String fallback = nextTheme.isBlank() ? "poison" : nextTheme;
-        String theme = rawTheme != null ? rawTheme.trim().toLowerCase(Locale.ROOT) : fallback;
-        return SUPPORTED_THEME_KEYS.contains(theme) ? theme : fallback;
-    }
-
-    private String resolveHeroTypeForNewRun(String payloadHeroType) {
-        String requestedHeroType = normalizeHeroType(payloadHeroType);
-        String currentHeroType = normalizeHeroType(session.heroType());
-
-        if (session.isHeroSelectionLocked()) {
-            String lockedHeroType = currentHeroType.isBlank() ? "guerrero" : currentHeroType;
-            if (!requestedHeroType.isBlank() && !lockedHeroType.equals(requestedHeroType)) {
-                throw new InvalidRuntimeCommandException(
-                    "No puedes cambiar de heroe despues de completar una mazmorra."
-                );
-            }
-            return lockedHeroType;
-        }
-
-        if (!requestedHeroType.isBlank()) {
-            return requestedHeroType;
-        }
-        if (!currentHeroType.isBlank()) {
-            return currentHeroType;
-        }
-        return "guerrero";
-    }
-
-    private void ensureThemeAvailableForCampaign(String theme) {
-        String nextTheme = session.nextCampaignTheme();
-        if (nextTheme.isBlank()) {
-            throw new InvalidRuntimeCommandException(
-                "La campana ya fue completada. Inicia una nueva o carga un guardado anterior."
-            );
-        }
-
-        if (session.isThemeCompleted(theme)) {
-            throw new InvalidRuntimeCommandException(
-                "Esa mazmorra ya fue conquistada. Elige una diferente."
-            );
-        }
-
-        if (!nextTheme.equals(theme)) {
-            throw new InvalidRuntimeCommandException(
-                "Orden de campana invalido. Debes completar primero "
-                    + themeToBossName(nextTheme)
-                    + "."
-            );
-        }
-    }
-
-    private static String themeToBossName(String themeKey) {
-        return switch (themeKey) {
-            case "poison" -> "Arachnovex";
-            case "ice" -> "Kryovaleth";
-            case "fire" -> "Pyraxis";
-            case "dark" -> "Malachar";
-            default -> "la siguiente mazmorra";
-        };
-    }
-
-    private GameSession createSessionPreservingCampaignProgress(String theme, String heroType) {
-        GameSession newSession = GameSessionFactory.createSessionForTheme(theme, heroType);
-        newSession.setHeroType(heroType);
-
-        newSession.replaceCompletedThemes(session.completedThemes());
-        newSession.setHeroSelectionLocked(session.isHeroSelectionLocked());
-        inheritHeroProgressForLockedCampaign(newSession);
-
-        return newSession;
-    }
-
-    private void inheritHeroProgressForLockedCampaign(GameSession newSession) {
-        if (!session.isHeroSelectionLocked()) {
-            return;
-        }
-
-        int inheritedLevel = session.player().level();
-        int inheritedExperience = session.player().experience();
-        int inheritedMaxHp = session.player().maxHp();
-        int inheritedGold = session.player().gold();
-        int inheritedDefeatedEnemies = session.player().defeatedEnemies();
-        int inheritedResource = session.player().resource();
-
-        // Continúa la campaña con progreso acumulado y curación completa antes de la nueva mazmorra.
-        newSession.player().restoreProgress(
-            inheritedLevel,
-            inheritedExperience,
-            inheritedMaxHp,
-            inheritedGold,
-            inheritedDefeatedEnemies,
-            inheritedResource
-        );
-
-        List<SimpleItem> inheritedItems = session.inventory().simpleItems().stream()
-            .map(item -> new SimpleItem(
-                item.getNombre(),
-                item.getDescripcion(),
-                item.getTipo(),
-                item.getValorTotal(),
-                item.getPesoTotal()
-            ))
-            .toList();
-
-        newSession.inventory().replaceItems(inheritedItems, session.inventory().selectedIndex());
-    }
-
-    private static int clampSlot(int slot) {
-        return Math.max(MIN_SLOT, Math.min(MAX_SLOT, slot));
-    }
-
-    private void validateAttackPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        validateRequiredStringField(payload, "targetId", false);
-    }
-
-    private void validateDefendPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-    }
-
-    private void validateUseSkillPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        if (payload.has("skill")) {
-            validateOptionalStringField(payload, "skill", true);
-        }
-    }
-
-    private void validateSetCombatStylePayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        validateRequiredStringField(payload, "style", false);
-
-        String style = payload.get("style").getAsString().trim().toLowerCase(Locale.ROOT);
-        if (!"balanced".equals(style) && !"aggressive".equals(style) && !"defensive".equals(style)) {
-            throw new InvalidRuntimeCommandException(
-                "style invalido. Valores permitidos: balanced, aggressive, defensive"
-            );
-        }
-    }
-
-    private void validateApplyBuffPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        if (!payload.has("type") || payload.get("type").isJsonNull()) {
-            return;
-        }
-
-        validateOptionalStringField(payload, "type", false);
-        String type = payload.get("type").getAsString().trim().toLowerCase(Locale.ROOT);
-        if (!"power".equals(type) && !"guard".equals(type) && !"defense".equals(type)) {
-            throw new InvalidRuntimeCommandException(
-                "type invalido. Valores permitidos: power, guard, defense"
-            );
-        }
-    }
-
-    private void validateSelectItemPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        validateRequiredIntegerField(payload, "itemIndex", 0, Integer.MAX_VALUE);
-
-        int index = payload.get("itemIndex").getAsInt();
-        int itemCount = session.inventory().size();
-        if (itemCount == 0) {
-            throw new InvalidRuntimeCommandException("Inventario vacio: no hay items para seleccionar.");
-        }
-        if (index >= itemCount) {
-            throw new InvalidRuntimeCommandException("itemIndex fuera de rango para inventario actual.");
-        }
-    }
-
-    private void validateUseItemPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-
-        boolean hasIndex = payload.has("itemIndex") && !payload.get("itemIndex").isJsonNull();
-        boolean hasId = payload.has("itemId") && !payload.get("itemId").isJsonNull();
-
-        if (!hasIndex && !hasId) {
-            throw new InvalidRuntimeCommandException("useItem requiere itemIndex o itemId.");
-        }
-
-        if (hasIndex) {
-            validateRequiredIntegerField(payload, "itemIndex", 0, Integer.MAX_VALUE);
-            int itemIndex = payload.get("itemIndex").getAsInt();
-            if (itemIndex >= session.inventory().size()) {
-                throw new InvalidRuntimeCommandException("itemIndex fuera de rango para inventario actual.");
-            }
-        }
-        if (hasId) {
-            validateOptionalStringField(payload, "itemId", false);
-        }
-    }
-
-    private void validateFilterCategoryPayload(JsonObject payload) {
-        validateEmptyPayload(payload);
-        if (payload.has("category")) {
-            validateOptionalStringField(payload, "category", false);
-        }
-    }
-
-    private void validateRequiredStringField(JsonObject payload, String field, boolean allowBlank) {
-        JsonElement element = payload.get(field);
-        if (element == null || element.isJsonNull()) {
-            throw new InvalidRuntimeCommandException(field + " es obligatorio");
-        }
-        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
-            throw new InvalidRuntimeCommandException(field + " debe ser string");
-        }
-        String value = element.getAsString();
-        if (!allowBlank && (value == null || value.isBlank())) {
-            throw new InvalidRuntimeCommandException(field + " no puede estar vacio");
-        }
-    }
-
-    private void validateOptionalStringField(JsonObject payload, String field, boolean allowBlank) {
-        JsonElement element = payload.get(field);
-        if (element == null || element.isJsonNull()) {
-            return;
-        }
-        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
-            throw new InvalidRuntimeCommandException(field + " debe ser string");
-        }
-        String value = element.getAsString();
-        if (!allowBlank && (value == null || value.isBlank())) {
-            throw new InvalidRuntimeCommandException(field + " no puede estar vacio");
-        }
-    }
-
-    private void validateRequiredIntegerField(JsonObject payload, String field, int min, int max) {
-        JsonElement element = payload.get(field);
-        if (element == null || element.isJsonNull()) {
-            throw new InvalidRuntimeCommandException(field + " es obligatorio");
-        }
-        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isNumber()) {
-            throw new InvalidRuntimeCommandException(field + " debe ser numero entero");
-        }
-
-        double raw = element.getAsDouble();
-        if (raw % 1 != 0) {
-            throw new InvalidRuntimeCommandException(field + " debe ser entero");
-        }
-
-        int value = element.getAsInt();
-        if (value < min || value > max) {
-            throw new InvalidRuntimeCommandException(field + " fuera de rango permitido [" + min + ", " + max + "]");
-        }
-    }
-
-    private void validateOptionalIntegerField(JsonObject payload, String field, int min, int max) {
-        JsonElement element = payload.get(field);
-        if (element == null || element.isJsonNull()) {
-            return;
-        }
-        if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isNumber()) {
-            throw new InvalidRuntimeCommandException(field + " debe ser numero entero");
-        }
-
-        double raw = element.getAsDouble();
-        if (raw % 1 != 0) {
-            throw new InvalidRuntimeCommandException(field + " debe ser entero");
-        }
-
-        int value = element.getAsInt();
-        if (value < min || value > max) {
-            throw new InvalidRuntimeCommandException(field + " fuera de rango permitido [" + min + ", " + max + "]");
-        }
-    }
-
     private static String normalizeAction(String action) {
         return action == null ? "" : action.trim();
-    }
-
-    private static String normalizeHeroType(String heroType) {
-        if (heroType == null) {
-            return "";
-        }
-        String normalized = heroType.trim().toLowerCase(Locale.ROOT);
-        return SUPPORTED_HERO_TYPES.contains(normalized) ? normalized : "";
     }
 
     private interface JsonPayloadValidator {
