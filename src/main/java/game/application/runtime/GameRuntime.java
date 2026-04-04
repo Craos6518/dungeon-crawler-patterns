@@ -25,11 +25,13 @@ import game.application.usecase.SelectInventoryItemUseCase;
 import game.application.usecase.UseItemUseCase;
 import game.application.usecase.UseSkillUseCase;
 import game.persistence.memento.GameMemento;
+import game.items.model.SimpleItem;
 import game.persistence.memento.SaveSlotNotFoundException;
 import game.ui.GameViewModel;
 import game.ui.integration.GamePresenter;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -500,8 +502,42 @@ public class GameRuntime implements GameCommandHandler {
 
         newSession.replaceCompletedThemes(session.completedThemes());
         newSession.setHeroSelectionLocked(session.isHeroSelectionLocked());
+        inheritHeroProgressForLockedCampaign(newSession);
 
         return newSession;
+    }
+
+    private void inheritHeroProgressForLockedCampaign(GameSession newSession) {
+        if (!session.isHeroSelectionLocked()) {
+            return;
+        }
+
+        int inheritedLevel = session.player().level();
+        int inheritedExperience = session.player().experience();
+        int inheritedMaxHp = session.player().maxHp();
+        int inheritedGold = session.player().gold();
+        int inheritedDefeatedEnemies = session.player().defeatedEnemies();
+
+        // Continúa la campaña con progreso acumulado y curación completa antes de la nueva mazmorra.
+        newSession.player().restoreProgress(
+            inheritedLevel,
+            inheritedExperience,
+            inheritedMaxHp,
+            inheritedGold,
+            inheritedDefeatedEnemies
+        );
+
+        List<SimpleItem> inheritedItems = session.inventory().simpleItems().stream()
+            .map(item -> new SimpleItem(
+                item.getNombre(),
+                item.getDescripcion(),
+                item.getTipo(),
+                item.getValorTotal(),
+                item.getPesoTotal()
+            ))
+            .toList();
+
+        newSession.inventory().replaceItems(inheritedItems, session.inventory().selectedIndex());
     }
 
     private static int clampSlot(int slot) {
