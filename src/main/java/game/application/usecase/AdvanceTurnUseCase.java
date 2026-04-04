@@ -2,6 +2,8 @@ package game.application.usecase;
 
 import game.application.state.GameSession;
 import game.domain.DomainRuleViolationException;
+import game.events.observer.EventType;
+import game.events.observer.GameEvent;
 
 /**
  * Caso de uso: avanzar la progresion de turno/sala en exploracion.
@@ -24,6 +26,24 @@ public class AdvanceTurnUseCase {
         }
 
         if (!session.dungeon().canAdvanceRoom()) {
+            if (isCurrentDungeonCompleted()) {
+                UseCaseTransactionSupport.runAtomically(session, () -> {
+                    session.markThemeCompleted(session.dungeon().themeKey());
+                    session.setHeroSelectionLocked(true);
+                    session.setActiveScreen("hero");
+
+                    String dungeonName = session.dungeon().model().getNombre();
+                    session.appendEvent("Conquistaste " + dungeonName + ". Elige tu siguiente mazmorra.");
+
+                    session.eventManager().notificar(new GameEvent(EventType.SALA_COMPLETADA)
+                        .agregarDato("resultado", "mazmorra_completada")
+                        .agregarDato("mazmorra", dungeonName)
+                        .agregarDato("tema", session.dungeon().themeKey())
+                        .agregarDato("salas", session.dungeon().totalRooms()));
+                });
+                return;
+            }
+
             throw new DomainRuleViolationException("Ya estas en la ultima sala de la mazmorra.");
         }
 
@@ -47,5 +67,11 @@ public class AdvanceTurnUseCase {
                 CombatUseCaseSupport.ensureCombatStarted(session, true, false);
             }
         });
+    }
+
+    private boolean isCurrentDungeonCompleted() {
+        return session.dungeon().isCurrentRoomBoss()
+            && !session.hasActiveEnemy()
+            && !session.isEnemyPendingInCurrentRoom();
     }
 }

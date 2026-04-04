@@ -72,19 +72,26 @@ public class CombatSystem {
         }
 
         Command enemyAction = enemyAI.decidirAccion(List.of(player.character()));
+        int hpBeforeHit = player.hp();
         invoker.ejecutarComando(enemyAction);
 
         if (enemyAction instanceof AttackCommand attack) {
             outcome.rawDamage = attack.getDanioAplicado();
             outcome.mitigatedDamage = turnManager.mitigateIncomingDamage(outcome.rawDamage);
+            boolean defeatedByRawHit = !player.isAlive();
 
-            if (outcome.mitigatedDamage > 0) {
+            // La mitigación no debe revivir al jugador si el golpe ya fue letal.
+            if (outcome.mitigatedDamage > 0 && !defeatedByRawHit) {
                 player.heal(outcome.mitigatedDamage);
             }
 
-            outcome.finalDamage = Math.max(0, outcome.rawDamage - outcome.mitigatedDamage);
+            if (defeatedByRawHit) {
+                outcome.mitigatedDamage = 0;
+            }
 
-            if ("poison".equals(themeKey) && random.nextInt(100) < 35) {
+            outcome.finalDamage = Math.max(0, hpBeforeHit - player.hp());
+
+            if (player.isAlive() && "poison".equals(themeKey) && random.nextInt(100) < 35) {
                 turnManager.applyPoison(3, 4);
                 outcome.poisonApplied = true;
             }

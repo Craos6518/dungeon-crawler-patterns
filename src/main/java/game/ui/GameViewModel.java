@@ -30,6 +30,14 @@ public class GameViewModel {
     /** "fire" | "ice" | "poison" | "dark" */
     public String theme;
 
+    // ── Progresión de campaña (pantalla héroe) ──────────────────
+    /** Héroe actualmente seleccionado para campaña. */
+    public String heroType;
+    /** True cuando el héroe queda bloqueado para mantener continuidad de campaña. */
+    public boolean heroSelectionLocked;
+    /** Temas ya conquistados que no pueden volver a iniciarse en la campaña actual. */
+    public List<String> completedThemes;
+
     // ── Pantalla Exploración ──────────────────────────────────────
     public String  roomName;
     public String  roomDesc;
@@ -49,6 +57,18 @@ public class GameViewModel {
     public List<InventoryItemInfo> inventoryItems;
     public ItemInfo      selectedItem;
     public Integer       selectedItemIndex;
+
+    // ── Pantalla Estadísticas ─────────────────────────────────────
+    public StatsInfo stats;
+
+    // ── Pantalla Sala de Tesoro ───────────────────────────────────
+    public TreasureInfo treasure;
+
+    // ── Pantalla Slots de Guardado ────────────────────────────────
+    public SaveSlotsInfo saveSlotsInfo;
+
+    // ── Pantalla Game Over ────────────────────────────────────────
+    public GameOverInfo gameOver;
 
     // ── Estados de botones ────────────────────────────────────────
     /**
@@ -89,6 +109,82 @@ public class GameViewModel {
         public String effect;
         public int    valor;   // item.getValorTotal()
         public double peso;    // item.getPesoTotal()
+    }
+
+    // ── Estadísticas del héroe y partida ──────────────────────────
+    public static class StatsInfo {
+        public String heroName;
+        /** "guerrero" | "mago" | "arquero" */
+        public String heroType;
+        public int heroHp;
+        public int heroHpMax;
+        public int heroHpPct;
+        public int heroAtk;
+        public int heroDef;
+        public int heroSpeed;
+        public int roomsExplored;
+        public int enemiesDefeated;
+        public int goldTotal;
+        public int itemsCollected;
+        public String dungeonName;
+    }
+
+    // ── Sala de Tesoro post-victoria ──────────────────────────────
+    public static class TreasureInfo {
+        public String enemyDefeated;
+        public int    expGained;
+        public int    goldGained;
+        public List<LootItem> loot;
+        public int    roomsExplored;
+        public int    enemiesDefeated;
+        public int    goldTotal;
+        public int    itemsCollected;
+        public int    hpCurrent;
+        public int    hpMax;
+        public int    checkpointRoom;
+        public boolean autoSaved;
+
+        public static class LootItem {
+            public String icon;
+            public String name;
+            /** "raro" | "comun" | "epico" */
+            public String rarity;
+            public String desc;
+            public boolean selected;
+        }
+    }
+
+    // ── Ranuras de guardado con metadatos ─────────────────────────
+    public static class SaveSlotsInfo {
+        public List<SlotInfo> slots;
+        public int selectedSlot;
+
+        public static class SlotInfo {
+            public int     slot;
+            public boolean empty;
+            public String  heroIcon;
+            public String  heroName;
+            public String  heroType;
+            public int     hp;
+            public int     hpMax;
+            public int     roomNumber;
+            public String  dungeonTheme;
+            /** "auto" | "manual" */
+            public String  saveType;
+            public String  savedAt;
+        }
+    }
+
+    // ── Game Over ─────────────────────────────────────────────────
+    public static class GameOverInfo {
+        public String heroName;
+        public String heroType;
+        public String defeatedBy;
+        public int    roomsExplored;
+        public int    enemiesDefeated;
+        public int    goldGained;
+        public int    turnsPlayed;
+        public boolean hasSaveToRestore;
     }
 
     // ── Fábrica estática de conveniencia ─────────────────────────

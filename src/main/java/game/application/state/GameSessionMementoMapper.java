@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,7 +23,7 @@ import java.util.Set;
  */
 public final class GameSessionMementoMapper {
 
-    private static final Set<String> SUPPORTED_SCREENS = Set.of("menu", "exploration", "combat", "inventory");
+    private static final Set<String> SUPPORTED_SCREENS = Set.of("menu", "exploration", "combat", "inventory", "saves");
 
     private GameSessionMementoMapper() {
     }
@@ -74,6 +75,8 @@ public final class GameSessionMementoMapper {
             .salaActual(session.dungeon().currentRoomIndex() + 1)
             .agregarEstadoPersonaje("vida", session.player().hp())
             .agregarEstadoPersonaje("vidaMaxima", session.player().maxHp())
+            .agregarEstadoPersonaje("heroType", session.heroType())
+            .agregarEstadoPersonaje("heroSelectionLocked", session.isHeroSelectionLocked())
             .agregarEstadoPersonaje("nivel", session.player().level())
             .agregarEstadoPersonaje("experiencia", session.player().experience())
             .agregarEstadoPersonaje("enemigosDerrotados", session.player().defeatedEnemies())
@@ -88,6 +91,7 @@ public final class GameSessionMementoMapper {
             .agregarEstadoMazmorra("totalRooms", session.dungeon().totalRooms())
             .agregarEstadoMazmorra("estadoActual", currentScreen)
             .agregarEstadoMazmorra("salaActualIndex", session.dungeon().currentRoomIndex())
+            .agregarEstadoMazmorra("completedThemes", new ArrayList<>(session.completedThemes()))
             .agregarEstadoMazmorra("salasTesoroResuelto", new ArrayList<>(session.dungeon().treasureResolvedRooms()))
             .agregarEstadoMazmorra("salasEnemigoResuelto", new ArrayList<>(session.dungeon().enemyResolvedRooms()))
             .agregarEstadoMazmorra("combateActivo", combatActive)
@@ -126,6 +130,8 @@ public final class GameSessionMementoMapper {
 
         int level = readInt(characterState.get("nivel"), memento.getNivelActual());
         int experience = readInt(characterState.get("experiencia"), 0);
+        String heroType = normalizeHeroType(readString(characterState.get("heroType"), session.heroType()));
+        boolean heroSelectionLocked = readBoolean(characterState.get("heroSelectionLocked"), false);
         int maxHp = readInt(characterState.get("vidaMaxima"), session.player().maxHp());
         int hp = readInt(characterState.get("vida"), maxHp);
         int gold = readInt(characterState.get("oroAcumulado"), 0);
@@ -157,6 +163,11 @@ public final class GameSessionMementoMapper {
             Math.max(0, gold),
             Math.max(0, defeatedEnemies)
         );
+
+        if (!heroType.isBlank()) {
+            session.setHeroType(heroType);
+        }
+        session.setHeroSelectionLocked(heroSelectionLocked);
 
         List<SimpleItem> restoredItems = parseItems(inventoryState.get("items"), strict);
         Integer selectedIndex = readNullableInt(inventoryState.get("selectedIndex"));
@@ -201,12 +212,18 @@ public final class GameSessionMementoMapper {
             strict,
             "salasEnemigoResuelto"
         );
+        Set<String> completedThemes = parseThemeSet(
+            dungeonState.get("completedThemes"),
+            strict,
+            "completedThemes"
+        );
 
         session.dungeon().restoreProgress(
             Math.max(0, Math.min(roomIndex, Math.max(0, totalRooms - 1))),
             treasureResolved,
             enemyResolved
         );
+        session.replaceCompletedThemes(completedThemes);
 
         boolean combatActive = readBoolean(dungeonState.get("combateActivo"), false);
         if (combatActive) {
@@ -368,6 +385,36 @@ public final class GameSessionMementoMapper {
         return resolved;
     }
 
+    private static Set<String> parseThemeSet(Object raw, boolean strict, String fieldName) {
+        Set<String> themes = new HashSet<>();
+        if (raw == null) {
+            return themes;
+        }
+        if (!(raw instanceof List<?> list)) {
+            if (strict) {
+                throw corrupt(fieldName + " invalido");
+            }
+            return themes;
+        }
+
+        for (Object value : list) {
+            if (value == null) {
+                continue;
+            }
+            String normalized = String.valueOf(value).trim().toLowerCase(Locale.ROOT);
+            if ("fire".equals(normalized) || "ice".equals(normalized)
+                || "poison".equals(normalized) || "dark".equals(normalized)) {
+                themes.add(normalized);
+                continue;
+            }
+            if (strict) {
+                throw corrupt(fieldName + " contiene tema invalido");
+            }
+        }
+
+        return themes;
+    }
+
     private static List<String> parseStringList(Object raw, boolean strict, String fieldName) {
         List<String> lines = new ArrayList<>();
         if (raw == null) {
@@ -438,6 +485,18 @@ public final class GameSessionMementoMapper {
             return false;
         }
         return fallback;
+    }
+
+    private static String normalizeHeroType(String heroType) {
+        if (heroType == null) {
+            return "";
+        }
+
+        String normalized = heroType.trim().toLowerCase();
+        if ("mago".equals(normalized) || "arquero".equals(normalized) || "guerrero".equals(normalized)) {
+            return normalized;
+        }
+        return "";
     }
 
     private static DomainRuleViolationException corrupt(String detail) {

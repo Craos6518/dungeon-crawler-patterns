@@ -50,12 +50,12 @@ Detalle:
 
 ### 2.2 Seleccion de item en inventario
 Evidencia:
-- game.html maneja selectItem de forma local JS.
-- Runtime tiene comando selectItem, pero en web no se despacha actualmente.
+- game.html despacha selectItem al backend al seleccionar una fila.
+- Runtime procesa selectItem y actualiza selectedItemIndex en el estado publicado.
 
-Estado: Parcial.
+Estado: Implementada.
 Detalle:
-- La seleccion visual funciona, pero no sincroniza siempre con backend via comando dedicado.
+- La seleccion visual queda sincronizada con backend via comando dedicado, evitando desalineaciones al usar objetos.
 
 ### 2.3 Accion rerenderCurrentScreen
 Evidencia:

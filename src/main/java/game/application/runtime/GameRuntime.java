@@ -44,6 +44,7 @@ public class GameRuntime implements GameCommandHandler {
 
     private static final Logger LOGGER = Logger.getLogger(GameRuntime.class.getName());
     private static final Set<String> SUPPORTED_THEME_KEYS = Set.of("fire", "ice", "poison", "dark");
+    private static final Set<String> SUPPORTED_HERO_TYPES = Set.of("guerrero", "mago", "arquero");
     private static final int MIN_SLOT = 1;
     private static final int MAX_SLOT = 3;
 
@@ -141,8 +142,13 @@ public class GameRuntime implements GameCommandHandler {
         Map<String, TypedCommandHandler<?>> map = new LinkedHashMap<>();
 
         map.put("startGame", TypedCommandHandler.of(StartGameCommandRequest.class, Set.of(), payload -> {
-            GameSession newSession = GameSessionFactory.createSessionForTheme(payload.theme);
+            String theme = resolveThemeOrDefault(payload.theme);
+            ensureThemeAvailableForCampaign(theme);
+
+            String heroType = resolveHeroTypeForNewRun(payload.heroType);
+            GameSession newSession = createSessionPreservingCampaignProgress(theme, heroType);
             newSession.setActiveScreen("exploration");
+
             bindSession(newSession);
             preferredSaveSlot = MIN_SLOT;
         }, this::validateStartGamePayload));
@@ -223,6 +229,106 @@ public class GameRuntime implements GameCommandHandler {
             // No-op: filtro de categoria se resuelve del lado de UI.
         }, this::validateFilterCategoryPayload));
 
+        // ── Nuevas pantallas ────────────────────────────────────────
+
+        map.put("goToHeroSelect", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            session.setActiveScreen("hero");
+        }, this::validateEmptyPayload));
+
+        map.put("selectHero", TypedCommandHandler.of(StartGameCommandRequest.class, Set.of(), payload -> {
+            String heroType = normalizeHeroType(payload.heroType);
+            if (heroType.isBlank()) {
+                return;
+            }
+
+            if (session.isHeroSelectionLocked()) {
+                String lockedHero = normalizeHeroType(session.heroType());
+                if (lockedHero.isBlank()) {
+                    session.setHeroType(heroType);
+                    return;
+                }
+                if (!lockedHero.equals(heroType)) {
+                    throw new InvalidRuntimeCommandException(
+                        "No puedes cambiar de heroe despues de completar una mazmorra."
+                    );
+                }
+                session.setHeroType(lockedHero);
+                return;
+            }
+
+            session.setHeroType(heroType);
+        }, this::validateSelectHeroPayload));
+
+        map.put("heroNewGame", TypedCommandHandler.of(StartGameCommandRequest.class, Set.of(), payload -> {
+            String theme = resolveThemeOrDefault(payload.theme);
+            ensureThemeAvailableForCampaign(theme);
+
+            String heroType = resolveHeroTypeForNewRun(payload.heroType);
+            GameSession newSession = createSessionPreservingCampaignProgress(theme, heroType);
+            newSession.setActiveScreen("exploration");
+            bindSession(newSession);
+            preferredSaveSlot = MIN_SLOT;
+        }, this::validateStartGamePayload));
+
+        map.put("showStats", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            session.setActiveScreen("stats");
+        }, this::validateEmptyPayload));
+
+        map.put("closeStats", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            session.setActiveScreen("menu");
+        }, this::validateEmptyPayload));
+
+        map.put("openSaves", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            session.setActiveScreen("saves");
+        }, this::validateEmptyPayload));
+
+        map.put("saveToSlot", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
+            int slot = resolveSlotOrPreferred(payload.slot);
+            saveGameUseCase.execute(slot);
+            preferredSaveSlot = slot;
+        }, this::validateSavePayload));
+
+        map.put("loadFromSlot", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
+            int slot = resolveSlotOrPreferred(payload.slot);
+            GameSession loadedSession = loadSessionFromSlot(slot);
+            bindSession(loadedSession);
+            preferredSaveSlot = slot;
+        }, this::validateLoadPayload));
+
+        map.put("restoreGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            // Carga el slot preferido (ultimo usado) al restaurar tras game over.
+            GameSession loadedSession = loadSessionFromSlot(preferredSaveSlot);
+            bindSession(loadedSession);
+        }, this::validateEmptyPayload));
+
+        map.put("newGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            session.setActiveScreen("hero");
+        }, this::validateEmptyPayload));
+
+        map.put("exitGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            // No-op en web: el cierre lo maneja la aplicacion JavaFX.
+            LOGGER.info("Comando exitGame recibido desde UI.");
+        }, this::validateEmptyPayload));
+
+        // ── Loot / Tesoro (no-op hasta implementar TreasureRoomState) ──
+        map.put("takeLoot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            session.setActiveScreen("exploration");
+            session.appendEvent("Has recogido el botin de la sala.");
+        }, this::validateEmptyPayload));
+
+        map.put("selectLoot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            // No-op por ahora: la selección de loot se usa para render en UI.
+        }, this::validateSelectLootPayload));
+
+        map.put("skipLoot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            session.setActiveScreen("exploration");
+            session.appendEvent("Avanzas sin recoger el botin.");
+        }, this::validateEmptyPayload));
+
+        map.put("selectSaveSlot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            // No-op: la seleccion de slot se maneja localmente en JS.
+        }, this::validateEmptyPayload));
+
         return map;
     }
 
@@ -240,6 +346,15 @@ public class GameRuntime implements GameCommandHandler {
     private void validateStartGamePayload(JsonObject payload) {
         validateEmptyPayload(payload);
         if (!payload.has("theme") || payload.get("theme").isJsonNull()) {
+            if (payload.has("heroType") && !payload.get("heroType").isJsonNull()) {
+                validateOptionalStringField(payload, "heroType", false);
+                String normalizedHeroType = normalizeHeroType(payload.get("heroType").getAsString());
+                if (normalizedHeroType.isBlank()) {
+                    throw new InvalidRuntimeCommandException(
+                        "heroType invalido. Valores permitidos: " + String.join(", ", SUPPORTED_HERO_TYPES)
+                    );
+                }
+            }
             return;
         }
 
@@ -250,6 +365,32 @@ public class GameRuntime implements GameCommandHandler {
                 "theme invalido. Valores permitidos: " + String.join(", ", SUPPORTED_THEME_KEYS)
             );
         }
+
+        if (payload.has("heroType") && !payload.get("heroType").isJsonNull()) {
+            validateOptionalStringField(payload, "heroType", false);
+            String normalizedHeroType = normalizeHeroType(payload.get("heroType").getAsString());
+            if (normalizedHeroType.isBlank()) {
+                throw new InvalidRuntimeCommandException(
+                    "heroType invalido. Valores permitidos: " + String.join(", ", SUPPORTED_HERO_TYPES)
+                );
+            }
+        }
+    }
+
+    private void validateSelectHeroPayload(JsonObject payload) {
+        validateEmptyPayload(payload);
+        validateRequiredStringField(payload, "heroType", false);
+        String normalizedHeroType = normalizeHeroType(payload.get("heroType").getAsString());
+        if (normalizedHeroType.isBlank()) {
+            throw new InvalidRuntimeCommandException(
+                "heroType invalido. Valores permitidos: " + String.join(", ", SUPPORTED_HERO_TYPES)
+            );
+        }
+    }
+
+    private void validateSelectLootPayload(JsonObject payload) {
+        validateEmptyPayload(payload);
+        validateOptionalIntegerField(payload, "lootIndex", 0, Integer.MAX_VALUE);
     }
 
     private void validateAdvanceRoomPayload(JsonObject payload) {
@@ -280,7 +421,8 @@ public class GameRuntime implements GameCommandHandler {
         GameMemento memento = session.caretaker().cargarDesdeDisco(fileName);
 
         String theme = resolveThemeFromMemento(memento);
-        GameSession restoredSession = GameSessionFactory.createSessionForTheme(theme);
+        String heroType = resolveHeroTypeFromMemento(memento);
+        GameSession restoredSession = GameSessionFactory.createSessionForTheme(theme, heroType);
         new LoadGameUseCase(restoredSession).restoreFromMemento(fileName, memento);
         return restoredSession;
     }
@@ -297,6 +439,69 @@ public class GameRuntime implements GameCommandHandler {
 
         String theme = String.valueOf(rawTheme).trim();
         return theme.isBlank() ? "fire" : theme;
+    }
+
+    private static String resolveHeroTypeFromMemento(GameMemento memento) {
+        if (memento == null || memento.getEstadoPersonaje() == null) {
+            return "guerrero";
+        }
+
+        Object rawHeroType = memento.getEstadoPersonaje().get("heroType");
+        if (rawHeroType == null) {
+            return "guerrero";
+        }
+
+        String heroType = String.valueOf(rawHeroType).trim().toLowerCase(Locale.ROOT);
+        if (SUPPORTED_HERO_TYPES.contains(heroType)) {
+            return heroType;
+        }
+        return "guerrero";
+    }
+
+    private String resolveThemeOrDefault(String rawTheme) {
+        String theme = rawTheme != null ? rawTheme.trim().toLowerCase(Locale.ROOT) : "fire";
+        return SUPPORTED_THEME_KEYS.contains(theme) ? theme : "fire";
+    }
+
+    private String resolveHeroTypeForNewRun(String payloadHeroType) {
+        String requestedHeroType = normalizeHeroType(payloadHeroType);
+        String currentHeroType = normalizeHeroType(session.heroType());
+
+        if (session.isHeroSelectionLocked()) {
+            String lockedHeroType = currentHeroType.isBlank() ? "guerrero" : currentHeroType;
+            if (!requestedHeroType.isBlank() && !lockedHeroType.equals(requestedHeroType)) {
+                throw new InvalidRuntimeCommandException(
+                    "No puedes cambiar de heroe despues de completar una mazmorra."
+                );
+            }
+            return lockedHeroType;
+        }
+
+        if (!requestedHeroType.isBlank()) {
+            return requestedHeroType;
+        }
+        if (!currentHeroType.isBlank()) {
+            return currentHeroType;
+        }
+        return "guerrero";
+    }
+
+    private void ensureThemeAvailableForCampaign(String theme) {
+        if (session.isThemeCompleted(theme)) {
+            throw new InvalidRuntimeCommandException(
+                "Esa mazmorra ya fue conquistada. Elige una diferente."
+            );
+        }
+    }
+
+    private GameSession createSessionPreservingCampaignProgress(String theme, String heroType) {
+        GameSession newSession = GameSessionFactory.createSessionForTheme(theme, heroType);
+        newSession.setHeroType(heroType);
+
+        newSession.replaceCompletedThemes(session.completedThemes());
+        newSession.setHeroSelectionLocked(session.isHeroSelectionLocked());
+
+        return newSession;
     }
 
     private static int clampSlot(int slot) {
@@ -419,6 +624,14 @@ public class GameRuntime implements GameCommandHandler {
 
     private static String normalizeAction(String action) {
         return action == null ? "" : action.trim();
+    }
+
+    private static String normalizeHeroType(String heroType) {
+        if (heroType == null) {
+            return "";
+        }
+        String normalized = heroType.trim().toLowerCase(Locale.ROOT);
+        return SUPPORTED_HERO_TYPES.contains(normalized) ? normalized : "";
     }
 
     private interface JsonPayloadValidator {

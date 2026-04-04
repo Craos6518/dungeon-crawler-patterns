@@ -7,1109 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
-  <style>
-
-    /* ============================================================
-       DESIGN TOKENS — Layout & Spacing (unchanged from v2)
-    ============================================================ */
-    :root {
-      --spacing-1:  8px;
-      --spacing-2:  16px;
-      --spacing-3:  24px;
-      --spacing-4:  32px;
-      --spacing-5:  40px;
-
-      --canvas-w:   1366px;
-      --canvas-h:   768px;
-      --col-count:  12;
-      --col-margin: 24px;
-      --col-gutter: 16px;
-      --col-unit:   85.5px;
-
-      --header-h:         80px;
-      --footer-explore-h: 120px;
-      --action-panel-h:   160px;
-      --combat-log-h:     80px;
-      --footer-inv-h:     72px;
-
-      --sidebar-left-w:  280px;
-      --sidebar-right-w: 300px;
-      --inv-cat-w:       200px;
-      --inv-detail-w:    300px;
-
-      --btn-h-sm: 40px;
-      --btn-h-md: 52px;
-
-      /* ── ACTIVE THEME: FIRE ── */
-      --theme-primary:    #E4572E;
-      --theme-secondary:  #FF9F1C;
-      --theme-bg:         #2B1A17;
-      --theme-bg-panel:   #1A0F0D;
-      --theme-accent:     #FFD166;
-      --theme-text:       #F5E6D3;
-      --theme-text-dim:   #99726A;
-      --theme-border:     #E4572E;
-      --theme-border-dim: #5C2A1A;
-    }
-
-    /* ============================================================
-       THEME OVERRIDES
-       Swap by adding class to <body>:
-         body.theme-ice    → ICE
-         body.theme-poison → POISON
-         body.theme-dark   → DARK
-       Default (no class) = FIRE
-    ============================================================ */
-
-    /* THEME: ICE
-    body.theme-ice {
-      --theme-primary:    #4EA8DE;
-      --theme-secondary:  #90E0EF;
-      --theme-bg:         #102A43;
-      --theme-bg-panel:   #081B2B;
-      --theme-accent:     #CAF0F8;
-      --theme-text:       #E0F7FF;
-      --theme-text-dim:   #4A7B99;
-      --theme-border:     #4EA8DE;
-      --theme-border-dim: #1A4B6E;
-    }
-    */
-
-    /* THEME: POISON
-    body.theme-poison {
-      --theme-primary:    #588157;
-      --theme-secondary:  #7FB069;
-      --theme-bg:         #1B2A1E;
-      --theme-bg-panel:   #0F1A12;
-      --theme-accent:     #B7E4C7;
-      --theme-text:       #D8F3DC;
-      --theme-text-dim:   #3E6B44;
-      --theme-border:     #588157;
-      --theme-border-dim: #2A4A2D;
-    }
-    */
-
-    /* THEME: DARK
-    body.theme-dark {
-      --theme-primary:    #6C5CE7;
-      --theme-secondary:  #A29BFE;
-      --theme-bg:         #121420;
-      --theme-bg-panel:   #0A0C15;
-      --theme-accent:     #C9C9FF;
-      --theme-text:       #E8E8FF;
-      --theme-text-dim:   #4A4A8A;
-      --theme-border:     #6C5CE7;
-      --theme-border-dim: #2A2060;
-    }
-    */
-
-    /* Active theme class declarations (uncomment comments above and use these) */
-    body.theme-ice    { --theme-primary:#4EA8DE;--theme-secondary:#90E0EF;--theme-bg:#102A43;--theme-bg-panel:#081B2B;--theme-accent:#CAF0F8;--theme-text:#E0F7FF;--theme-text-dim:#4A7B99;--theme-border:#4EA8DE;--theme-border-dim:#1A4B6E; }
-    body.theme-poison { --theme-primary:#588157;--theme-secondary:#7FB069;--theme-bg:#1B2A1E;--theme-bg-panel:#0F1A12;--theme-accent:#B7E4C7;--theme-text:#D8F3DC;--theme-text-dim:#3E6B44;--theme-border:#588157;--theme-border-dim:#2A4A2D; }
-    body.theme-dark   { --theme-primary:#6C5CE7;--theme-secondary:#A29BFE;--theme-bg:#121420;--theme-bg-panel:#0A0C15;--theme-accent:#C9C9FF;--theme-text:#E8E8FF;--theme-text-dim:#4A4A8A;--theme-border:#6C5CE7;--theme-border-dim:#2A2060; }
-
-    /* ============================================================
-       KEYFRAME ANIMATIONS
-    ============================================================ */
-    @keyframes pulse-border {
-      0%, 100% { border-color: var(--theme-accent); }
-      50%       { border-color: var(--theme-primary); }
-    }
-
-    @keyframes scanline {
-      0%   { background-position: 0 0; }
-      100% { background-position: 0 4px; }
-    }
-
-    /* ============================================================
-       RESET & BASE
-    ============================================================ */
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: #0A0605;
-      font-family: 'VT323', monospace;
-      color: var(--theme-text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: var(--spacing-3) 0;
-      gap: var(--spacing-3);
-    }
-
-    /* Tema bloqueado por mazmorra: se oculta el switcher manual. */
-    #theme-switcher {
-      display: none !important;
-    }
-
-    /* ============================================================
-       12-COLUMN GRID SYSTEM (unchanged)
-    ============================================================ */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(var(--col-count), var(--col-unit));
-      column-gap: var(--col-gutter);
-      padding-left:  var(--col-margin);
-      padding-right: var(--col-margin);
-      width: 100%;
-    }
-    .col-1  { grid-column: span 1; }
-    .col-2  { grid-column: span 2; }
-    .col-3  { grid-column: span 3; }
-    .col-4  { grid-column: span 4; }
-    .col-5  { grid-column: span 5; }
-    .col-6  { grid-column: span 6; }
-    .col-7  { grid-column: span 7; }
-    .col-8  { grid-column: span 8; }
-    .col-9  { grid-column: span 9; }
-    .col-10 { grid-column: span 10; }
-    .col-11 { grid-column: span 11; }
-    .col-12 { grid-column: span 12; }
-    .col-offset-1 { grid-column-start: 2; }
-    .col-offset-2 { grid-column-start: 3; }
-    .col-offset-3 { grid-column-start: 4; }
-
-    /* ============================================================
-       SCREEN VISIBILITY SYSTEM (unchanged structure)
-    ============================================================ */
-    .screen {
-      width: var(--canvas-w);
-      height: var(--canvas-h);
-      background: var(--theme-bg);
-      border: 2px solid var(--theme-border-dim);
-      box-shadow: 4px 4px 0px #000;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* Production mode: only the active screen is shown */
-    .screen.active { display: flex; }
-
-    /* ============================================================
-       SCREEN 0 - MENU PRINCIPAL
-    ============================================================ */
-    #screen-menu {
-      align-items: center;
-      justify-content: center;
-      background:
-        radial-gradient(circle at 20% 15%, rgba(255, 209, 102, 0.12), transparent 35%),
-        radial-gradient(circle at 80% 82%, rgba(228, 87, 46, 0.16), transparent 32%),
-        var(--theme-bg);
-    }
-
-    #menu-shell {
-      width: 920px;
-      max-width: calc(100% - (var(--spacing-4) * 2));
-      background: rgba(26, 15, 13, 0.92);
-      border: 2px solid var(--theme-border);
-      box-shadow: 6px 6px 0 #000;
-      padding: var(--spacing-4);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-3);
-    }
-
-    .menu-title {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 26px;
-      color: var(--theme-accent);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      text-align: center;
-      line-height: 1.4;
-    }
-
-    .menu-subtitle {
-      font-size: 28px;
-      color: var(--theme-text-dim);
-      text-align: center;
-    }
-
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: var(--spacing-2);
-    }
-
-    .menu-card {
-      border: 2px solid var(--theme-border-dim);
-      background: var(--theme-bg);
-      color: var(--theme-text);
-      text-align: left;
-      padding: var(--spacing-2);
-      cursor: pointer;
-      transition: all .12s linear;
-      box-shadow: 3px 3px 0 #000;
-      min-height: 120px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .menu-card:hover {
-      transform: translate(-2px, -2px);
-      border-color: var(--theme-accent);
-      box-shadow: 5px 5px 0 var(--theme-border-dim);
-    }
-
-    .menu-card-title {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 12px;
-      color: var(--theme-accent);
-      line-height: 1.5;
-    }
-
-    .menu-card-desc {
-      font-size: 26px;
-      color: var(--theme-text-dim);
-      line-height: 1.15;
-    }
-
-    .menu-load-row {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: var(--spacing-2);
-      margin-top: var(--spacing-1);
-    }
-
-    @media (max-width: 980px) {
-      #menu-shell {
-        width: calc(100% - (var(--spacing-2) * 2));
-        padding: var(--spacing-2);
-      }
-
-      .menu-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .menu-title {
-        font-size: 18px;
-      }
-    }
-
-    /* Screen label badge */
-    .screen::before {
-      content: attr(data-label);
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--theme-primary);
-      color: var(--theme-bg-panel);
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      letter-spacing: .15em;
-      padding: 3px var(--spacing-1);
-      z-index: 100;
-      pointer-events: none;
-      box-shadow: 2px 2px 0px #000;
-    }
-
-    /* ============================================================
-       TYPOGRAPHY
-    ============================================================ */
-    h2 {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 16px;
-      color: var(--theme-accent);
-      letter-spacing: .04em;
-      line-height: 1.4;
-    }
-
-    p {
-      font-family: 'VT323', monospace;
-      font-size: 18px;
-      color: var(--theme-text);
-      line-height: 1.5;
-    }
-
-    .zone-label {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      letter-spacing: .2em;
-      color: var(--theme-text-dim);
-      text-transform: uppercase;
-      margin-bottom: var(--spacing-1);
-      user-select: none;
-    }
-
-    /* ============================================================
-       HP BAR COMPONENT
-       Unified naming: hp-bar-* everywhere, no exceptions.
-       Java: getElementById("*-hp-fill").style.width = pct + "%"
-    ============================================================ */
-    .hp-bar-group {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-1);
-    }
-
-    .hp-bar-label {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      color: var(--theme-text-dim);
-      letter-spacing: .1em;
-      white-space: nowrap;
-    }
-
-    .hp-bar-track {
-      height: 16px;
-      background: var(--theme-bg);
-      border: 2px solid var(--theme-border-dim);
-      position: relative;
-      overflow: hidden;
-    }
-    .hp-bar-track--sm { width: 140px; }
-    .hp-bar-track--lg { width: 100%; }
-
-    /* Loss segment behind fill */
-    .hp-bar-track::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: #5C1A1A;
-      z-index: 0;
-    }
-
-    .hp-bar-fill {
-      height: 100%;
-      background: var(--theme-primary);
-      position: relative;
-      z-index: 1;
-      transition: width 0.3s ease;
-    }
-
-    .hp-bar-text {
-      font-family: 'VT323', monospace;
-      font-size: 16px;
-      color: var(--theme-text-dim);
-      letter-spacing: .04em;
-      white-space: nowrap;
-    }
-
-    /* ============================================================
-       BUTTON SYSTEM
-       data-state="default|disabled|cooldown"
-       Java: element.setAttribute("data-state", "disabled")
-    ============================================================ */
-
-    /* Base — secondary */
-    .btn {
-      font-family: 'Press Start 2P', monospace;
-      cursor: pointer;
-      background: var(--theme-bg-panel);
-      color: var(--theme-accent);
-      border: 2px solid var(--theme-border-dim);
-      box-shadow: 2px 2px 0px #000;
-      font-size: 10px;
-      text-transform: uppercase;
-      padding: 8px 16px;
-      height: var(--btn-h-sm);
-      letter-spacing: .08em;
-      transition: all 0.1s linear;
-      white-space: nowrap;
-    }
-    .btn:hover {
-      background: var(--theme-primary);
-      color: var(--theme-bg);
-      border-color: var(--theme-accent);
-      box-shadow: 2px 2px 0px var(--theme-accent);
-    }
-    .btn:active {
-      background: var(--theme-secondary);
-      transform: translate(1px, 1px);
-      box-shadow: 1px 1px 0px #000;
-    }
-
-    /* Primary */
-    .btn--primary {
-      border-width: 3px;
-      font-size: 12px;
-      padding: 12px 24px;
-      height: var(--btn-h-md);
-      min-width: 140px;
-      background: var(--theme-primary);
-      color: var(--theme-bg-panel);
-      border-color: var(--theme-accent);
-      box-shadow: 2px 2px 0px #000;
-    }
-    .btn--primary:hover {
-      background: var(--theme-accent);
-      color: var(--theme-bg-panel);
-      border-color: var(--theme-text);
-      box-shadow: 2px 2px 0px var(--theme-text);
-    }
-
-    /* Ghost / Tertiary */
-    .btn--ghost {
-      background: transparent;
-      border: 1px dashed var(--theme-border-dim);
-      color: var(--theme-text-dim);
-      font-size: 9px;
-      padding: 6px 12px;
-      box-shadow: none;
-    }
-    .btn--ghost:hover {
-      background: transparent;
-      border-color: var(--theme-text-dim);
-      color: var(--theme-text);
-      box-shadow: none;
-    }
-
-    /* Disabled state */
-    .btn[data-state="disabled"],
-    .btn--primary[data-state="disabled"] {
-      background: var(--theme-bg);
-      color: var(--theme-text-dim);
-      border-color: var(--theme-border-dim);
-      opacity: 0.5;
-      cursor: not-allowed;
-      pointer-events: none;
-      box-shadow: none;
-    }
-
-    /* Cooldown state */
-    .btn[data-state="cooldown"] {
-      opacity: 0.6;
-      border-style: dashed;
-      cursor: not-allowed;
-    }
-
-    /* ============================================================
-       FIELD ROW
-    ============================================================ */
-    .field-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: var(--spacing-1) 0;
-      border-bottom: 1px solid var(--theme-border-dim);
-    }
-    .field-row__key {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      color: var(--theme-text-dim);
-      letter-spacing: .1em;
-    }
-    .field-row__val {
-      font-family: 'VT323', monospace;
-      font-size: 16px;
-      color: var(--theme-text);
-    }
-
-    /* ============================================================
-       PLACEHOLDER ILLUSTRATION
-    ============================================================ */
-    .placeholder-img {
-      width: 100%;
-      background: var(--theme-bg-panel);
-      border: 1px dashed var(--theme-border-dim);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
-      color: var(--theme-border-dim);
-      letter-spacing: .1em;
-      flex-shrink: 0;
-      user-select: none;
-    }
-
-    /* ============================================================
-       SHARED HEADER
-    ============================================================ */
-    .site-header {
-      width: 100%;
-      height: var(--header-h);
-      background: var(--theme-bg-panel);
-      border-bottom: 2px solid var(--theme-border-dim);
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      padding: 0 var(--spacing-3);
-      flex-shrink: 0;
-    }
-
-    .hdr-left {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .hdr-dungeon-name {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 14px;
-      color: var(--theme-accent);
-      letter-spacing: .06em;
-    }
-    .hdr-dungeon-theme {
-      font-family: 'VT323', monospace;
-      font-size: 14px;
-      color: var(--theme-text-dim);
-      letter-spacing: .2em;
-      text-transform: uppercase;
-    }
-
-    .hdr-center {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 11px;
-      color: var(--theme-text);
-      text-align: center;
-      letter-spacing: .1em;
-    }
-
-    .hdr-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: var(--spacing-1);
-    }
-    .hdr-gold {
-      font-family: 'VT323', monospace;
-      font-size: 16px;
-      color: var(--theme-accent);
-      letter-spacing: .08em;
-    }
-
-    /* ============================================================
-       MINIMAP NODES
-    ============================================================ */
-    .minimap-row {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-
-    .minimap-node {
-      width: 40px;
-      height: 40px;
-      border: 2px solid var(--theme-border-dim);
-      background: var(--theme-bg-panel);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-      box-shadow: 2px 2px 0px #000;
-    }
-
-    /* [·] cleared room */
-    .minimap-node--cleared {
-      background: var(--theme-bg-panel);
-      color: var(--theme-text-dim);
-    }
-
-    /* [⚔] current room — pulse animation */
-    .minimap-node--active {
-      background: var(--theme-primary);
-      color: var(--theme-bg-panel);
-      border-color: var(--theme-accent);
-      border-width: 2px;
-      animation: pulse-border 1.5s ease-in-out infinite;
-    }
-
-    /* [?] pending rooms */
-    .minimap-node--unknown {
-      background: var(--theme-bg);
-      color: var(--theme-text-dim);
-      border-style: dashed;
-    }
-
-    /* [💀] final boss room */
-    .minimap-node--boss {
-      background: #300;
-      color: #F00;
-      border-color: var(--theme-primary);
-    }
-
-    .minimap-connector {
-      font-family: 'VT323', monospace;
-      font-size: 14px;
-      color: var(--theme-border-dim);
-      user-select: none;
-    }
-
-    /* ============================================================
-       SCREEN 1 – EXPLORATION
-    ============================================================ */
-    #s1-body {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* Left Sidebar: Map */
-    #s1-sidebar-map {
-      width: var(--sidebar-left-w);
-      background: var(--theme-bg-panel);
-      border-right: 1px solid var(--theme-border-dim);
-      padding: var(--spacing-2);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-2);
-      flex-shrink: 0;
-    }
-
-    /* Center Panel */
-    #s1-center {
-      flex: 1;
-      padding: var(--spacing-2);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-2);
-      overflow: hidden;
-    }
-
-    #s1-room-card {
-      flex: 1;
-      border: 2px solid var(--theme-border);
-      box-shadow: 4px 4px 0px var(--theme-border-dim);
-      background: var(--theme-bg-panel);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    #s1-room-illustration {
-      flex: 1;
-    }
-
-    .room-card-footer {
-      padding: var(--spacing-2);
-      border-top: 1px solid var(--theme-border-dim);
-      background: var(--theme-bg-panel);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-1);
-    }
-
-    /* Right Sidebar: Room Info */
-    #s1-sidebar-info {
-      width: var(--sidebar-right-w);
-      background: var(--theme-bg-panel);
-      border-left: 1px solid var(--theme-border-dim);
-      padding: var(--spacing-2);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-1);
-      flex-shrink: 0;
-    }
-
-    /* Event log */
-    #s1-event-log {
-      flex: 1;
-      border: 1px dashed var(--theme-border-dim);
-      padding: var(--spacing-1);
-      margin-top: var(--spacing-1);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      background: var(--theme-bg);
-    }
-    #s1-event-log .log-entry {
-      font-family: 'VT323', monospace;
-      font-size: 16px;
-      color: var(--theme-text-dim);
-    }
-    #s1-event-log .log-entry--placeholder {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 7px;
-      color: var(--theme-border-dim);
-      letter-spacing: .15em;
-      text-transform: uppercase;
-      text-align: center;
-      margin-top: var(--spacing-2);
-    }
-
-    /* Footer Actions */
-    #s1-footer {
-      height: var(--footer-explore-h);
-      background: var(--theme-bg-panel);
-      border-top: 2px solid var(--theme-border-dim);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--spacing-2);
-      padding: 0 var(--spacing-3);
-      flex-shrink: 0;
-    }
-
-    .btn-divider {
-      width: 1px;
-      height: var(--btn-h-sm);
-      background: var(--theme-border-dim);
-      flex-shrink: 0;
-    }
-
-    .save-slot-controls {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-1);
-    }
-
-    .save-slot-label {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      color: var(--theme-text-dim);
-      letter-spacing: .1em;
-      text-transform: uppercase;
-    }
-
-    .save-slot-picker {
-      height: var(--btn-h-sm);
-      padding: 0 8px;
-      min-width: 62px;
-      border: 2px solid var(--theme-border-dim);
-      background: var(--theme-bg);
-      color: var(--theme-accent);
-      font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
-      letter-spacing: .06em;
-      box-shadow: 2px 2px 0px #000;
-    }
-
-    .save-slot-picker:focus {
-      outline: none;
-      border-color: var(--theme-accent);
-    }
-
-    /* ============================================================
-       SCREEN 2 – COMBAT
-    ============================================================ */
-    #s2-main {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
-
-    /* Left 60%: Duel zone */
-    #s2-duel-zone {
-      flex: 6;
-      padding: var(--spacing-2);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-2);
-      border-right: 1px solid var(--theme-border-dim);
-    }
-
-    #s2-duel-illustration {
-      flex: 1;
-      border: 2px solid var(--theme-border);
-      box-shadow: 4px 4px 0px var(--theme-border-dim);
-    }
-
-    .duel-name-row {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    /* Right 40%: Enemy status */
-    #s2-enemy-panel {
-      flex: 4;
-      background: var(--theme-bg-panel);
-      border-left: 1px solid var(--theme-border-dim);
-      padding: var(--spacing-2);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-2);
-    }
-
-    .enemy-hp-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    /* Enemy name in panel */
-    #s2-enemy-name {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 13px;
-      color: var(--theme-accent);
-      line-height: 1.5;
-    }
-
-    /* Tier badge */
-    .tier-badge {
-      display: inline-block;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      border: 1px solid var(--theme-border-dim);
-      padding: 4px var(--spacing-1);
-      letter-spacing: .2em;
-      color: var(--theme-text-dim);
-      text-transform: uppercase;
-      width: fit-content;
-      box-shadow: 2px 2px 0px #000;
-    }
-    .tier-badge[data-tier="menor"] { border-color: var(--theme-border-dim); color: var(--theme-text-dim); }
-    .tier-badge[data-tier="elite"] { border-color: var(--theme-secondary); color: var(--theme-secondary); }
-    .tier-badge[data-tier="jefe"]  { border-color: var(--theme-accent); color: var(--theme-accent); }
-
-    /* Status effect slots */
-    .status-effects-row {
-      display: flex;
-      gap: var(--spacing-1);
-    }
-    .status-slot {
-      width: 32px;
-      height: 32px;
-      border: 1px dashed var(--theme-border-dim);
-      background: var(--theme-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'VT323', monospace;
-      font-size: 14px;
-      color: var(--theme-border-dim);
-      box-shadow: 2px 2px 0px #000;
-    }
-    .status-slot[data-effect]:not([data-effect=""]) {
-      border-style: solid;
-      border-color: var(--theme-primary);
-      color: var(--theme-text);
-    }
-
-    /* Action Panel */
-    #s2-action-panel {
-      height: var(--action-panel-h);
-      background: var(--theme-bg-panel);
-      border-top: 2px solid var(--theme-border-dim);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: var(--spacing-2);
-      padding: var(--spacing-2) var(--spacing-3);
-      align-items: stretch;
-      flex-shrink: 0;
-    }
-    #s2-action-panel .btn {
-      height: 100%;
-      font-size: 11px;
-    }
-
-    /* Combat Log */
-    #s2-combat-log {
-      height: var(--combat-log-h);
-      background: var(--theme-bg);
-      border-top: 1px solid var(--theme-border-dim);
-      padding: var(--spacing-1) var(--spacing-3);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      overflow-y: auto;
-      flex-shrink: 0;
-    }
-    .log-entry {
-      font-family: 'VT323', monospace;
-      font-size: 16px;
-      color: var(--theme-text-dim);
-      letter-spacing: .02em;
-    }
-    .log-entry:first-of-type {
-      color: var(--theme-text);
-    }
-
-    /* ============================================================
-       SCREEN 3 – INVENTORY
-    ============================================================ */
-    #s3-body {
-      flex: 1;
-      display: grid;
-      grid-template-columns: var(--inv-cat-w) 1fr var(--inv-detail-w);
-      overflow: hidden;
-    }
-
-    /* Left: Categories */
-    #s3-cat-panel {
-      background: var(--theme-bg-panel);
-      border-right: 1px solid var(--theme-border-dim);
-      padding: var(--spacing-2);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-1);
-    }
-
-    .cat-btn {
-      display: block;
-      width: 100%;
-      text-align: left;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
-      padding: var(--spacing-1) var(--spacing-2);
-      background: var(--theme-bg);
-      border: 1px solid var(--theme-border-dim);
-      color: var(--theme-text-dim);
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      cursor: pointer;
-      height: var(--btn-h-sm);
-      box-shadow: 2px 2px 0px #000;
-      transition: all 0.1s linear;
-    }
-    .cat-btn:hover {
-      background: var(--theme-primary);
-      color: var(--theme-bg);
-      border-color: var(--theme-accent);
-    }
-    .cat-btn--active {
-      background: var(--theme-primary);
-      border-color: var(--theme-accent);
-      color: var(--theme-bg-panel);
-      box-shadow: 2px 2px 0px var(--theme-accent);
-    }
-
-    /* Center: Item List */
-    #s3-item-list {
-      padding: var(--spacing-2);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-1);
-      overflow-y: auto;
-      background: var(--theme-bg);
-    }
-
-    .inv-capacity-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: var(--spacing-1);
-    }
-    .inv-capacity-text {
-      font-family: 'VT323', monospace;
-      font-size: 16px;
-      color: var(--theme-text-dim);
-      letter-spacing: .1em;
-    }
-    .inv-capacity-sep {
-      margin: 0 2px;
-      color: var(--theme-border-dim);
-    }
-
-    .item-row {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-2);
-      padding: var(--spacing-1);
-      border: 1px solid var(--theme-border-dim);
-      background: var(--theme-bg-panel);
-      cursor: pointer;
-      transition: all 0.1s linear;
-      box-shadow: 2px 2px 0px #000;
-    }
-    .item-row:hover {
-      border-color: var(--theme-primary);
-      background: var(--theme-bg);
-    }
-    .item-row--selected {
-      border-color: var(--theme-accent);
-      border-width: 2px;
-      background: var(--theme-bg);
-      box-shadow: 2px 2px 0px var(--theme-accent);
-    }
-
-    .item-icon {
-      width: 32px;
-      height: 32px;
-      border: 1px solid var(--theme-border-dim);
-      background: var(--theme-bg);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 7px;
-      color: var(--theme-border-dim);
-    }
-
-    .item-name {
-      flex: 1;
-      font-family: 'VT323', monospace;
-      font-size: 20px;
-      color: var(--theme-text);
-      letter-spacing: .02em;
-    }
-
-    .item-type-badge {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 7px;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--theme-text-dim);
-      border: 1px solid var(--theme-border-dim);
-      padding: 3px 6px;
-      white-space: nowrap;
-      background: var(--theme-bg);
-    }
-
-    /* Right: Detail Panel */
-    #s3-detail-panel {
-      background: var(--theme-bg-panel);
-      border-left: 1px solid var(--theme-border-dim);
-      padding: var(--spacing-2);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-2);
-    }
-
-    #s3-detail-icon {
-      width: 64px;
-      height: 64px;
-      border: 2px solid var(--theme-border-dim);
-      background: var(--theme-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 9px;
-      color: var(--theme-border-dim);
-      box-shadow: 2px 2px 0px #000;
-    }
-
-    .detail-type-label {
-      font-family: 'Press Start 2P', monospace;
-      font-size: 8px;
-      color: var(--theme-primary);
-      letter-spacing: .2em;
-      text-transform: uppercase;
-    }
-
-    .detail-effect-box {
-      font-family: 'VT323', monospace;
-      font-size: 18px;
-      color: var(--theme-text);
-      border: 1px solid var(--theme-border-dim);
-      padding: var(--spacing-1);
-      background: var(--theme-bg);
-    }
-
-    .detail-stats-row {
-      border: 1px solid var(--theme-border-dim);
-      padding: 0 var(--spacing-1);
-      background: var(--theme-bg);
-      margin-top: auto;
-    }
-
-    /* Inventory Footer */
-    #s3-footer {
-      height: var(--footer-inv-h);
-      background: var(--theme-bg-panel);
-      border-top: 2px solid var(--theme-border-dim);
-      display: flex;
-      align-items: center;
-      padding: 0 var(--spacing-3);
-      gap: var(--spacing-2);
-      flex-shrink: 0;
-    }
-
-  </style>
+  <link rel="stylesheet" href="styles/game.css" />
 </head>
 <body class="theme-fire">
 
@@ -1153,32 +51,39 @@
   <section class="screen active" id="screen-menu" data-label="PANTALLA 0 · MENÚ">
     <div id="menu-shell">
       <h1 class="menu-title">Dungeon Crawler</h1>
-      <p class="menu-subtitle">Selecciona la mazmorra para comenzar</p>
+      <p class="menu-subtitle">elige tu héroe para comenzar</p>
 
-      <div class="menu-grid">
-        <button class="menu-card" data-action="startGame" data-theme="fire">
-          <span class="menu-card-title">Volcan de Ignareth</span>
-          <span class="menu-card-desc">Tema Fuego · 7 salas</span>
+      <div class="menu-action-grid">
+        <button class="menu-action-card" id="btn-menu-nueva" data-action="goToHeroSelect">
+          <span class="menu-action-key">1</span>
+          <div class="menu-action-label">
+            <span class="menu-action-label__title">Nueva Partida</span>
+            <span class="menu-action-label__desc">elige tu héroe para comenzar</span>
+          </div>
         </button>
-        <button class="menu-card" data-action="startGame" data-theme="ice">
-          <span class="menu-card-title">Catacumbas de Glaciurvh</span>
-          <span class="menu-card-desc">Tema Hielo · 8 salas</span>
+        <button class="menu-action-card" id="btn-menu-cargar" data-action="openSaves">
+          <span class="menu-action-key">2</span>
+          <div class="menu-action-label">
+            <span class="menu-action-label__title">Cargar Partida</span>
+            <span class="menu-action-label__desc">restaurar desde memento</span>
+          </div>
         </button>
-        <button class="menu-card" data-action="startGame" data-theme="poison">
-          <span class="menu-card-title">Pantanos de Viridax</span>
-          <span class="menu-card-desc">Tema Veneno · 8 salas</span>
+        <button class="menu-action-card" id="btn-menu-stats" data-action="showStats">
+          <span class="menu-action-key">3</span>
+          <div class="menu-action-label">
+            <span class="menu-action-label__title">Ver Estadísticas</span>
+            <span class="menu-action-label__desc">resumen de la partida</span>
+          </div>
         </button>
-        <button class="menu-card" data-action="startGame" data-theme="dark">
-          <span class="menu-card-title">Ciudadela de Umbrakar</span>
-          <span class="menu-card-desc">Tema Oscuridad · 10 salas</span>
+        <button class="menu-action-card" id="btn-menu-salir" data-action="exitGame">
+          <span class="menu-action-key">4</span>
+          <div class="menu-action-label">
+            <span class="menu-action-label__title">Salir</span>
+            <span class="menu-action-label__desc">cierre del juego</span>
+          </div>
         </button>
       </div>
 
-      <div class="menu-load-row">
-        <button class="btn" data-action="loadGame" data-slot="1">Cargar Slot 1</button>
-        <button class="btn" data-action="loadGame" data-slot="2">Cargar Slot 2</button>
-        <button class="btn" data-action="loadGame" data-slot="3">Cargar Slot 3</button>
-      </div>
     </div>
   </section>
 
@@ -1387,7 +292,7 @@
       <button class="btn" id="btn-defender"
               data-action="defend" data-state="default">Defender</button>
       <button class="btn" id="btn-usar-objeto"
-              data-action="useItem" data-state="default">Usar Objeto</button>
+            data-action="openInventory" data-state="default">Usar Objeto</button>
       <button class="btn" id="btn-habilidad"
               data-action="useSkill" data-state="default">Habilidad</button>
     </section>
@@ -1460,59 +365,33 @@
           </span>
         </div>
 
-        <!-- Poción de Vida ×2 (índices 0 y 1 en la lista del inventario) -->
-        <div class="item-row item-row--selected" id="item-row-1"
-             data-item-id="pocion-vida" data-item-index="0"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="true">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Poción de Vida</span>
-          <span class="item-type-badge">Consumible</span>
-        </div>
+        <div id="s3-item-rows">
+          <div class="item-row item-row--selected" id="item-row-1"
+               data-item-id="pocion-vida" data-item-index="0"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="true">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Poción de Vida</span>
+            <span class="item-type-badge">Consumible</span>
+          </div>
 
-        <div class="item-row" id="item-row-2"
-             data-item-id="pocion-vida" data-item-index="1"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Poción de Vida</span>
-          <span class="item-type-badge">Consumible</span>
-        </div>
+          <div class="item-row" id="item-row-2"
+               data-item-id="pocion-vida" data-item-index="1"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="false">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Poción de Vida</span>
+            <span class="item-type-badge">Consumible</span>
+          </div>
 
-        <div class="item-row" id="item-row-3"
-             data-item-id="antidoto" data-item-index="2"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Antídoto</span>
-          <span class="item-type-badge">Consumible</span>
-        </div>
-
-        <div class="item-row" id="item-row-4"
-             data-item-id="gema-fuego" data-item-index="3"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Gema de Fuego</span>
-          <span class="item-type-badge">Gema</span>
-        </div>
-
-        <div class="item-row" id="item-row-5"
-             data-item-id="espada-flamigera" data-item-index="4"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Espada Flamígera</span>
-          <span class="item-type-badge">Arma</span>
-        </div>
-
-        <div class="item-row" id="item-row-6"
-             data-item-id="runa-oscura" data-item-index="5"
-             data-action="selectItem"
-             role="button" tabindex="0" aria-selected="false">
-          <div class="item-icon" aria-hidden="true">IMG</div>
-          <span class="item-name">Runa Oscura</span>
-          <span class="item-type-badge">Runa</span>
+          <div class="item-row" id="item-row-3"
+               data-item-id="antidoto" data-item-index="2"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="false">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Antídoto</span>
+            <span class="item-type-badge">Consumible</span>
+          </div>
         </div>
       </main>
 
@@ -1567,283 +446,199 @@
   </section>
 
   <!-- ================================================================
-       JAVA BRIDGE — Integración real con JavaFX WebEngine
-       Bridge: webEngine.setOnAlert(e -> dispatcher.handle(e.getData()))
-       Push:   engine.executeScript("window.updateGameState(" + json + ")")
+       SCREEN 4: SELECCION DE HEROE
   ================================================================ -->
-  <script>
-    /* ── Selección de item en inventario (estado local JS) ── */
-    var _selectedItemIndex = null;
-    var _selectedItemId    = null;
+  <section class="screen" id="screen-hero" data-label="PANTALLA 4 · HÉROE">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:var(--spacing-3);">
+      <div class="hero-screen-shell">
+        <h1 class="menu-title">Elige tu Héroe</h1>
+        <p class="menu-subtitle">selecciona tu clase para esta aventura</p>
+        <div class="hero-step-label">PASO 1 — CLASE DE HÉROE</div>
+        <div class="hero-selection-grid" id="hero-cards-container">
+          <div class="hero-card hero-card--selected" id="hero-card-guerrero" data-hero="guerrero" data-action="selectHero" role="button" tabindex="0">
+            <div class="hero-card__icon">🗡️</div><div class="hero-card__name">Guerrero</div><div class="hero-card__desc">alta vida y resistencia</div>
+            <div class="hero-stat-row">
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">150</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:71%"></div></div><span class="hero-stat__val">25</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">25</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:45%"></div></div><span class="hero-stat__val">10</span></div>
+            </div>
+            <div class="hero-selected-badge">SELECCIONADO</div>
+          </div>
+          <div class="hero-card" id="hero-card-mago" data-hero="mago" data-action="selectHero" role="button" tabindex="0">
+            <div class="hero-card__icon">🔮</div><div class="hero-card__name">Mago</div><div class="hero-card__desc">menor vida, alto daño</div>
+            <div class="hero-stat-row">
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:67%"></div></div><span class="hero-stat__val">100</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">35</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:32%"></div></div><span class="hero-stat__val">8</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">22</span></div>
+            </div>
+            <div class="hero-selected-badge">SELECCIONADO</div>
+          </div>
+          <div class="hero-card" id="hero-card-arquero" data-hero="arquero" data-action="selectHero" role="button" tabindex="0">
+            <div class="hero-card__icon">🏹</div><div class="hero-card__name">Arquero</div><div class="hero-card__desc">balance daño y supervivencia</div>
+            <div class="hero-stat-row">
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:80%"></div></div><span class="hero-stat__val">120</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:80%"></div></div><span class="hero-stat__val">28</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:60%"></div></div><span class="hero-stat__val">15</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:91%"></div></div><span class="hero-stat__val">20</span></div>
+            </div>
+            <div class="hero-selected-badge">SELECCIONADO</div>
+          </div>
+        </div>
+        <div class="hero-step-label">PASO 2 — MAZMORRA</div>
+        <div class="theme-picker-grid">
+          <button class="theme-card" id="theme-card-fire" data-action="heroNewGame" data-theme="fire" data-state="default"><span class="theme-card__name">Volcán de Ignareth</span><span class="theme-card__sub">🔥 Fuego · 7 salas</span></button>
+          <button class="theme-card" id="theme-card-ice" data-action="heroNewGame" data-theme="ice" data-state="default"><span class="theme-card__name">Catacumbas de Glaciurvh</span><span class="theme-card__sub">❄️ Hielo · 8 salas</span></button>
+          <button class="theme-card" id="theme-card-poison" data-action="heroNewGame" data-theme="poison" data-state="default"><span class="theme-card__name">Pantanos de Viridax</span><span class="theme-card__sub">☠️ Veneno · 8 salas</span></button>
+          <button class="theme-card" id="theme-card-dark" data-action="heroNewGame" data-theme="dark" data-state="default"><span class="theme-card__name">Ciudadela de Umbrakar</span><span class="theme-card__sub">🌑 Oscuridad · 10 salas</span></button>
+        </div>
+        <div style="display:flex;gap:var(--spacing-2);justify-content:flex-end;margin-top:var(--spacing-1);">
+          <button class="btn" data-action="backToMenu">Volver al Menú</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    /* ── sendCommand: encapsula el alert-bridge ── */
-    function sendCommand(action, payload) {
-      window.alert(JSON.stringify({
-        action: action,
-        payload: payload || {}
-      }));
-    }
+  <!-- ================================================================
+       SCREEN 5: ESTADISTICAS
+  ================================================================ -->
+  <section class="screen" id="screen-stats" data-label="PANTALLA 5 · ESTADÍSTICAS">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:var(--spacing-3);">
+      <div class="stats-shell">
+        <h1 class="menu-title">Estadísticas</h1>
+        <div class="stats-hero-banner">
+          <div class="stats-hero-icon" id="stats-hero-icon">🗡️</div>
+          <div><div class="stats-hero-name" id="stats-hero-name">Guerrero</div><div class="stats-hero-type" id="stats-hero-type">clase · guerrero</div></div>
+        </div>
+        <div class="stats-grid-2">
+          <div>
+            <div class="stats-section-title">ATRIBUTOS</div>
+            <div class="stat-chip-row">
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-hp">100</span><span class="stat-chip__lbl">vida</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-atk">18</span><span class="stat-chip__lbl">ataque</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-def">25</span><span class="stat-chip__lbl">defensa</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-spd">10</span><span class="stat-chip__lbl">velocidad</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="stats-section-title">PARTIDA ACTUAL</div>
+            <div class="stat-chip-row">
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-rooms">0</span><span class="stat-chip__lbl">salas</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-enemies">0</span><span class="stat-chip__lbl">enemigos</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-gold">0</span><span class="stat-chip__lbl">oro</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-items">0</span><span class="stat-chip__lbl">objetos</span></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="stats-section-title">ESTADO ACTUAL</div>
+          <div class="field-row"><span class="field-row__key">HP</span><div class="hp-bar-group" style="flex:1;"><div class="hp-bar-track" style="flex:1;width:auto;"><div class="hp-bar-fill" id="stats-hp-fill" style="width:100%;"></div></div><span class="hp-bar-text" id="stats-hp-text">100 / 100</span></div></div>
+          <div class="field-row"><span class="field-row__key">Oro</span><span class="field-row__val" id="stats-gold-display">⦡ 0 Monedas</span></div>
+          <div class="field-row"><span class="field-row__key">Mazmorra</span><span class="field-row__val" id="stats-dungeon">—</span></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:var(--spacing-2);">
+          <button class="btn btn--primary" data-action="closeStats">Volver al Menú</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    document.addEventListener('DOMContentLoaded', function () {
+  <!-- ================================================================
+       SCREEN 6: SALA DE TESORO
+  ================================================================ -->
+  <section class="screen" id="screen-treasure" data-label="PANTALLA 6 · TESORO">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:var(--spacing-3);">
+      <div class="treasure-shell">
+        <div class="treasure-victory-banner">
+          <div class="treasure-victory-icon">💀 → 🏆</div>
+          <div class="treasure-victory-title" id="treasure-enemy-name">Enemigo eliminado</div>
+          <div class="treasure-victory-sub">exp ganada: <strong id="treasure-exp">+150</strong> &nbsp;·&nbsp; oro: <strong id="treasure-gold">+80</strong></div>
+        </div>
+        <div class="zone-label">Objetos encontrados</div>
+        <div class="loot-list" id="treasure-loot-list">
+          <div class="loot-item loot-item--selected" data-loot-index="0"><div class="loot-item__icon">⚔️</div><div class="loot-item__info"><div class="loot-item__name">Espada de Llamas</div><div class="loot-item__desc">daño: 28 · quemadura al golpear</div></div><span class="loot-rarity loot-rarity--raro">rara</span></div>
+          <div class="loot-item" data-loot-index="1"><div class="loot-item__icon">🧪</div><div class="loot-item__info"><div class="loot-item__name">Pocion de Vida Mayor</div><div class="loot-item__desc">restaura 60 hp</div></div><span class="loot-rarity loot-rarity--comun">comun</span></div>
+        </div>
+        <div>
+          <div class="zone-label">Resumen</div>
+          <div class="treasure-summary-row">
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-rooms">0</span><span class="stat-chip__lbl">salas</span></div>
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-enemies">0</span><span class="stat-chip__lbl">enemigos</span></div>
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-total-gold">0</span><span class="stat-chip__lbl">oro total</span></div>
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-items">0</span><span class="stat-chip__lbl">objetos</span></div>
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-hp">—</span><span class="stat-chip__lbl">hp actual</span></div>
+          </div>
+        </div>
+        <div style="border:1px dashed var(--theme-border-dim);padding:var(--spacing-1) var(--spacing-2);font-size:18px;color:var(--theme-text-dim);">✓ checkpoint guardado — sala <span id="treasure-checkpoint-room">1</span></div>
+        <div style="display:flex;gap:var(--spacing-2);justify-content:flex-end;">
+          <button class="btn btn--primary" id="btn-take-all" data-action="takeLoot">Tomar todo</button>
+          <button class="btn" id="btn-skip-loot" data-action="skipLoot">Continuar sin recoger</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      /* ── Selección local de items (no despacha a Java) ── */
-      document.querySelectorAll('[data-action="selectItem"]').forEach(function(el) {
-        el.addEventListener('click', function() {
-          document.querySelectorAll('.item-row').forEach(function(r) {
-            r.classList.remove('item-row--selected');
-            r.setAttribute('aria-selected', 'false');
-          });
-          el.classList.add('item-row--selected');
-          el.setAttribute('aria-selected', 'true');
-          _selectedItemIndex = Number(el.dataset.itemIndex);
-          _selectedItemId    = el.dataset.itemId;
-        });
-      });
+  <!-- ================================================================
+       SCREEN 7: SLOTS DE GUARDADO
+  ================================================================ -->
+  <section class="screen" id="screen-saves" data-label="PANTALLA 7 · GUARDADO">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:var(--spacing-3);">
+      <div class="saves-shell">
+        <h1 class="menu-title">Ranuras de Guardado</h1>
+        <p class="menu-subtitle" style="text-align:left;">memento — selecciona una ranura</p>
+        <div class="save-slot-row save-slot-row--empty" id="save-slot-row-1" data-slot="1" data-action="selectSaveSlot" role="button" tabindex="0">
+          <span class="save-slot__number">01</span><span class="save-slot__icon" id="save-slot-icon-1">💭</span>
+          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-hero-1">ranura vacía</div><div class="save-slot__details" id="save-slot-details-1">—</div><div class="save-slot__date" id="save-slot-date-1"></div></div>
+          <span class="save-slot__type-badge" id="save-slot-type-1">vacío</span>
+        </div>
+        <div class="save-slot-row save-slot-row--empty" id="save-slot-row-2" data-slot="2" data-action="selectSaveSlot" role="button" tabindex="0">
+          <span class="save-slot__number">02</span><span class="save-slot__icon" id="save-slot-icon-2">💭</span>
+          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-hero-2">ranura vacía</div><div class="save-slot__details" id="save-slot-details-2">—</div><div class="save-slot__date" id="save-slot-date-2"></div></div>
+          <span class="save-slot__type-badge" id="save-slot-type-2">vacío</span>
+        </div>
+        <div class="save-slot-row save-slot-row--empty" id="save-slot-row-3" data-slot="3" data-action="selectSaveSlot" role="button" tabindex="0">
+          <span class="save-slot__number">03</span><span class="save-slot__icon" id="save-slot-icon-3">💭</span>
+          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-hero-3">ranura vacía</div><div class="save-slot__details" id="save-slot-details-3">—</div><div class="save-slot__date" id="save-slot-date-3"></div></div>
+          <span class="save-slot__type-badge" id="save-slot-type-3">vacío</span>
+        </div>
+        <div class="saves-actions">
+          <button class="btn" id="btn-back-saves" data-action="backToMenu">Volver</button>
+          <button class="btn" id="btn-load-slot" data-action="loadFromSlot">Cargar seleccionado</button>
+          <button class="btn btn--primary" id="btn-save-slot" data-action="saveToSlot">Guardar aquí</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      /* ── Filtro local de categorías (no despacha a Java) ── */
-      document.querySelectorAll('[data-action="filterCategory"]').forEach(function(el) {
-        el.addEventListener('click', function() {
-          document.querySelectorAll('.cat-btn').forEach(function(b) {
-            b.classList.remove('cat-btn--active');
-            b.setAttribute('aria-pressed', 'false');
-          });
-          el.classList.add('cat-btn--active');
-          el.setAttribute('aria-pressed', 'true');
-        });
-      });
+  <!-- ================================================================
+       SCREEN 8: GAME OVER
+  ================================================================ -->
+  <section class="screen" id="screen-gameover" data-label="PANTALLA 8 · GAME OVER">
+    <div class="gameover-shell">
+      <div class="gameover-skull">💀</div>
+      <div class="gameover-title">Game Over</div>
+      <div class="gameover-subtitle"><span id="gameover-hero-name">el guerrero</span> ha caído<br><span id="gameover-context">derrotado por un enemigo</span></div>
+      <div class="gameover-stats-row">
+        <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-rooms">0</span><span class="gameover-stat-chip__lbl">salas explor.</span></div>
+        <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-enemies">0</span><span class="gameover-stat-chip__lbl">enemigos</span></div>
+        <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-gold">0</span><span class="gameover-stat-chip__lbl">oro ganado</span></div>
+        <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-turns">0</span><span class="gameover-stat-chip__lbl">turnos</span></div>
+      </div>
+      <div class="gameover-actions">
+        <button class="gameover-btn gameover-btn--restore" id="btn-restore-game" data-action="restoreGame" data-state="default">[ R ] — Cargar último guardado</button>
+        <button class="gameover-btn" id="btn-menu-from-gameover" data-action="backToMenu" data-state="default">[ M ] — Volver al menú</button>
+        <button class="gameover-btn" id="btn-new-game-from-gameover" data-action="newGame" data-state="default" style="border-color:#CC0000;color:#CC0000;">[ N ] — Nueva partida</button>
+      </div>
+    </div>
+  </section>
 
-      /* ── Botones de acción → Java via alert bridge ── */
-      var LOCAL_ACTIONS = { selectItem: true, filterCategory: true };
-      document.querySelectorAll('[data-action]').forEach(function(el) {
-        var action = el.dataset.action;
-        if (LOCAL_ACTIONS[action]) return; /* ya manejados arriba */
-        el.addEventListener('click', function() {
-          if (el.dataset.state === 'disabled' || el.dataset.state === 'cooldown') return;
-          if (action === 'useItem') {
-            sendCommand('useItem', {
-              itemIndex: Number.isFinite(_selectedItemIndex) ? _selectedItemIndex : null,
-              itemId: _selectedItemId
-            });
-          } else if (action === 'startGame') {
-            sendCommand('startGame', { theme: el.dataset.theme || 'fire' });
-          } else if (action === 'loadGame') {
-            var loadSlot = Number(el.dataset.slot || 1);
-            var pickerAfterLoad = document.getElementById('save-slot-picker');
-            if (pickerAfterLoad && Number.isFinite(loadSlot)) {
-              pickerAfterLoad.value = String(loadSlot);
-            }
-            sendCommand('loadGame', { slot: loadSlot });
-          } else if (action === 'saveGame') {
-            var picker = document.getElementById('save-slot-picker');
-            var saveSlot = picker ? Number(picker.value || 1) : 1;
-            if (!Number.isFinite(saveSlot)) {
-              saveSlot = 1;
-            }
-            sendCommand('saveGame', { slot: saveSlot });
-          } else if (action === 'attack') {
-            sendCommand('attack', { targetId: 'current' });
-          } else if (action === 'useSkill') {
-            sendCommand('useSkill', {});
-          } else {
-            sendCommand(action, {});
-          }
-        });
-      });
-    });
-
-    /* ── updateGameState: Java llama engine.executeScript("window.updateGameState(..)") ── */
-    window.updateGameState = function(state) {
-      if (!state) return;
-
-      function setText(id, val) {
-        var el = document.getElementById(id);
-        if (el) el.textContent = (val !== null && val !== undefined) ? String(val) : '';
-      }
-      function setWidth(id, val) {
-        var el = document.getElementById(id);
-        if (el) el.style.width = val;
-      }
-      function renderMinimap(symbols, totalRooms, currentRoomOneBased) {
-        var row = document.getElementById('s1-minimap-row');
-        if (!row) return;
-
-        var items = Array.isArray(symbols) ? symbols.slice() : [];
-        if (items.length === 0 && totalRooms > 0) {
-          for (var i = 0; i < totalRooms; i++) {
-            if (i === Math.max(0, currentRoomOneBased - 1)) {
-              items.push('current');
-            } else if (i === totalRooms - 1) {
-              items.push('boss');
-            } else {
-              items.push('unknown');
-            }
-          }
-        }
-
-        row.innerHTML = '';
-        items.forEach(function(symbol, idx) {
-          var node = document.createElement('div');
-          node.classList.add('minimap-node');
-          node.dataset.roomIndex = String(idx);
-
-          switch (symbol) {
-            case 'cleared':
-              node.classList.add('minimap-node--cleared');
-              node.title = 'Sala despejada';
-              node.textContent = '·';
-              break;
-            case 'current':
-              node.classList.add('minimap-node--active');
-              node.title = 'Sala actual';
-              node.textContent = '⚔';
-              break;
-            case 'boss':
-              node.classList.add('minimap-node--boss');
-              node.title = 'Jefe final';
-              node.textContent = '💀';
-              break;
-            default:
-              node.classList.add('minimap-node--unknown');
-              node.title = 'Sala desconocida';
-              node.textContent = '?';
-              break;
-          }
-
-          row.appendChild(node);
-          if (idx < items.length - 1) {
-            var connector = document.createElement('span');
-            connector.className = 'minimap-connector';
-            connector.setAttribute('aria-hidden', 'true');
-            connector.textContent = '—';
-            row.appendChild(connector);
-          }
-        });
-      }
-
-      /* Header compartido (exploracion, combate, inventario) */
-      var prog   = 'Sala ' + (state.room || 0) + ' / ' + (state.totalRooms || 0);
-      var gold   = '\u29A1 ' + (state.gold || 0) + ' Monedas';
-      var hpPct  = (state.playerHpPct  || 0) + '%';
-      var hpText = (state.playerHp     || 0) + ' / ' + (state.playerHpMax || 0);
-      ['', '-combat', '-inv'].forEach(function(sfx) {
-        setText ('hdr-dungeon-name'    + sfx, state.dungeonName  || '');
-        setText ('hdr-dungeon-theme'   + sfx, state.dungeonTheme || '');
-        setText ('hdr-room-progress'   + sfx, prog);
-        setText ('hdr-gold'            + sfx, gold);
-        setWidth('hdr-player-hp-fill'  + sfx, hpPct);
-        setText ('hdr-player-hp-text'  + sfx, hpText);
-      });
-
-      /* Tema visual */
-      if (state.theme) {
-        document.body.classList.remove('theme-fire','theme-ice','theme-poison','theme-dark');
-        document.body.classList.add('theme-' + state.theme);
-      }
-
-      /* Pantalla activa */
-      if (state.screen) {
-        var screenMap = {
-          menu: 'screen-menu',
-          exploration: 'screen-exploration',
-          combat: 'screen-combat',
-          inventory: 'screen-inventory'
-        };
-        document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
-        var target = screenMap[state.screen];
-        if (target) document.getElementById(target).classList.add('active');
-      }
-
-      /* Exploración */
-      setText('s1-room-name',    state.roomName        || '');
-      setText('s1-room-desc',    state.roomDesc        || '');
-      setText('s1-difficulty',   state.roomDifficulty  || '');
-      setText('s1-has-treasure', state.roomHasTreasure ? 'S\u00ED' : 'No');
-      setText('s1-has-enemy',    state.roomHasEnemy    ? 'S\u00ED' : 'No');
-      renderMinimap(
-        state.minimapSymbols,
-        Number(state.totalRooms || 0),
-        Number(state.room || 1)
-      );
-
-      if (Array.isArray(state.eventLog)) {
-        var elog = document.getElementById('s1-event-log');
-        if (elog) {
-          elog.innerHTML = '';
-          if (state.eventLog.length === 0) {
-            var ph = document.createElement('p');
-            ph.className = 'log-entry log-entry--placeholder';
-            ph.textContent = 'Sin eventos a\u00FAn';
-            elog.appendChild(ph);
-          } else {
-            state.eventLog.forEach(function(line) {
-              var p = document.createElement('p'); p.className = 'log-entry'; p.textContent = line; elog.appendChild(p);
-            });
-          }
-        }
-      }
-
-      /* Combate */
-      if (state.enemy) {
-        var en = state.enemy;
-        setText ('s2-enemy-name-duel', en.name || '');
-        setText ('s2-enemy-name',      en.name || '');
-        setText ('s2-enemy-hp-text',   (en.hp || 0) + ' / ' + (en.hpMax || 0));
-        setWidth('s2-enemy-hp-fill',   (en.hpPct || 0) + '%');
-        var tierEl = document.getElementById('s2-enemy-tier');
-        if (tierEl) { tierEl.textContent = en.tier || ''; tierEl.dataset.tier = (en.tier||'').toLowerCase(); }
-      }
-
-      if (Array.isArray(state.combatLog)) {
-        var clog = document.getElementById('s2-combat-log');
-        if (clog) {
-          var zl = clog.querySelector('.zone-label');
-          clog.innerHTML = '';
-          if (zl) clog.appendChild(zl);
-          state.combatLog.forEach(function(line) {
-            var p = document.createElement('p'); p.className = 'log-entry'; p.textContent = line; clog.appendChild(p);
-          });
-        }
-      }
-
-      /* Inventario */
-      if (state.inventory) {
-        setText('s3-capacity-current', state.inventory.itemCount   || 0);
-        setText('s3-capacity-max',     state.inventory.maxCapacity || 0);
-        if (Number(state.inventory.itemCount || 0) === 0) {
-          _selectedItemIndex = null;
-          _selectedItemId = null;
-        }
-      }
-      if (Array.isArray(state.inventoryItems) && state.selectedItemIndex != null) {
-        var vmSelectedIndex = Number(state.selectedItemIndex);
-        if (Number.isFinite(vmSelectedIndex)
-            && vmSelectedIndex >= 0
-            && vmSelectedIndex < state.inventoryItems.length) {
-          _selectedItemIndex = vmSelectedIndex;
-          var vmSelectedRow = state.inventoryItems[vmSelectedIndex];
-          _selectedItemId = (vmSelectedRow && vmSelectedRow.id) ? vmSelectedRow.id : null;
-        }
-      }
-      if (state.selectedItem) {
-        var si = state.selectedItem;
-        setText('s3-item-name',   si.name   || '');
-        setText('s3-item-desc',   si.desc   || '');
-        setText('s3-item-effect', 'Efecto: ' + (si.effect || ''));
-        setText('s3-item-valor',  si.valor != null ? String(si.valor)    : '');
-        setText('s3-item-peso',   si.peso  != null ? si.peso + ' kg'     : '');
-        var typeEl = document.getElementById('s3-item-type');
-        if (typeEl) { typeEl.textContent = si.type || ''; if (si.type) typeEl.dataset.type = si.type.toLowerCase(); }
-      }
-
-      /* Estados de botones: state.buttons = { "btn-avanzar": "disabled", ... } */
-      if (state.buttons && typeof state.buttons === 'object') {
-        Object.keys(state.buttons).forEach(function(id) {
-          var el = document.getElementById(id);
-          if (el) el.dataset.state = state.buttons[id];
-        });
-      }
-    };
-  </script>
+  <!-- ================================================================
+    JAVA BRIDGE — Integración real con JavaFX WebEngine
+    Bridge: webEngine.setOnAlert(e -> dispatcher.handle(e.getData()))
+    Push:   engine.executeScript("window.updateGameState(" + json + ")")
+  ================================================================ -->
+  <script src="scripts/game.js"></script>
 
 </body>
 </html>

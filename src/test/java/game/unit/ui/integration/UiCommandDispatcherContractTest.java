@@ -23,6 +23,22 @@ class UiCommandDispatcherContractTest {
     }
 
     @Test
+    void openInventoryDuringCombatAndCloseReturnsToCombat() {
+        UiCommandDispatcher dispatcher = newDispatcher();
+        dispatcher.dispatchCommandJson("{\"action\":\"forceCombat\",\"payload\":{}}");
+
+        UiCommandResponse openResponse = dispatcher.dispatchCommandJson("{\"action\":\"openInventory\",\"payload\":{}}");
+        assertEquals("ok", openResponse.status);
+        assertNotNull(openResponse.data);
+        assertEquals("inventory", openResponse.data.screen);
+
+        UiCommandResponse closeResponse = dispatcher.dispatchCommandJson("{\"action\":\"closeInventory\",\"payload\":{}}");
+        assertEquals("ok", closeResponse.status);
+        assertNotNull(closeResponse.data);
+        assertEquals("combat", closeResponse.data.screen);
+    }
+
+    @Test
     void invalidCommandWithoutActionReturnsControlledError() {
         UiCommandDispatcher dispatcher = newDispatcher();
 
@@ -101,6 +117,23 @@ class UiCommandDispatcherContractTest {
 
         assertEquals("error", response.status);
         assertTrue(response.message.contains("combate activo"));
+    }
+
+    @Test
+    void saveToSlotFromBootstrapMenuReturnsError() {
+        UiCommandDispatcher dispatcher = newDispatcher();
+
+        UiCommandResponse openSaves = dispatcher.dispatchCommandJson("{\"action\":\"openSaves\",\"payload\":{}}");
+        assertEquals("ok", openSaves.status);
+        assertNotNull(openSaves.data);
+        assertEquals("saves", openSaves.data.screen);
+
+        UiCommandResponse saveResponse = dispatcher.dispatchCommandJson(
+            "{\"action\":\"saveToSlot\",\"payload\":{\"slot\":1}}"
+        );
+
+        assertEquals("error", saveResponse.status);
+        assertTrue(saveResponse.message.contains("antes de iniciar o cargar"));
     }
 
     private static UiCommandDispatcher newDispatcher() {

@@ -59,6 +59,18 @@ class SaveLoadUseCaseTest {
     }
 
     @Test
+    void saveRejectsBootstrapMenuSession() {
+        var session = GameSessionFactory.createInitialMenuSession();
+        session.setActiveScreen("saves");
+
+        SaveGameUseCase save = new SaveGameUseCase(session);
+
+        DomainRuleViolationException ex = assertThrows(DomainRuleViolationException.class, () -> save.execute(1));
+        assertTrue(ex.getMessage().contains("antes de iniciar o cargar"));
+        assertEquals(0, session.caretaker().getCantidadMementos());
+    }
+
+    @Test
     void loadRestoresSavedSessionState() {
         var source = GameSessionFactory.createDemoSession();
         source.dungeon().restoreProgress(1, Set.of(0), Set.of(0));

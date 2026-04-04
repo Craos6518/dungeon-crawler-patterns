@@ -83,8 +83,19 @@ public class Player {
         if (xp <= 0) {
             return 0;
         }
+
+        int hpBeforeLevelUp = character.getVida();
         LevelUpCommand command = new LevelUpCommand(character, xp);
         command.execute();
+
+        int targetHp = Math.max(0, Math.min(hpBeforeLevelUp, character.getVidaMaxima()));
+        int hpDelta = targetHp - character.getVida();
+        if (hpDelta >= 0) {
+            character.curar(hpDelta);
+        } else {
+            character.recibirDanio(-hpDelta);
+        }
+
         return command.getNivelesGanados();
     }
 

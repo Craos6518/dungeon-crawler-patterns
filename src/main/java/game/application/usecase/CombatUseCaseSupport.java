@@ -105,7 +105,8 @@ final class CombatUseCaseSupport {
     }
 
     static void handleDefeat(GameSession session) {
-        session.setActiveScreen("combat");
+        session.combat().finish();
+        session.setActiveScreen("gameover");
         session.appendCombat("Has sido derrotado. El combate ha terminado.");
         session.appendEvent("Game Over en sala " + (session.dungeon().currentRoomIndex() + 1) + ".");
 

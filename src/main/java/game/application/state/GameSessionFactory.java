@@ -3,6 +3,11 @@ package game.application.state;
 import game.domain.character.Player;
 import game.domain.combat.Combat;
 import game.domain.exploration.Dungeon;
+import game.domain.inventory.Inventory;
+import game.domain.personaje.Personaje;
+import game.domain.personaje.factory.ArqueroFactory;
+import game.domain.personaje.factory.GuerreroFactory;
+import game.domain.personaje.factory.MagoFactory;
 import game.domain.turn.TurnManager;
 import game.dungeon.theme.DarkThemeFactory;
 import game.dungeon.theme.DungeonThemeFactory;
@@ -14,6 +19,7 @@ import game.events.observer.EventType;
 import game.events.observer.GameEvent;
 import game.persistence.memento.GameCaretaker;
 
+import java.nio.file.Path;
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Random;
@@ -23,6 +29,13 @@ import java.util.Random;
  */
 public final class GameSessionFactory {
 
+    private static final String HERO_NAME_GUERRERO = "Guerrero";
+    private static final String HERO_NAME_MAGO = "Mago";
+    private static final String HERO_NAME_ARQUERO = "Arquero";
+    private static final String HERO_TYPE_GUERRERO = "guerrero";
+    private static final String HERO_TYPE_MAGO = "mago";
+    private static final String HERO_TYPE_ARQUERO = "arquero";
+
     private GameSessionFactory() {
     }
 
@@ -31,25 +44,32 @@ public final class GameSessionFactory {
     }
 
     public static GameSession createInitialMenuSession() {
-        GameSession session = createSessionForTheme("fire");
+        GameSession session = createSessionForTheme("fire", HERO_TYPE_GUERRERO);
+        session.setBootstrapMenuSession(true);
         session.setActiveScreen("menu");
         session.appendEvent("Selecciona una mazmorra para iniciar tu aventura.");
         return session;
     }
 
     public static GameSession createSessionForTheme(String themeKey) {
+        return createSessionForTheme(themeKey, HERO_TYPE_GUERRERO);
+    }
+
+    public static GameSession createSessionForTheme(String themeKey, String heroType) {
         Random random = new Random();
 
-        Player player = Player.demo();
+        String normalizedHeroType = normalizeHeroType(heroType);
+        Player player = createPlayerForHero(normalizedHeroType);
         DungeonThemeFactory theme = resolveThemeFactory(themeKey);
         Dungeon dungeon = Dungeon.fromTheme(random, theme);
         TurnManager turnManager = new TurnManager();
         Combat combat = new Combat(player, turnManager, random);
 
         EventManager eventManager = EventManager.getInstance();
-        GameCaretaker caretaker = new GameCaretaker("./game-saves/");
+        GameCaretaker caretaker = new GameCaretaker(resolveSaveDirectory());
 
         GameSession session = new GameSession(player, dungeon, combat, eventManager, caretaker);
+        session.setHeroType(normalizedHeroType);
         session.appendEvent("Partida UI iniciada para " + player.name() + ".");
         session.appendEvent("Mazmorra: " + dungeon.model().getNombre() + " (Tema: " + dungeon.themeName() + ").");
 
@@ -58,6 +78,15 @@ public final class GameSessionFactory {
             .agregarDato("tema", dungeon.themeName()));
 
         return session;
+    }
+
+    private static Player createPlayerForHero(String heroType) {
+        Personaje hero = switch (heroType) {
+            case HERO_TYPE_MAGO -> new MagoFactory(100, 35).crearPersonaje(HERO_NAME_MAGO);
+            case HERO_TYPE_ARQUERO -> new ArqueroFactory(120, 28).crearPersonaje(HERO_NAME_ARQUERO);
+            default -> new GuerreroFactory(150, 25).crearPersonaje(HERO_NAME_GUERRERO);
+        };
+        return new Player(hero, Inventory.demo());
     }
 
     private static DungeonThemeFactory resolveThemeFactory(String themeKey) {
@@ -77,5 +106,32 @@ public final class GameSessionFactory {
 
         String normalized = Normalizer.normalize(value, Normalizer.Form.NFD);
         return normalized.replaceAll("\\p{M}", "").trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeHeroType(String heroType) {
+        String normalized = normalize(heroType);
+        return switch (normalized) {
+            case HERO_TYPE_MAGO -> HERO_TYPE_MAGO;
+            case HERO_TYPE_ARQUERO -> HERO_TYPE_ARQUERO;
+            default -> HERO_TYPE_GUERRERO;
+        };
+    }
+
+    private static String resolveSaveDirectory() {
+        Path cwd = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+        Path projectSaves;
+
+        if ("dungeon-crawler-patterns".equals(cwd.getFileName() != null ? cwd.getFileName().toString() : "")) {
+            projectSaves = cwd.resolve("game-saves");
+        } else {
+            Path nestedProject = cwd.resolve("dungeon-crawler-patterns");
+            if (nestedProject.toFile().isDirectory()) {
+                projectSaves = nestedProject.resolve("game-saves");
+            } else {
+                projectSaves = cwd.resolve("game-saves");
+            }
+        }
+
+        return projectSaves.toString();
     }
 }
