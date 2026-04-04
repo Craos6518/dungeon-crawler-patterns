@@ -25,7 +25,7 @@ public class IceThemeFactory implements DungeonThemeFactory {
 
     @Override
     public Personaje crearJefe() {
-        return new Dragon("Dragón de Escarcha", 160, 26);
+        return new Dragon("Kryovaleth", 140, 24);
     }
 
     @Override

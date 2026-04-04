@@ -22,10 +22,10 @@ public class DefensiveStrategy implements AIStrategy {
             throw new IllegalArgumentException("No hay enemigos disponibles");
         }
         
-        // Si tiene poca vida, defenderse
-        // Nota: Asumimos vida inicial de 100 para simplificar
-        // En un sistema real, el personaje debería conocer su vida máxima
-        if (propio.getVida() < 100 * UMBRAL_VIDA_BAJA) {
+        // Si tiene poca vida relativa, defenderse.
+        int vidaMaxima = Math.max(1, propio.getVidaMaxima());
+        double porcentajeVida = (double) propio.getVida() / vidaMaxima;
+        if (porcentajeVida < UMBRAL_VIDA_BAJA) {
             return new DefendCommand(propio);
         }
         

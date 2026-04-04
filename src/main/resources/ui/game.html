@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dungeon Crawler – UI v3 (Dark Fantasy)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/game.css" />
+</head>
+<body class="theme-fire">
+
+    <div id="theme-switcher" aria-hidden="true"></div>
+
+  <!--
+  =======================================================================
+  JAVA INTEGRATION CONTRACT (unchanged from v2)
+  =======================================================================
+
+  SCREEN SWITCHING:
+    engine.executeScript(
+      "document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));" +
+      "document.getElementById('screen-exploration').classList.add('active');"
+    );
+
+  DATA BINDING:
+    hdr-dungeon-name   → state.dungeonName
+    hdr-room-progress  → "Sala " + state.room + " / " + state.totalRooms
+    hdr-player-hp-fill → style.width = state.playerHpPct + "%"
+    hdr-player-hp-text → state.playerHp + " / " + state.playerHpMax
+    hdr-gold           → "⬡ " + state.gold + " Monedas"
+
+  ACTION DISPATCH (alert bridge):
+    All buttons carry data-action="<id>".
+    Java registers: webEngine.setOnAlert(e -> dispatcher.handle(e.getData()))
+    Add to page JS: document.querySelectorAll('[data-action]').forEach(b =>
+      b.addEventListener('click', () => window.alert(b.dataset.action)));
+
+  ITEM BINDING:
+    s3-item-valor → item.getValorTotal()
+    s3-item-peso  → item.getPesoTotal() + " kg"
+    (NOT getValor/getPeso — those are Item.java legacy)
+  =======================================================================
+  -->
+
+
+  <!-- ================================================================
+       SCREEN 0: MENU PRINCIPAL
+  ================================================================ -->
+  <section class="screen active" id="screen-menu" data-label="PANTALLA 0 · MENÚ">
+    <div id="menu-shell">
+      <h1 class="menu-title">Dungeon Crawler</h1>
+      <p class="menu-subtitle">elige tu héroe para comenzar</p>
+
+      <div class="menu-action-grid">
+        <button class="menu-action-card" id="btn-menu-nueva" data-action="goToHeroSelect">
+          <span class="menu-action-key">1</span>
+          <div class="menu-action-label">
+            <span class="menu-action-label__title">Nueva Partida</span>
+            <span class="menu-action-label__desc">elige tu héroe para comenzar</span>
+          </div>
+        </button>
+        <button class="menu-action-card" id="btn-menu-cargar" data-action="openSaves">
+          <span class="menu-action-key">2</span>
+          <div class="menu-action-label">
+            <span class="menu-action-label__title">Cargar Partida</span>
+            <span class="menu-action-label__desc">restaurar desde memento</span>
+          </div>
+        </button>
+        <button class="menu-action-card" id="btn-menu-stats" data-action="showStats">
+          <span class="menu-action-key">3</span>
+          <div class="menu-action-label">
+            <span class="menu-action-label__title">Ver Estadísticas</span>
+            <span class="menu-action-label__desc">resumen de la partida</span>
+          </div>
+        </button>
+        <button class="menu-action-card" id="btn-menu-lore" data-action="openWorldLore">
+          <span class="menu-action-key">4</span>
+          <div class="menu-action-label">
+            <span class="menu-action-label__title">Crónicas del Mundo</span>
+            <span class="menu-action-label__desc">lore de Eranthia</span>
+          </div>
+        </button>
+        <button class="menu-action-card" id="btn-menu-salir" data-action="exitGame">
+          <span class="menu-action-key">5</span>
+          <div class="menu-action-label">
+            <span class="menu-action-label__title">Salir</span>
+            <span class="menu-action-label__desc">cierre del juego</span>
+          </div>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 1: EXPLORATION
+  ================================================================ -->
+  <section class="screen" id="screen-exploration" data-label="PANTALLA 1 · EXPLORACIÓN">
+
+    <header class="site-header" id="s1-header">
+      <div class="hdr-left">
+        <span class="hdr-dungeon-name" id="hdr-dungeon-name"
+              data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-dungeon-theme"
+              data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
+      </div>
+      <div class="hdr-center" id="hdr-room-progress"
+           data-bind="'Sala ' + state.room + ' / ' + state.totalRooms">
+        Sala 3 / 12
+      </div>
+      <div class="hdr-right">
+        <div class="hp-bar-group">
+          <span class="hp-bar-label">HP</span>
+          <div class="hp-bar-track hp-bar-track--sm"
+               role="progressbar" aria-label="Puntos de vida del jugador"
+               aria-valuenow="65" aria-valuemax="100">
+            <div class="hp-bar-fill" id="hdr-player-hp-fill"
+                 data-bind="state.playerHpPct + '%'" style="width:65%;"></div>
+          </div>
+          <span class="hp-bar-text" id="hdr-player-hp-text"
+                data-bind="state.playerHp + ' / ' + state.playerHpMax">65 / 100</span>
+        </div>
+        <span class="hdr-gold" id="hdr-gold"
+              data-bind="'⬡ ' + state.gold + ' Monedas'">⬡ 340 Monedas</span>
+      </div>
+    </header>
+
+    <div id="s1-body">
+
+      <!-- LEFT: MAP -->
+      <aside id="s1-sidebar-map" aria-label="Mapa de mazmorras">
+        <div class="zone-label">Mapa</div>
+        <nav class="minimap-row" id="s1-minimap-row" aria-label="Salas exploradas">
+          <div class="minimap-node" data-room-index="0" title="Sala inicial">·</div>
+          <span class="minimap-connector" aria-hidden="true">—</span>
+          <div class="minimap-node minimap-node--active" data-room-index="1" title="Sala actual">⚔</div>
+          <span class="minimap-connector" aria-hidden="true">—</span>
+          <div class="minimap-node" data-room-index="2" title="Sala desconocida">?</div>
+          <span class="minimap-connector" aria-hidden="true">—</span>
+          <div class="minimap-node" data-room-index="3" title="Sala desconocida">?</div>
+          <span class="minimap-connector" aria-hidden="true">—</span>
+          <div class="minimap-node" data-room-index="4" title="Jefe final">💀</div>
+        </nav>
+      </aside>
+
+      <!-- CENTER: ROOM CARD -->
+      <main id="s1-center">
+        <div id="s1-room-card">
+          <div class="placeholder-img" id="s1-room-illustration"
+               aria-label="Ilustración de sala en primera persona"
+               style="min-height:340px;">
+            ILUSTRACIÓN SALA (primera persona)
+          </div>
+          <div class="room-card-footer">
+            <h2 id="s1-room-name" data-bind="state.roomName">Sala del Guardián Caído</h2>
+            <p id="s1-room-desc" data-bind="state.roomDesc">
+              Las paredes de piedra rezuman humedad. Antorchas extintas cuelgan de sus soportes oxidados.
+              Un olor a muerte impregna el aire, y las huellas en el polvo sugieren que algo estuvo aquí recientemente.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <!-- RIGHT: ROOM INFO -->
+      <aside id="s1-sidebar-info" aria-label="Información de sala">
+        <div class="zone-label">Información de Sala</div>
+        <div class="field-row">
+          <span class="field-row__key">Dificultad</span>
+          <span class="field-row__val" id="s1-difficulty"
+                data-bind="state.roomDifficulty">Media</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Tiene Tesoro</span>
+          <span class="field-row__val" id="s1-has-treasure"
+                data-bind="state.roomHasTreasure ? 'Sí' : 'No'">Sí</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Tiene Enemigo</span>
+          <span class="field-row__val" id="s1-has-enemy"
+                data-bind="state.roomHasEnemy ? 'Sí' : 'No'">No</span>
+        </div>
+        <div class="zone-label" style="margin-top:var(--spacing-2);">Log de Eventos</div>
+        <div id="s1-event-log" aria-live="polite" aria-label="Registro de eventos">
+          <p class="log-entry log-entry--placeholder">Sin eventos aún</p>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer id="s1-footer">
+      <button class="btn btn--primary" id="btn-avanzar"
+              data-action="advanceRoom" data-state="default">Avanzar</button>
+      <div class="btn-divider" role="separator" aria-hidden="true"></div>
+      <button class="btn" id="btn-explorar"
+              data-action="searchTreasure" data-state="default">Explorar</button>
+      <button class="btn" id="btn-inventory"
+              data-action="openInventory" data-state="default">Inventario</button>
+            <div class="save-slot-controls" aria-label="Selector de slot de guardado">
+        <label class="save-slot-label" for="save-slot-picker">Slot</label>
+        <select id="save-slot-picker" class="save-slot-picker" aria-label="Slot para guardar partida">
+          <option value="1" selected>1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+        <button class="btn" id="btn-guardar"
+          data-action="saveGame" data-state="default">Guardar</button>
+            </div>
+      <div class="btn-divider" role="separator" aria-hidden="true"></div>
+      <button class="btn btn--ghost" id="btn-forzar-combate"
+              data-action="forceCombat" data-state="default">Forzar Combate</button>
+    </footer>
+
+  </section>
+
+
+  <!-- ================================================================
+       SCREEN 2: COMBAT
+  ================================================================ -->
+  <section class="screen" id="screen-combat" data-label="PANTALLA 2 · COMBATE">
+
+    <header class="site-header" id="s2-header">
+      <div class="hdr-left">
+        <span class="hdr-dungeon-name" id="hdr-dungeon-name-combat"
+              data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-combat"
+              data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
+      </div>
+      <div class="hdr-center" id="hdr-room-progress-combat"
+           data-bind="'Sala ' + state.room + ' / ' + state.totalRooms">
+        Sala 3 / 12
+      </div>
+      <div class="hdr-right">
+        <div class="hp-bar-group">
+          <span class="hp-bar-label">HP</span>
+          <div class="hp-bar-track hp-bar-track--sm"
+               role="progressbar" aria-label="HP del jugador"
+               aria-valuenow="65" aria-valuemax="100">
+            <div class="hp-bar-fill" id="hdr-player-hp-fill-combat"
+                 data-bind="state.playerHpPct + '%'" style="width:65%;"></div>
+          </div>
+          <span class="hp-bar-text" id="hdr-player-hp-text-combat"
+                data-bind="state.playerHp + ' / ' + state.playerHpMax">65 / 100</span>
+        </div>
+        <span class="hdr-gold" id="hdr-gold-combat"
+              data-bind="'⬡ ' + state.gold + ' Monedas'">⬡ 340 Monedas</span>
+      </div>
+    </header>
+
+    <main id="s2-main">
+
+      <!-- LEFT 60%: Duel -->
+      <section id="s2-duel-zone" aria-label="Vista de duelo">
+        <div class="placeholder-img" id="s2-duel-illustration"
+             aria-label="Ilustración de duelo en primera persona">
+          ILUSTRACIÓN DUELO (primera persona)
+        </div>
+        <div class="duel-name-row">
+          <h2 id="s2-enemy-name-duel" data-bind="state.enemy.name">Espectro de Malgrath</h2>
+        </div>
+      </section>
+
+      <!-- RIGHT 40%: Enemy status -->
+      <aside id="s2-enemy-panel" aria-label="Estado del enemigo">
+        <div class="zone-label">Estado del Enemigo</div>
+        <span id="s2-enemy-name" data-bind="state.enemy.name">Espectro de Malgrath</span>
+        <div class="enemy-hp-wrap">
+          <span class="hp-bar-label">HP Enemigo</span>
+          <div class="hp-bar-track hp-bar-track--lg"
+               role="progressbar" aria-label="HP del enemigo"
+               aria-valuenow="45" aria-valuemax="100">
+            <div class="hp-bar-fill" id="s2-enemy-hp-fill"
+                 data-bind="state.enemy.hpPct + '%'" style="width:45%;"></div>
+          </div>
+          <span class="hp-bar-text" id="s2-enemy-hp-text"
+                data-bind="state.enemy.hp + ' / ' + state.enemy.hpMax">45 / 100</span>
+        </div>
+        <div>
+          <span class="tier-badge" id="s2-enemy-tier"
+                data-tier="elite" data-bind="state.enemy.tier">Elite</span>
+        </div>
+        <div class="zone-label" style="margin-bottom:4px;">Efectos de Estado</div>
+        <div class="status-effects-row" id="s2-status-effects">
+          <div class="status-slot" id="s2-status-slot-1" data-effect="" aria-label="Efecto 1: vacío">—</div>
+          <div class="status-slot" id="s2-status-slot-2" data-effect="" aria-label="Efecto 2: vacío">—</div>
+          <div class="status-slot" id="s2-status-slot-3" data-effect="" aria-label="Efecto 3: vacío">—</div>
+          <div class="status-slot" id="s2-status-slot-4" data-effect="" aria-label="Efecto 4: vacío">—</div>
+        </div>
+      </aside>
+
+    </main>
+
+    <!-- ACTION PANEL -->
+    <section id="s2-action-panel" aria-label="Acciones de combate">
+      <button class="btn btn--primary" id="btn-atacar"
+              data-action="attack" data-state="default">Atacar</button>
+      <button class="btn" id="btn-defender"
+              data-action="defend" data-state="default">Defender</button>
+      <button class="btn" id="btn-usar-objeto"
+            data-action="openInventory" data-state="default">Usar Objeto</button>
+      <button class="btn" id="btn-habilidad"
+              data-action="useSkill" data-state="default">Habilidad</button>
+    </section>
+
+    <!-- COMBAT LOG -->
+    <section id="s2-combat-log" aria-label="Log de combate" aria-live="polite">
+      <div class="zone-label">Log de Combate</div>
+      <p class="log-entry">[Turno 1] El Espectro de Malgrath te ataca. Pierdes 12 HP.</p>
+      <p class="log-entry">[Turno 2] Atacas al Espectro. Infliges 18 de daño.</p>
+      <p class="log-entry">[Turno 3] El Espectro usa Drenaje de Alma. Pierdes 8 HP.</p>
+    </section>
+
+  </section>
+
+
+  <!-- ================================================================
+       SCREEN 3: INVENTORY
+  ================================================================ -->
+  <section class="screen" id="screen-inventory" data-label="PANTALLA 3 · INVENTARIO">
+
+    <header class="site-header" id="s3-header">
+      <div class="hdr-left">
+        <span class="hdr-dungeon-name" id="hdr-dungeon-name-inv"
+              data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-inv"
+              data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
+      </div>
+      <div class="hdr-center" id="hdr-room-progress-inv"
+           data-bind="'Sala ' + state.room + ' / ' + state.totalRooms">
+        Sala 3 / 12
+      </div>
+      <div class="hdr-right">
+        <div class="hp-bar-group">
+          <span class="hp-bar-label">HP</span>
+          <div class="hp-bar-track hp-bar-track--sm"
+               role="progressbar" aria-label="HP del jugador"
+               aria-valuenow="65" aria-valuemax="100">
+            <div class="hp-bar-fill" id="hdr-player-hp-fill-inv"
+                 data-bind="state.playerHpPct + '%'" style="width:65%;"></div>
+          </div>
+          <span class="hp-bar-text" id="hdr-player-hp-text-inv"
+                data-bind="state.playerHp + ' / ' + state.playerHpMax">65 / 100</span>
+        </div>
+        <span class="hdr-gold" id="hdr-gold-inv"
+              data-bind="'⬡ ' + state.gold + ' Monedas'">⬡ 340 Monedas</span>
+      </div>
+    </header>
+
+    <div id="s3-body">
+
+      <!-- LEFT: Categories
+           Solo Consumible tiene lógica real en InteractiveGame.java.
+           Agregar botones aquí únicamente cuando se implemente el backend.
+      -->
+      <aside id="s3-cat-panel" aria-label="Categorías de objetos">
+        <div class="zone-label">Categorías</div>
+        <button class="cat-btn cat-btn--active" id="cat-consumable"
+                data-action="filterCategory"
+                aria-pressed="true">Consumible</button>
+      </aside>
+
+      <!-- CENTER: Item list -->
+      <main id="s3-item-list" aria-label="Lista de objetos">
+        <div class="inv-capacity-bar">
+          <span class="zone-label" style="margin-bottom:0;">Objetos</span>
+          <span class="inv-capacity-text">
+            <span id="s3-capacity-current" data-bind="state.inventory.itemCount">3</span>
+            <span class="inv-capacity-sep">/</span>
+            <span id="s3-capacity-max" data-bind="state.inventory.maxCapacity">20</span>
+          </span>
+        </div>
+
+        <div id="s3-item-rows">
+          <div class="item-row item-row--selected" id="item-row-1"
+               data-item-id="pocion-vida" data-item-index="0"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="true">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Poción de Vida</span>
+            <span class="item-type-badge">Consumible</span>
+          </div>
+
+          <div class="item-row" id="item-row-2"
+               data-item-id="pocion-vida" data-item-index="1"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="false">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Poción de Vida</span>
+            <span class="item-type-badge">Consumible</span>
+          </div>
+
+          <div class="item-row" id="item-row-3"
+               data-item-id="antidoto" data-item-index="2"
+               data-action="selectItem"
+               role="button" tabindex="0" aria-selected="false">
+            <div class="item-icon" aria-hidden="true">IMG</div>
+            <span class="item-name">Antídoto</span>
+            <span class="item-type-badge">Consumible</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- RIGHT: Detail panel -->
+      <aside id="s3-detail-panel" aria-label="Detalle del objeto seleccionado">
+        <div class="zone-label">Detalle</div>
+        <div id="s3-detail-icon" aria-label="Icono del objeto">IMG</div>
+        <h2 id="s3-item-name" data-bind="state.selectedItem.name">Poción de Vida</h2>
+        <span class="detail-type-label" id="s3-item-type"
+              data-type="consumible" data-bind="state.selectedItem.type">Consumible</span>
+        <p id="s3-item-desc" data-bind="state.selectedItem.desc">
+          Un frasco de cristal sellado que contiene un líquido rojizo burbujeante.
+          Emana un leve resplandor caliente al tacto.
+        </p>
+        <div class="detail-effect-box" id="s3-item-effect"
+             data-bind="'Efecto: ' + state.selectedItem.effect">
+          Efecto: Restaura 50 HP al consumirse. Uso único.
+        </div>
+        <!--
+          s3-item-valor → item.getValorTotal()   (SimpleItem/ItemComponent)
+          s3-item-peso  → item.getPesoTotal()    (SimpleItem/ItemComponent)
+          NO usar getValor()/getPeso() — Item.java legacy
+        -->
+        <div class="detail-stats-row">
+          <div class="field-row">
+            <span class="field-row__key">Valor</span>
+            <span class="field-row__val" id="s3-item-valor"
+                  data-bind="item.getValorTotal()">50</span>
+          </div>
+          <div class="field-row">
+            <span class="field-row__key">Peso</span>
+            <span class="field-row__val" id="s3-item-peso"
+                  data-bind="item.getPesoTotal() + ' kg'">1 kg</span>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- FOOTER
+         btn-use-item-inv: siempre default mientras solo exista categoría Consumible.
+         Java dispatch: inv-use-item → buscarConsumiblePorNombre("poci") o ("antid")
+    -->
+    <footer id="s3-footer">
+      <button class="btn btn--primary" id="btn-use-item-inv"
+              data-action="useItem" data-state="default"
+              title="Disponible solo para Consumibles (usarPocion / usarAntidoto)">Usar</button>
+      <button class="btn" id="btn-back-inv"
+              data-action="closeInventory" data-state="default">Volver</button>
+    </footer>
+
+  </section>
+
+  <!-- ================================================================
+       SCREEN 4: SELECCION DE HEROE
+  ================================================================ -->
+  <section class="screen" id="screen-hero" data-label="PANTALLA 4 · HÉROE">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:var(--spacing-3);">
+      <div class="hero-screen-shell">
+        <h1 class="menu-title">Elige tu Héroe</h1>
+        <p class="menu-subtitle">selecciona tu clase para esta aventura</p>
+        <div class="hero-step-label">PASO 1 — CLASE DE HÉROE</div>
+        <div class="hero-selection-grid" id="hero-cards-container">
+          <div class="hero-card hero-card--selected" id="hero-card-guerrero" data-hero="guerrero" data-action="selectHero" role="button" tabindex="0">
+            <div class="hero-card__icon">🗡️</div><div class="hero-card__name">Guerrero</div><div class="hero-card__desc">alta vida y resistencia</div>
+            <div class="hero-stat-row">
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">100</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:60%"></div></div><span class="hero-stat__val">18</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">25</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:45%"></div></div><span class="hero-stat__val">10</span></div>
+            </div>
+            <div class="hero-selected-badge">SELECCIONADO</div>
+          </div>
+          <div class="hero-card" id="hero-card-mago" data-hero="mago" data-action="selectHero" role="button" tabindex="0">
+            <div class="hero-card__icon">🔮</div><div class="hero-card__name">Mago</div><div class="hero-card__desc">menor vida, alto daño</div>
+            <div class="hero-stat-row">
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:55%"></div></div><span class="hero-stat__val">55</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">30</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:32%"></div></div><span class="hero-stat__val">8</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">22</span></div>
+            </div>
+            <div class="hero-selected-badge">SELECCIONADO</div>
+          </div>
+          <div class="hero-card" id="hero-card-arquero" data-hero="arquero" data-action="selectHero" role="button" tabindex="0">
+            <div class="hero-card__icon">🏹</div><div class="hero-card__name">Arquero</div><div class="hero-card__desc">balance daño y supervivencia</div>
+            <div class="hero-stat-row">
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:75%"></div></div><span class="hero-stat__val">75</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:80%"></div></div><span class="hero-stat__val">24</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:60%"></div></div><span class="hero-stat__val">15</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:91%"></div></div><span class="hero-stat__val">20</span></div>
+            </div>
+            <div class="hero-selected-badge">SELECCIONADO</div>
+          </div>
+        </div>
+        <div class="hero-step-label">PASO 2 — MAZMORRA</div>
+        <div class="theme-picker-grid">
+          <button class="theme-card" id="theme-card-fire" data-action="heroNewGame" data-theme="fire" data-state="default"><span class="theme-card__name">Volcán de Ignareth</span><span class="theme-card__sub">🔥 Fuego · 7 salas</span></button>
+          <button class="theme-card" id="theme-card-ice" data-action="heroNewGame" data-theme="ice" data-state="default"><span class="theme-card__name">Catacumbas de Glaciurvh</span><span class="theme-card__sub">❄️ Hielo · 8 salas</span></button>
+          <button class="theme-card" id="theme-card-poison" data-action="heroNewGame" data-theme="poison" data-state="default"><span class="theme-card__name">Pantanos de Viridax</span><span class="theme-card__sub">☠️ Veneno · 8 salas</span></button>
+          <button class="theme-card" id="theme-card-dark" data-action="heroNewGame" data-theme="dark" data-state="default"><span class="theme-card__name">Ciudadela de Umbrakar</span><span class="theme-card__sub">🌑 Oscuridad · 10 salas</span></button>
+        </div>
+        <div style="display:flex;gap:var(--spacing-2);justify-content:flex-end;margin-top:var(--spacing-1);">
+          <button class="btn" data-action="backToMenu">Volver al Menú</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 5: ESTADISTICAS
+  ================================================================ -->
+  <section class="screen" id="screen-stats" data-label="PANTALLA 5 · ESTADÍSTICAS">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:var(--spacing-3);">
+      <div class="stats-shell">
+        <h1 class="menu-title">Estadísticas</h1>
+        <div class="stats-hero-banner">
+          <div class="stats-hero-icon" id="stats-hero-icon">🗡️</div>
+          <div><div class="stats-hero-name" id="stats-hero-name">Guerrero</div><div class="stats-hero-type" id="stats-hero-type">clase · guerrero</div></div>
+        </div>
+        <div class="stats-grid-2">
+          <div>
+            <div class="stats-section-title">ATRIBUTOS</div>
+            <div class="stat-chip-row">
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-hp">100</span><span class="stat-chip__lbl">vida</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-atk">18</span><span class="stat-chip__lbl">ataque</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-def">25</span><span class="stat-chip__lbl">defensa</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-spd">10</span><span class="stat-chip__lbl">velocidad</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="stats-section-title">PARTIDA ACTUAL</div>
+            <div class="stat-chip-row">
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-rooms">0</span><span class="stat-chip__lbl">salas</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-enemies">0</span><span class="stat-chip__lbl">enemigos</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-gold">0</span><span class="stat-chip__lbl">oro</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-items">0</span><span class="stat-chip__lbl">objetos</span></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="stats-section-title">ESTADO ACTUAL</div>
+          <div class="field-row"><span class="field-row__key">HP</span><div class="hp-bar-group" style="flex:1;"><div class="hp-bar-track" style="flex:1;width:auto;"><div class="hp-bar-fill" id="stats-hp-fill" style="width:100%;"></div></div><span class="hp-bar-text" id="stats-hp-text">100 / 100</span></div></div>
+          <div class="field-row"><span class="field-row__key">Oro</span><span class="field-row__val" id="stats-gold-display">⦡ 0 Monedas</span></div>
+          <div class="field-row"><span class="field-row__key">Mazmorra</span><span class="field-row__val" id="stats-dungeon">—</span></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:var(--spacing-2);">
+          <button class="btn btn--primary" data-action="closeStats">Volver al Menú</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 6: SALA DE TESORO
+  ================================================================ -->
+  <section class="screen" id="screen-treasure" data-label="PANTALLA 6 · TESORO">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:var(--spacing-3);">
+      <div class="treasure-shell">
+        <div class="treasure-victory-banner">
+          <div class="treasure-victory-icon">💀 → 🏆</div>
+          <div class="treasure-victory-title" id="treasure-enemy-name">Enemigo eliminado</div>
+          <div class="treasure-victory-sub">exp ganada: <strong id="treasure-exp">+150</strong> &nbsp;·&nbsp; oro: <strong id="treasure-gold">+80</strong></div>
+        </div>
+        <div class="zone-label">Objetos encontrados</div>
+        <div class="loot-list" id="treasure-loot-list">
+          <div class="loot-item loot-item--selected" data-loot-index="0"><div class="loot-item__icon">⚔️</div><div class="loot-item__info"><div class="loot-item__name">Espada de Llamas</div><div class="loot-item__desc">daño: 28 · quemadura al golpear</div></div><span class="loot-rarity loot-rarity--raro">rara</span></div>
+          <div class="loot-item" data-loot-index="1"><div class="loot-item__icon">🧪</div><div class="loot-item__info"><div class="loot-item__name">Pocion de Vida Mayor</div><div class="loot-item__desc">restaura 60 hp</div></div><span class="loot-rarity loot-rarity--comun">comun</span></div>
+        </div>
+        <div>
+          <div class="zone-label">Resumen</div>
+          <div class="treasure-summary-row">
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-rooms">0</span><span class="stat-chip__lbl">salas</span></div>
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-enemies">0</span><span class="stat-chip__lbl">enemigos</span></div>
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-total-gold">0</span><span class="stat-chip__lbl">oro total</span></div>
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-items">0</span><span class="stat-chip__lbl">objetos</span></div>
+            <div class="stat-chip"><span class="stat-chip__val" id="treasure-hp">—</span><span class="stat-chip__lbl">hp actual</span></div>
+          </div>
+        </div>
+        <div style="border:1px dashed var(--theme-border-dim);padding:var(--spacing-1) var(--spacing-2);font-size:18px;color:var(--theme-text-dim);">✓ checkpoint guardado — sala <span id="treasure-checkpoint-room">1</span></div>
+        <div style="display:flex;gap:var(--spacing-2);justify-content:flex-end;">
+          <button class="btn btn--primary" id="btn-take-all" data-action="takeLoot">Tomar todo</button>
+          <button class="btn" id="btn-skip-loot" data-action="skipLoot">Continuar sin recoger</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 7: SLOTS DE GUARDADO
+  ================================================================ -->
+  <section class="screen" id="screen-saves" data-label="PANTALLA 7 · GUARDADO">
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:var(--spacing-3);">
+      <div class="saves-shell">
+        <h1 class="menu-title">Ranuras de Guardado</h1>
+        <p class="menu-subtitle" style="text-align:left;">memento — selecciona una ranura</p>
+        <div class="save-slot-row save-slot-row--empty" id="save-slot-row-1" data-slot="1" data-action="selectSaveSlot" role="button" tabindex="0">
+          <span class="save-slot__number">01</span><span class="save-slot__icon" id="save-slot-icon-1">💭</span>
+          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-hero-1">ranura vacía</div><div class="save-slot__details" id="save-slot-details-1">—</div><div class="save-slot__date" id="save-slot-date-1"></div></div>
+          <span class="save-slot__type-badge" id="save-slot-type-1">vacío</span>
+        </div>
+        <div class="save-slot-row save-slot-row--empty" id="save-slot-row-2" data-slot="2" data-action="selectSaveSlot" role="button" tabindex="0">
+          <span class="save-slot__number">02</span><span class="save-slot__icon" id="save-slot-icon-2">💭</span>
+          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-hero-2">ranura vacía</div><div class="save-slot__details" id="save-slot-details-2">—</div><div class="save-slot__date" id="save-slot-date-2"></div></div>
+          <span class="save-slot__type-badge" id="save-slot-type-2">vacío</span>
+        </div>
+        <div class="save-slot-row save-slot-row--empty" id="save-slot-row-3" data-slot="3" data-action="selectSaveSlot" role="button" tabindex="0">
+          <span class="save-slot__number">03</span><span class="save-slot__icon" id="save-slot-icon-3">💭</span>
+          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-hero-3">ranura vacía</div><div class="save-slot__details" id="save-slot-details-3">—</div><div class="save-slot__date" id="save-slot-date-3"></div></div>
+          <span class="save-slot__type-badge" id="save-slot-type-3">vacío</span>
+        </div>
+        <div class="saves-actions">
+          <button class="btn" id="btn-back-saves" data-action="backToMenu">Volver</button>
+          <button class="btn" id="btn-load-slot" data-action="loadFromSlot">Cargar seleccionado</button>
+          <button class="btn btn--primary" id="btn-save-slot" data-action="saveToSlot">Guardar aquí</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 8: GAME OVER
+  ================================================================ -->
+  <section class="screen" id="screen-gameover" data-label="PANTALLA 8 · GAME OVER">
+    <div class="gameover-shell">
+      <div class="gameover-skull">💀</div>
+      <div class="gameover-title">Game Over</div>
+      <div class="gameover-subtitle"><span id="gameover-hero-name">el guerrero</span> ha caído<br><span id="gameover-context">derrotado por un enemigo</span></div>
+      <div class="gameover-stats-row">
+        <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-rooms">0</span><span class="gameover-stat-chip__lbl">salas explor.</span></div>
+        <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-enemies">0</span><span class="gameover-stat-chip__lbl">enemigos</span></div>
+        <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-gold">0</span><span class="gameover-stat-chip__lbl">oro ganado</span></div>
+        <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-turns">0</span><span class="gameover-stat-chip__lbl">turnos</span></div>
+      </div>
+      <div class="gameover-actions">
+        <button class="gameover-btn gameover-btn--restore" id="btn-restore-game" data-action="restoreGame" data-state="default">[ R ] — Cargar último guardado</button>
+        <button class="gameover-btn" id="btn-menu-from-gameover" data-action="backToMenu" data-state="default">[ M ] — Volver al menú</button>
+        <button class="gameover-btn" id="btn-new-game-from-gameover" data-action="newGame" data-state="default" style="border-color:#CC0000;color:#CC0000;">[ N ] — Nueva partida</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       STORY WINDOW: LORE NARRATIVO
+  ================================================================ -->
+  <div class="lore-overlay" id="lore-window-overlay" aria-hidden="true">
+    <section class="lore-window" role="dialog" aria-modal="true" aria-labelledby="lore-window-title">
+      <div class="lore-window__eyebrow" id="lore-window-eyebrow">CRÓNICAS</div>
+      <h2 class="lore-window__title" id="lore-window-title">Título del relato</h2>
+      <p class="lore-window__subtitle" id="lore-window-subtitle">Subtítulo temático</p>
+      <div class="lore-window__body" id="lore-window-body">
+        <p class="lore-window__line">La historia se revelará aquí...</p>
+      </div>
+      <div class="lore-window__actions">
+        <button class="btn btn--primary" id="btn-lore-close" data-action="dismissLoreWindow">Continuar</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================================================================
+    JAVA BRIDGE — Integración real con JavaFX WebEngine
+    Bridge: webEngine.setOnAlert(e -> dispatcher.handle(e.getData()))
+    Push:   engine.executeScript("window.updateGameState(" + json + ")")
+  ================================================================ -->
+  <script src="scripts/game.js"></script>
+
+</body>
+</html>

@@ -74,6 +74,18 @@ public class StrategyPatternTest {
         // Debería atacar al más débil (Héroe 2 con 50 HP)
         assertEquals("Héroe 2", ataque.getDefensor().getNombre());
     }
+
+    @Test
+    public void testDefensiveStrategyDoesNotPermaDefendLowMaxHpEnemies() {
+        Personaje salamandra = new EnemigoBasico("Salamandra", 30, 6);
+        salamandra.recibirDanio(1); // 29/30: aún no está en vida crítica relativa
+
+        AIStrategy estrategia = new DefensiveStrategy();
+        Command comando = estrategia.decidirAccion(salamandra, heroes);
+
+        assertTrue(comando instanceof AttackCommand,
+            "Un enemigo en 29/30 HP no debe entrar en defensa permanente");
+    }
     
     @Test
     public void testIntelligentStrategyPrioritizesWeakEnemies() {

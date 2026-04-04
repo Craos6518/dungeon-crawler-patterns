@@ -109,9 +109,9 @@ public class SetupDomainState extends AbstractDomainGameState {
     
     private Personaje elegirHeroe() {
         System.out.println("\n¿Qué clase deseas elegir?");
-        System.out.println("1. 💪 Guerrero (150 HP, 25 ATK)");
-        System.out.println("2. 🏹 Arquero (120 HP, 28 ATK)");
-        System.out.println("3. 🔮 Mago (100 HP, 35 ATK)");
+        System.out.println("1. 💪 Guerrero (100 HP, 18 ATK)");
+        System.out.println("2. 🏹 Arquero (75 HP, 24 ATK)");
+        System.out.println("3. 🔮 Mago (55 HP, 30 ATK)");
         System.out.println("4. Volver");
 
         int seleccion = leerOpcion(1, 4);
@@ -127,9 +127,9 @@ public class SetupDomainState extends AbstractDomainGameState {
         }
 
         return switch (seleccion) {
-            case 1 -> new GuerreroFactory(150, 25).crearPersonaje(nombre);
-            case 2 -> new ArqueroFactory(120, 28).crearPersonaje(nombre);
-            case 3 -> new MagoFactory(100, 35).crearPersonaje(nombre);
+            case 1 -> new GuerreroFactory(100, 18).crearPersonaje(nombre);
+            case 2 -> new ArqueroFactory(75, 24).crearPersonaje(nombre);
+            case 3 -> new MagoFactory(55, 30).crearPersonaje(nombre);
             default -> null;
         };
     }

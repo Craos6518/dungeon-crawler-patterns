@@ -1,6 +1,12 @@
-# Guia Auditada para Generacion de Mockups con IA
+# Guia Auditada para Generacion de Mockups con IA (Opcion 1)
 
 Este documento esta auditado y alineado exclusivamente con lo que el juego implementa hoy en runtime (consola), sin incluir contenido objetivo a futuro.
+
+Decision oficial de interfaz:
+
+- Se adopta Opcion 1: interfaz por tarjetas/pantallas estaticas con botones de accion.
+- No se adopta Opcion 2 como runtime actual: exploracion en mapa 2D jugable con movimiento libre.
+- Se permite arte de fondo estilo sala (primera persona) solo como ilustracion contextual, no como escenario navegable.
 
 ## 1. Alcance real hoy
 
@@ -115,12 +121,12 @@ Eventos usados por el sistema observer y flujo actual:
 
 Existen otros tipos definidos en enum, pero no todos estan conectados al loop principal de gameplay actual.
 
-## 6. Proceso recomendado para Figma Make (no generico)
+## 6. Proceso recomendado para IA de diseno (no generico)
 
 Para evitar resultados blandos, usar 2 fases separadas:
 
 1. Fase Wireframe (estructura sin arte)
-2. Fase Visual (aplicar estilo pixel art sobre estructura aprobada)
+2. Fase Visual (aplicar estilo retro sobre estructura aprobada)
 
 No mezclar ambas fases en un solo prompt inicial.
 
@@ -156,7 +162,7 @@ Generar exactamente 3 pantallas base con layout consistente:
     - centro: progreso de sala `x/y`
     - derecha: HP y oro
 - Columna izquierda (ancho 280 px): minimapa lineal
-- Area central (ancho flexible): viewport de sala actual
+- Area central (ancho flexible): tarjeta principal de sala (imagen estatica + overlay de texto)
 - Columna derecha (ancho 300 px): panel contextual
     - nombre sala
     - descripcion corta
@@ -173,7 +179,7 @@ Generar exactamente 3 pantallas base con layout consistente:
 
 - Header igual a exploracion para consistencia.
 - Zona central dividida 60/40:
-    - 60% izquierda: zona de duelo heroe vs enemigo
+    - 60% izquierda: tarjeta visual de duelo heroe vs enemigo (estatica)
     - 40% derecha: panel de estado del enemigo
 - Panel inferior (alto 160 px): acciones de combate
     - Atacar
@@ -199,10 +205,11 @@ Aplicar estilo solo cuando wireframe este aprobado.
 
 ### 8.1 Direccion artistica concreta
 
-- Estilo: pixel art 16-bit, alto contraste, bordes marcados.
-- Forma UI: paneles rectangulares con marco pixel de 2 px.
+- Estilo: dark fantasy retro, alto contraste, bordes marcados.
+- Forma UI: paneles rectangulares, tarjetas con marco consistente.
 - Sombra: offset corto (2 px x 2 px), sin blur moderno.
-- Iconografia: pixel icons de 16x16 y 24x24.
+- Iconografia: iconos 16x16 y 24x24 con lectura clara.
+- Animacion minima: hover/pressed en botones, cambio de barra de HP, flash corto de dano.
 
 ### 8.2 Tipografia
 
@@ -251,10 +258,14 @@ Estas reglas son duras, no opcionales:
 - Misma nomenclatura de acciones del juego real.
 - No inventar mecanicas nuevas (llaves, puzles, puertas bloqueadas, gadgets especiales).
 
-## 10. Prompt maestro para Figma Make (copiar/pegar)
+## 10. Prompts listos para IA de diseno
+
+Los siguientes prompts estan optimizados para generar la interfaz de Opcion 1.
+
+### 10.1 Prompt maestro (estructura + estilo)
 
 ```text
-Create a coherent UI kit and 3 desktop game screens for a retro 2D dungeon crawler.
+Create a coherent UI kit and 3 desktop game screens for a linear dungeon crawler that uses static room cards and action buttons (no free movement map).
 
 Hard constraints:
 - Use 1366x768 frames, 12-column grid, 24px margins, 16px gutters, 8px spacing scale.
@@ -268,6 +279,8 @@ Gameplay canon (must match current implementation):
 - Last room is final encounter.
 - Minimap state symbols: [⚔] current, [·] cleared, [?] pending, [💀] final.
 - Initial inventory: Pocion de Vida, Antidoto.
+- Exploration actions: Avanzar, Explorar, Inventario, Guardar, Forzar combate.
+- Combat actions: Atacar, Defender, Usar objeto, Habilidad.
 - Theme loot and enemies only:
     Fire: Gema de Fuego, Espada Flamigera, Salamandra de Fuego, Orco Flamigero, Dragon de Fuego Ancestral.
     Ice: Cristal de Hielo, Baculo del Invierno, Lobo de Hielo, Orco Glacial, Dragon de Escarcha.
@@ -275,14 +288,206 @@ Gameplay canon (must match current implementation):
     Dark: Runa Oscura, Armadura de las Sombras, Sombra Errante, Caballero Oscuro, Senor de las Sombras.
 
 Visual direction:
-- 16-bit pixel-art UI, crisp borders, no modern blur-heavy glassmorphism.
+- Dark fantasy + retro UI, crisp borders, no modern blur-heavy glassmorphism.
 - Use Press Start 2P (or similar pixel font) for headings and VT323 (or similar) for body text.
 - Include 4 theme-ready color token sets (Fire/Ice/Poison/Dark) and keep component structure identical.
+
+Interaction model:
+- The central room is a static illustration card in first-person perspective.
+- Do not render top-down navigation gameplay.
+- Add only micro-animations: button hover/press, HP bar transitions, hit flash.
 
 Do not include:
 - puzzle mechanics
 - key-door systems
 - branching minimap node graphs
 - non-implemented special gadgets
+- joystick / WASD controls
 ```
+
+### 10.2 Prompt de solo wireframe (fase 1)
+
+```text
+Create low-fidelity wireframes only (no textures, no final colors) for 3 desktop screens: Exploration, Combat, Inventory.
+
+Mandatory layout system:
+- 1366x768
+- 12-column grid
+- 24px outer margins
+- 16px gutters
+- 8px spacing scale
+
+Exploration screen:
+- Header 80px: dungeon+theme (left), room progress x/y (center), HP+gold (right)
+- Left 280px: linear minimap panel
+- Center flexible: static room card with title + short description
+- Right 300px: room metadata (difficulty, tieneTesoro, tieneEnemigo)
+- Footer 120px actions: Avanzar (primary), Explorar, Inventario, Guardar, Forzar combate
+
+Combat screen:
+- Same header
+- Main area 60/40: duel card (left), enemy status panel (right)
+- Action panel 160px: Atacar, Defender, Usar objeto, Habilidad
+- Log panel 80px below action panel
+
+Inventory screen:
+- Same header
+- 3 columns: categories, item list, item detail
+- Footer: Usar (primary), Volver
+
+Keep the same component positions across all three screens.
+```
+
+### 10.3 Prompt de visual final (fase 2)
+
+```text
+Apply a final visual style to the approved wireframes.
+
+Style constraints:
+- Dark fantasy retro interface
+- Crisp panel borders and card containers
+- High contrast text readability
+- No modern glossy or heavy glass effects
+- Button states: idle, hover, pressed, disabled
+- HP bar and enemy HP bar with clear loss segment
+
+Theme tokens (must keep same layout, only swap palette accents):
+- Fire: #E4572E #FF9F1C #2B1A17 #FFD166
+- Ice: #4EA8DE #90E0EF #102A43 #CAF0F8
+- Poison: #588157 #7FB069 #1B2A1E #B7E4C7
+- Dark: #6C5CE7 #A29BFE #121420 #C9C9FF
+
+Output components:
+- UI kit page (buttons, bars, cards, badges, minimap symbols)
+- Exploration screen (final)
+- Combat screen (final)
+- Inventory screen (final)
+```
+
+### 10.4 Prompt para variantes por tema
+
+```text
+Duplicate the 3 final screens into 4 visual theme variants: Fire, Ice, Poison, Dark.
+Do not move components. Only change color accents, background illustration, and icon tint according to each theme.
+Keep text labels and action names identical.
+```
+
+## 11. Vinculacion de UI con imagenes y motor del juego
+
+Esta seccion define como conectar lo visual con el runtime sin romper la arquitectura actual.
+
+### 11.1 Contrato de datos que la UI necesita
+
+La UI por tarjetas debe consumir un objeto de estado de pantalla construido desde DomainStates:
+
+```text
+GameViewModel
+- dungeonName
+- theme
+- roomIndex
+- roomTotal
+- hpActual
+- hpMax
+- gold
+- roomName
+- roomDescription
+- roomDifficulty
+- hasTreasure
+- hasEnemy
+- playerActions[]
+- minimapSymbols[]
+- inventoryItems[]
+- combatInfo (opcional)
+```
+
+### 11.2 Mapeo de imagenes (tarjetas estaticas)
+
+- Clave recomendada: `theme + roomDifficulty + combatFlag`.
+- Ejemplo de ruta: `assets/cards/fire/room_normal_explore.png`.
+- Si no existe imagen especifica, usar fallback por tema: `assets/cards/fire/default.png`.
+- No bloquear flujo por falta de asset; registrar warning y seguir con fallback.
+
+### 11.3 Mapeo de botones a comandos del motor
+
+Botones de exploracion:
+
+- Avanzar -> comando `advanceRoom()`
+- Explorar -> comando `searchTreasure()`
+- Inventario -> comando `openInventory()`
+- Guardar -> comando `saveGame(slot)`
+- Forzar combate -> comando `forceCombat()`
+
+Botones de combate:
+
+- Atacar -> comando `attack()`
+- Defender -> comando `defend()`
+- Usar objeto -> comando `useItem(itemId)`
+- Habilidad -> comando `useSkill(skillId)`
+
+Regla de UI:
+
+- La UI solo dispara comandos.
+- El motor resuelve logica y publica eventos.
+- La UI se refresca desde estado nuevo, no por mutaciones locales ad hoc.
+
+### 11.4 Mapeo de descripciones y texto contextual
+
+- `roomName` y `roomDescription` se toman de la sala actual.
+- Texto de panel derecho: dificultad + flags (`hasTreasure`, `hasEnemy`).
+- El log inferior de combate consume eventos recientes (`COMBATE_INICIADO`, `ITEM_USADO`, `COMBATE_FINALIZADO`).
+
+### 11.5 Mapeo de pociones y loot al inventario
+
+Inventario inicial:
+
+- Pocion de Vida
+- Antidoto
+
+Render recomendado por item:
+
+- `itemName`
+- `itemType` (Consumible, Tesoro, Arma, Armadura, Runa, Gema)
+- `itemRarity` (si aplica)
+- `itemDescription`
+- `itemEffectSummary`
+- `itemIconKey`
+
+Al usar pocion:
+
+- UI envia `useItem(itemId)`.
+- Motor aplica efecto y emite `ITEM_USADO`.
+- UI actualiza barra HP, cantidad restante y log.
+
+Al obtener loot:
+
+- Motor resuelve drop por tema (Abstract Factory).
+- UI muestra notificacion breve (toast/panel) con nombre de item.
+- Item aparece en lista de inventario al recargar `GameViewModel`.
+
+### 11.6 Mapeo de minimapa lineal
+
+- Derivar simbolos desde `roomIndex` y `roomTotal`.
+- Reglas:
+    - sala actual: `[⚔]`
+    - salas previas: `[·]`
+    - salas futuras: `[?]`
+    - ultima sala: `[💀]`
+
+Ejemplo: `Mapa: [·]-[⚔]-[?]-[?]-[💀]`.
+
+### 11.7 Eventos observer que deben refrescar UI
+
+Refrescar al menos en:
+
+- `ESTADO_CAMBIADO`
+- `COMBATE_INICIADO`
+- `COMBATE_FINALIZADO`
+- `ITEM_USADO`
+- `JUEGO_GUARDADO`
+- `JUEGO_CARGADO`
+
+Recomendacion tecnica:
+
+- Implementar un adaptador `GamePresenter` que traduzca eventos y estado de dominio a `GameViewModel`.
+- Mantener renderer desacoplado de logica para poder cambiar Swing/JavaFX sin tocar gameplay.
 
