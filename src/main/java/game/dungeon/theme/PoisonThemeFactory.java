@@ -25,7 +25,7 @@ public class PoisonThemeFactory implements DungeonThemeFactory {
 
     @Override
     public Personaje crearJefe() {
-        return new Dragon("Hidra Tóxica", 140, 23);
+        return new Dragon("Arachnovex", 120, 20);
     }
 
     @Override

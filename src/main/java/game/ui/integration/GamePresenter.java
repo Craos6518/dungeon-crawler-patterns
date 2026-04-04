@@ -41,6 +41,10 @@ public class GamePresenter {
                 session.dungeon().themeKey(),
                 session.combatLog()
             );
+
+            if (vm.enemy != null && session.combat().isBossFight()) {
+                vm.enemy.tier = "jefe";
+            }
         } else {
             vm = GameViewModel.ofExploracion(
                 dungeon,

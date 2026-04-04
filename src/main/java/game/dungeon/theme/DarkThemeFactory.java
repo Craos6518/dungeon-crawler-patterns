@@ -24,8 +24,8 @@ public class DarkThemeFactory implements DungeonThemeFactory {
 
     @Override
     public Personaje crearJefe() {
-        return new Personaje("Señor de las Sombras", 200) {
-            private final int poderOscuro = 30;
+        return new Personaje("Malachar", 200) {
+            private final int poderOscuro = 35;
             
             @Override
             public game.combat.model.ResultadoAtaque atacar(Personaje objetivo) {

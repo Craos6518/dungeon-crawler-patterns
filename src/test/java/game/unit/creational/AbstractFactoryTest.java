@@ -74,7 +74,7 @@ public class AbstractFactoryTest {
         
         Personaje jefe = factory.crearJefe();
         assertNotNull(jefe);
-        assertEquals("Señor de las Sombras", jefe.getNombre());
+        assertEquals("Malachar", jefe.getNombre());
     }
 
     @Test

@@ -25,7 +25,7 @@ public class FireThemeFactory implements DungeonThemeFactory {
 
     @Override
     public Personaje crearJefe() {
-        return new Dragon("Dragón de Fuego Ancestral", 150, 25);
+        return new Dragon("Pyraxis", 150, 28);
     }
 
     @Override

@@ -28,11 +28,12 @@
           'Pasillos de obsidiana negra y rios de lava forjan un ciclo de fuego y renacimiento.'
         ],
         guardianName: 'Pyraxis',
-        guardianTitle: 'Salamandra Ancestral · Piedra del Fuego Eterno',
+        guardianTitle: 'Guardiana de Ignareth · Salamandra Ancestral',
         guardianLines: [
-          'Guardiana maldita de la primera llama del mundo; prisionera eterna de su deber.',
-          'Estadisticas: vida 85 · ataque 95 · defensa 70 · velocidad 75.',
-          'Habilidades: Llamarada Eterna, Renacimiento de Cenizas, Aura Abrasadora.'
+          'VIDA 150 · ATAQUE 28 · DEFENSA 20.',
+          'Antes de ser guardiana, Pyraxis fue un ser libre.',
+          'La maldicion de Thessanor la encadeno a la Piedra del Fuego Eterno: mientras el artefacto exista, ella no puede morir, pero tampoco puede abandonar las cavernas.',
+          'Cada aventurero que derrota reaviva en ella la esperanza de que alguno sea lo suficientemente fuerte como para liberarla.'
         ],
         endingTitle: 'El Corazon del Volcan se ha Apagado',
         endingSubtitle: 'Final de Volcan de Ignareth',
@@ -53,11 +54,12 @@
           'Aqui el hielo no solo congela el cuerpo: ralentiza pensamientos y adormece la voluntad.'
         ],
         guardianName: 'Kryovaleth',
-        guardianTitle: 'Dragon de Invierno · Cristal del Hielo Primordial',
+        guardianTitle: 'Espiritu del Invierno · Dragon de Hielo',
         guardianLines: [
-          'No nacio: se formo de siglos de nieve y dolor.',
-          'Estadisticas: vida 90 · ataque 70 · defensa 95 · velocidad 40.',
-          'Habilidades: Aliento Gelido, Prision de Escarcha, Silencio Invernal.'
+          'VIDA 140 · ATAQUE 24 · DEFENSA 30.',
+          'No recuerda haber sido creado: simplemente existe, como el frio.',
+          'Sus estrategias de combate son adaptativas; comienza defensivo, evaluando al rival, y solo ataca cuando la victoria esta garantizada al 97%.',
+          'Es la personificacion del patron Strategy en su forma mas pura.'
         ],
         endingTitle: 'El Invierno Eterno se Derrite',
         endingSubtitle: 'Final de Catacumbas de Glaciurvh',
@@ -78,11 +80,12 @@
           'El veneno no mata de golpe: corrompe capa por capa, como un decorador no deseado sobre una base sana.'
         ],
         guardianName: 'Arachnovex',
-        guardianTitle: 'Reina Tejedora · Semilla de la Vida Corrupta',
+        guardianTitle: 'La Reina Tejedora · Arana Primigenia',
         guardianLines: [
-          'Cada uno de sus ocho ojos refleja un alma atrapada.',
-          'Estadisticas: vida 80 · ataque 80 · defensa 75 · velocidad 85.',
-          'Habilidades: Red de Corrupcion, Veneno Degenerador, Telarana Viva.'
+          'VIDA 120 · ATAQUE 20 · DEFENSA 13.',
+          'Arachnovex teje trampas con la misma precision con que un programador disena una trampa en el codigo.',
+          'Sus ataques no son directos: aplican veneno, quemadura y entumecimiento en capas sucesivas, decoradores apilados uno sobre otro.',
+          'La presa colapsa sin entender que la mato.'
         ],
         endingTitle: 'El Pantano Purificado',
         endingSubtitle: 'Final de Pantanos de Viridax',
@@ -103,11 +106,12 @@
           'Sin un memento solido, quienes entran son sobrescritos y regresan sin identidad.'
         ],
         guardianName: 'Malachar',
-        guardianTitle: 'Senor del Vacio · Fragmento de la Oscuridad Absoluta',
+        guardianTitle: 'El Sin-Nombre · Senor del Vacio',
         guardianLines: [
-          'No es un ser vivo, sino una abstraccion: la encarnacion del olvido.',
-          'Estadisticas: vida 75 · ataque 85 · defensa 60 · velocidad 95.',
-          'Habilidades: Sobrescritura Total, Fragmentacion de Memoria, Ciclo del Olvido.'
+          'VIDA 200 · ATAQUE 35 · DEFENSA 25.',
+          'Malachar no ataca el cuerpo: ataca el estado.',
+          'Su habilidad mas temida, Borrar Memoria, revierte al heroe a su estado anterior sin guardar, como un rollback de Memento.',
+          'Derrotarlo requiere no solo fuerza, sino un sistema de persistencia impecable.'
         ],
         endingTitle: 'La Sombra se Disipa',
         endingSubtitle: 'Final de Ciudadela de Umbrakar',
