@@ -288,6 +288,32 @@
           <div class="status-slot" id="s2-status-slot-3" data-effect="" aria-label="Efecto 3: vacío">—</div>
           <div class="status-slot" id="s2-status-slot-4" data-effect="" aria-label="Efecto 4: vacío">—</div>
         </div>
+        <div class="zone-label" style="margin-top:var(--spacing-2);">Recurso del Héroe</div>
+        <div class="field-row">
+          <span class="field-row__key" id="s2-resource-type">Recurso</span>
+          <span class="field-row__val" id="s2-resource-value">0 / 0</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Carga</span>
+          <span class="field-row__val" id="s2-resource-pct">0%</span>
+        </div>
+        <div class="zone-label" style="margin-top:var(--spacing-2);">Táctica del Jugador</div>
+        <div class="field-row">
+          <span class="field-row__key">Estilo</span>
+          <span class="field-row__val" id="s2-style-current">Balanceado</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Buff Poder</span>
+          <span class="field-row__val" id="s2-buff-power">0</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Buff Guardia</span>
+          <span class="field-row__val" id="s2-buff-guard">0</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Checkpoint</span>
+          <span class="field-row__val" id="s2-checkpoint-state">Sin guardar</span>
+        </div>
       </aside>
 
     </main>
@@ -302,6 +328,20 @@
             data-action="openInventory" data-state="default">Usar Objeto</button>
       <button class="btn" id="btn-habilidad"
               data-action="useSkill" data-state="default">Habilidad</button>
+          <button class="btn" id="btn-style-balanced"
+            data-action="setCombatStyle" data-style="balanced" data-state="default">Estilo Balanceado</button>
+          <button class="btn" id="btn-style-aggressive"
+            data-action="setCombatStyle" data-style="aggressive" data-state="default">Estilo Agresivo</button>
+          <button class="btn" id="btn-style-defensive"
+            data-action="setCombatStyle" data-style="defensive" data-state="default">Estilo Defensivo</button>
+          <button class="btn" id="btn-buff-power"
+            data-action="applyBuff" data-buff="power" data-state="default">Buff Poder</button>
+          <button class="btn" id="btn-buff-guard"
+            data-action="applyBuff" data-buff="guard" data-state="default">Buff Guardia</button>
+          <button class="btn" id="btn-save-checkpoint"
+            data-action="saveCombatCheckpoint" data-state="default">Guardar Checkpoint</button>
+          <button class="btn" id="btn-rollback-checkpoint"
+            data-action="rollbackCombatCheckpoint" data-state="default">Restaurar Checkpoint</button>
           <button class="btn" id="btn-quick-item"
             data-action="consumeSelectedItem" data-state="default">Consumible Rápido</button>
           <button class="btn" id="btn-retreat"
@@ -499,10 +539,10 @@
         </div>
         <div class="hero-step-label">PASO 2 — MAZMORRA</div>
         <div class="theme-picker-grid">
-          <button class="theme-card" id="theme-card-fire" data-action="heroNewGame" data-theme="fire" data-state="default"><span class="theme-card__name">Volcán de Ignareth</span><span class="theme-card__sub">🔥 Fuego · 7 salas</span></button>
-          <button class="theme-card" id="theme-card-ice" data-action="heroNewGame" data-theme="ice" data-state="default"><span class="theme-card__name">Catacumbas de Glaciurvh</span><span class="theme-card__sub">❄️ Hielo · 8 salas</span></button>
-          <button class="theme-card" id="theme-card-poison" data-action="heroNewGame" data-theme="poison" data-state="default"><span class="theme-card__name">Pantanos de Viridax</span><span class="theme-card__sub">☠️ Veneno · 8 salas</span></button>
-          <button class="theme-card" id="theme-card-dark" data-action="heroNewGame" data-theme="dark" data-state="default"><span class="theme-card__name">Ciudadela de Umbrakar</span><span class="theme-card__sub">🌑 Oscuridad · 10 salas</span></button>
+          <button class="theme-card" id="theme-card-poison" data-action="heroNewGame" data-theme="poison" data-state="default"><span class="theme-card__name">Pantanos de Viridax</span><span class="theme-card__sub">🕷️ 1 · Arachnovex · Veneno · 8 salas</span></button>
+          <button class="theme-card" id="theme-card-ice" data-action="heroNewGame" data-theme="ice" data-state="default"><span class="theme-card__name">Catacumbas de Glaciurvh</span><span class="theme-card__sub">🐲 2 · Kryovaleth · Hielo · 8 salas</span></button>
+          <button class="theme-card" id="theme-card-fire" data-action="heroNewGame" data-theme="fire" data-state="default"><span class="theme-card__name">Volcán de Ignareth</span><span class="theme-card__sub">🐉 3 · Pyraxis · Fuego · 7 salas</span></button>
+          <button class="theme-card" id="theme-card-dark" data-action="heroNewGame" data-theme="dark" data-state="default"><span class="theme-card__name">Ciudadela de Umbrakar</span><span class="theme-card__sub">👁️ 4 · Malachar · Oscuridad · 10 salas</span></button>
         </div>
         <div style="display:flex;gap:var(--spacing-2);justify-content:flex-end;margin-top:var(--spacing-1);">
           <button class="btn" data-action="backToMenu">Volver al Menú</button>

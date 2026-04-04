@@ -42,6 +42,7 @@ public class UseSkillUseCase {
 
             String usedSkill = result.skillName == null ? "Golpe Especial" : result.skillName;
             session.appendCombat(session.player().name() + " usa " + usedSkill + " e inflige " + result.playerDamage + " de dano.");
+            CombatUseCaseSupport.appendResourceFlow(session, result);
 
             session.eventManager().notificar(new GameEvent(EventType.ACCION_REALIZADA)
                 .agregarDato("personaje", session.player().name())

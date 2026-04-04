@@ -30,7 +30,7 @@
         guardianName: 'Pyraxis',
         guardianTitle: 'Guardiana de Ignareth · Salamandra Ancestral',
         guardianLines: [
-          'VIDA 150 · ATAQUE 28 · DEFENSA 20.',
+          'VIDA 225 · ATAQUE 29 · DEFENSA 36.',
           'Antes de ser guardiana, Pyraxis fue un ser libre.',
           'La maldicion de Thessanor la encadeno a la Piedra del Fuego Eterno: mientras el artefacto exista, ella no puede morir, pero tampoco puede abandonar las cavernas.',
           'Cada aventurero que derrota reaviva en ella la esperanza de que alguno sea lo suficientemente fuerte como para liberarla.'
@@ -56,7 +56,7 @@
         guardianName: 'Kryovaleth',
         guardianTitle: 'Espiritu del Invierno · Dragon de Hielo',
         guardianLines: [
-          'VIDA 140 · ATAQUE 24 · DEFENSA 30.',
+          'VIDA 190 · ATAQUE 25 · DEFENSA 32.',
           'No recuerda haber sido creado: simplemente existe, como el frio.',
           'Sus estrategias de combate son adaptativas; comienza defensivo, evaluando al rival, y solo ataca cuando la victoria esta garantizada al 97%.',
           'Es la personificacion del patron Strategy en su forma mas pura.'
@@ -82,7 +82,7 @@
         guardianName: 'Arachnovex',
         guardianTitle: 'La Reina Tejedora · Arana Primigenia',
         guardianLines: [
-          'VIDA 120 · ATAQUE 20 · DEFENSA 13.',
+          'VIDA 150 · ATAQUE 21 · DEFENSA 18.',
           'Arachnovex teje trampas con la misma precision con que un programador disena una trampa en el codigo.',
           'Sus ataques no son directos: aplican veneno, quemadura y entumecimiento en capas sucesivas, decoradores apilados uno sobre otro.',
           'La presa colapsa sin entender que la mato.'
@@ -108,7 +108,7 @@
         guardianName: 'Malachar',
         guardianTitle: 'El Sin-Nombre · Senor del Vacio',
         guardianLines: [
-          'VIDA 200 · ATAQUE 35 · DEFENSA 25.',
+          'VIDA 290 · ATAQUE 33 · DEFENSA 40.',
           'Malachar no ataca el cuerpo: ataca el estado.',
           'Su habilidad mas temida, Borrar Memoria, revierte al heroe a su estado anterior sin guardar, como un rollback de Memento.',
           'Derrotarlo requiere no solo fuerza, sino un sistema de persistencia impecable.'

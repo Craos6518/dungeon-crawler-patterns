@@ -17,7 +17,7 @@ class GameRuntimeDungeonTransitionResetTest {
 
     @Test
     void lockedCampaignStartsNextDungeonWithInheritedProgressAndFullHeal() throws Exception {
-        GameSession completedSession = GameSessionFactory.createSessionForTheme("fire", "mago");
+        GameSession completedSession = GameSessionFactory.createSessionForTheme("poison", "mago");
         completedSession.player().restoreProgress(3, 40, 73, 900, 12);
         completedSession.inventory().add(new SimpleItem(
             "Elixir Arcano",
@@ -27,7 +27,7 @@ class GameRuntimeDungeonTransitionResetTest {
             1
         ));
         completedSession.setHeroSelectionLocked(true);
-        completedSession.markThemeCompleted("fire");
+        completedSession.markThemeCompleted("poison");
         completedSession.setActiveScreen("hero");
 
         GameRuntime runtime = new GameRuntime(completedSession);
@@ -54,7 +54,7 @@ class GameRuntimeDungeonTransitionResetTest {
         assertEquals(4, startedSession.inventory().size());
         assertTrue(startedSession.inventory().items().stream().anyMatch(i -> "Elixir Arcano".equals(i.getName())));
 
-        assertTrue(startedSession.isThemeCompleted("fire"));
+        assertTrue(startedSession.isThemeCompleted("poison"));
         assertTrue(startedSession.isHeroSelectionLocked());
         assertEquals("ice", startedSession.dungeon().themeKey());
         assertEquals("exploration", startedSession.activeScreen());

@@ -36,7 +36,7 @@ class CombatSystemTest {
         Player player = Player.demo();
         player.receiveDamage(100); // 10 HP restantes
 
-        Enemy enemy = new Enemy(new EnemigoBasico("Lobo", 80, 6));
+        Enemy enemy = new Enemy(new EnemigoBasico("Lobo", 80, 6), 9, 6, 18);
         CombatSystem system = new CombatSystem();
         TurnManager turnManager = new TurnManager();
         turnManager.activateDefense();
@@ -52,9 +52,9 @@ class CombatSystemTest {
         );
 
         assertTrue(player.isAlive());
-        assertEquals(7, player.hp());
-        assertEquals(3, outcome.mitigatedDamage);
-        assertEquals(3, outcome.finalDamage);
+        assertEquals(5, player.hp());
+        assertEquals(4, outcome.mitigatedDamage);
+        assertEquals(5, outcome.finalDamage);
     }
 
     @Test
@@ -62,7 +62,7 @@ class CombatSystemTest {
         Player player = Player.demo();
         player.receiveDamage(107); // 3 HP restantes
 
-        Enemy enemy = new Enemy(new EnemigoBasico("Lobo", 80, 6));
+        Enemy enemy = new Enemy(new EnemigoBasico("Lobo", 80, 6), 9, 6, 18);
         CombatSystem system = new CombatSystem();
         TurnManager turnManager = new TurnManager();
         turnManager.activateDefense();
@@ -81,5 +81,32 @@ class CombatSystemTest {
         assertEquals(0, player.hp());
         assertEquals(0, outcome.mitigatedDamage);
         assertEquals(3, outcome.finalDamage);
+    }
+
+    @Test
+    void speedGapControlsInitiativeAndDoubleTurns() {
+        Player player = Player.demo();
+        CombatSystem system = new CombatSystem();
+
+        Enemy fastEnemy = new Enemy(
+            new EnemigoBasico("Cazador", 50, 8),
+            8,
+            8,
+            player.speedStat() + 12
+        );
+        Enemy slowEnemy = new Enemy(
+            new EnemigoBasico("Bruto", 50, 8),
+            8,
+            8,
+            Math.max(1, player.speedStat() - 12)
+        );
+
+        assertTrue(system.enemyActsFirst(player, fastEnemy));
+        assertEquals(2, system.enemyActionCount(player, fastEnemy));
+        assertEquals(1, system.playerActionCount(player, fastEnemy));
+
+        assertFalse(system.enemyActsFirst(player, slowEnemy));
+        assertEquals(1, system.enemyActionCount(player, slowEnemy));
+        assertEquals(2, system.playerActionCount(player, slowEnemy));
     }
 }

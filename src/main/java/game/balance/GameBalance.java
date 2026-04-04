@@ -16,10 +16,16 @@ public final class GameBalance {
     );
 
     private static final Map<String, BossProfile> BOSSES = Map.of(
-        "fire", new BossProfile("fire", "Pyraxis el Corazon de Ceniza", 165, 27),
-        "ice", new BossProfile("ice", "Kryovaleth Vigia del Invierno", 155, 26),
-        "poison", new BossProfile("poison", "Arachnovex Matriarca Toxica", 145, 23),
-        "dark", new BossProfile("dark", "Malachar Heraldo del Vacio", 220, 34)
+        "poison", new BossProfile("poison", "Arachnovex", 150, 21, 18, 18),
+        "ice", new BossProfile("ice", "Kryovaleth", 190, 25, 32, 20),
+        "fire", new BossProfile("fire", "Pyraxis", 225, 29, 36, 23),
+        "dark", new BossProfile("dark", "Malachar", 290, 33, 40, 27)
+    );
+
+    private static final Map<String, ResourceProfile> RESOURCES = Map.of(
+        "guerrero", new ResourceProfile("stamina", 100, 18, 14, 26, 8, 12),
+        "mago", new ResourceProfile("mana", 120, 22, 16, 34, 6, 10),
+        "arquero", new ResourceProfile("concentracion", 110, 16, 12, 28, 10, 14)
     );
 
     private GameBalance() {
@@ -31,6 +37,10 @@ public final class GameBalance {
 
     public static BossProfile boss(String themeKey) {
         return BOSSES.getOrDefault(normalize(themeKey), BOSSES.get("fire"));
+    }
+
+    public static ResourceProfile resource(String heroType) {
+        return RESOURCES.getOrDefault(normalize(heroType), RESOURCES.get("guerrero"));
     }
 
     public static String normalize(String value) {
@@ -55,7 +65,20 @@ public final class GameBalance {
         String themeKey,
         String name,
         int hp,
-        int attack
+        int attack,
+        int defense,
+        int speed
+    ) {
+    }
+
+    public record ResourceProfile(
+        String resourceName,
+        int max,
+        int attackRecovery,
+        int defendRecovery,
+        int skillCost,
+        int buffCost,
+        int checkpointCost
     ) {
     }
 }

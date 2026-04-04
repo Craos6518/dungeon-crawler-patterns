@@ -14,15 +14,19 @@ import game.application.dto.UseSkillCommandRequest;
 import game.application.state.GameSession;
 import game.application.state.GameSessionFactory;
 import game.application.usecase.AdvanceTurnUseCase;
+import game.application.usecase.ApplyCombatBuffUseCase;
 import game.application.usecase.AttackUseCase;
 import game.application.usecase.DefendUseCase;
 import game.application.usecase.ForceCombatUseCase;
 import game.application.usecase.LoadGameUseCase;
 import game.application.usecase.MoveInventorySelectionUseCase;
 import game.application.usecase.RetreatCombatUseCase;
+import game.application.usecase.RollbackCombatCheckpointUseCase;
+import game.application.usecase.SaveCombatCheckpointUseCase;
 import game.application.usecase.SaveGameUseCase;
 import game.application.usecase.SearchTreasureUseCase;
 import game.application.usecase.SelectInventoryItemUseCase;
+import game.application.usecase.SetCombatStyleUseCase;
 import game.application.usecase.UseItemUseCase;
 import game.application.usecase.UseSkillUseCase;
 import game.persistence.memento.GameMemento;
@@ -63,6 +67,10 @@ public class GameRuntime implements GameCommandHandler {
     private AttackUseCase attackUseCase;
     private DefendUseCase defendUseCase;
     private RetreatCombatUseCase retreatCombatUseCase;
+    private SetCombatStyleUseCase setCombatStyleUseCase;
+    private ApplyCombatBuffUseCase applyCombatBuffUseCase;
+    private SaveCombatCheckpointUseCase saveCombatCheckpointUseCase;
+    private RollbackCombatCheckpointUseCase rollbackCombatCheckpointUseCase;
     private UseItemUseCase useItemUseCase;
     private UseSkillUseCase useSkillUseCase;
     private SelectInventoryItemUseCase selectInventoryItemUseCase;
@@ -137,6 +145,10 @@ public class GameRuntime implements GameCommandHandler {
         this.attackUseCase = new AttackUseCase(session);
         this.defendUseCase = new DefendUseCase(session);
         this.retreatCombatUseCase = new RetreatCombatUseCase(session);
+        this.setCombatStyleUseCase = new SetCombatStyleUseCase(session);
+        this.applyCombatBuffUseCase = new ApplyCombatBuffUseCase(session);
+        this.saveCombatCheckpointUseCase = new SaveCombatCheckpointUseCase(session);
+        this.rollbackCombatCheckpointUseCase = new RollbackCombatCheckpointUseCase(session);
         this.useItemUseCase = new UseItemUseCase(session);
         this.useSkillUseCase = new UseSkillUseCase(session);
         this.selectInventoryItemUseCase = new SelectInventoryItemUseCase(session);
@@ -221,6 +233,25 @@ public class GameRuntime implements GameCommandHandler {
 
         map.put("retreatCombat", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             retreatCombatUseCase.execute();
+        }, this::validateDefendPayload));
+
+        map.put("setCombatStyle", TypedCommandHandler.of(JsonObject.class, Set.of("style"), payload -> {
+            setCombatStyleUseCase.execute(payload.get("style").getAsString());
+        }, this::validateSetCombatStylePayload));
+
+        map.put("applyBuff", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            String buffType = payload.has("type") && !payload.get("type").isJsonNull()
+                ? payload.get("type").getAsString()
+                : "power";
+            applyCombatBuffUseCase.execute(buffType);
+        }, this::validateApplyBuffPayload));
+
+        map.put("saveCombatCheckpoint", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            saveCombatCheckpointUseCase.execute();
+        }, this::validateDefendPayload));
+
+        map.put("rollbackCombatCheckpoint", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            rollbackCombatCheckpointUseCase.execute();
         }, this::validateDefendPayload));
 
         map.put("useItem", TypedCommandHandler.of(UseItemCommandRequest.class, Set.of(), payload -> {
@@ -511,8 +542,10 @@ public class GameRuntime implements GameCommandHandler {
     }
 
     private String resolveThemeOrDefault(String rawTheme) {
-        String theme = rawTheme != null ? rawTheme.trim().toLowerCase(Locale.ROOT) : "fire";
-        return SUPPORTED_THEME_KEYS.contains(theme) ? theme : "fire";
+        String nextTheme = session.nextCampaignTheme();
+        String fallback = nextTheme.isBlank() ? "poison" : nextTheme;
+        String theme = rawTheme != null ? rawTheme.trim().toLowerCase(Locale.ROOT) : fallback;
+        return SUPPORTED_THEME_KEYS.contains(theme) ? theme : fallback;
     }
 
     private String resolveHeroTypeForNewRun(String payloadHeroType) {
@@ -539,11 +572,36 @@ public class GameRuntime implements GameCommandHandler {
     }
 
     private void ensureThemeAvailableForCampaign(String theme) {
+        String nextTheme = session.nextCampaignTheme();
+        if (nextTheme.isBlank()) {
+            throw new InvalidRuntimeCommandException(
+                "La campana ya fue completada. Inicia una nueva o carga un guardado anterior."
+            );
+        }
+
         if (session.isThemeCompleted(theme)) {
             throw new InvalidRuntimeCommandException(
                 "Esa mazmorra ya fue conquistada. Elige una diferente."
             );
         }
+
+        if (!nextTheme.equals(theme)) {
+            throw new InvalidRuntimeCommandException(
+                "Orden de campana invalido. Debes completar primero "
+                    + themeToBossName(nextTheme)
+                    + "."
+            );
+        }
+    }
+
+    private static String themeToBossName(String themeKey) {
+        return switch (themeKey) {
+            case "poison" -> "Arachnovex";
+            case "ice" -> "Kryovaleth";
+            case "fire" -> "Pyraxis";
+            case "dark" -> "Malachar";
+            default -> "la siguiente mazmorra";
+        };
     }
 
     private GameSession createSessionPreservingCampaignProgress(String theme, String heroType) {
@@ -567,6 +625,7 @@ public class GameRuntime implements GameCommandHandler {
         int inheritedMaxHp = session.player().maxHp();
         int inheritedGold = session.player().gold();
         int inheritedDefeatedEnemies = session.player().defeatedEnemies();
+        int inheritedResource = session.player().resource();
 
         // Continúa la campaña con progreso acumulado y curación completa antes de la nueva mazmorra.
         newSession.player().restoreProgress(
@@ -574,7 +633,8 @@ public class GameRuntime implements GameCommandHandler {
             inheritedExperience,
             inheritedMaxHp,
             inheritedGold,
-            inheritedDefeatedEnemies
+            inheritedDefeatedEnemies,
+            inheritedResource
         );
 
         List<SimpleItem> inheritedItems = session.inventory().simpleItems().stream()
@@ -607,6 +667,33 @@ public class GameRuntime implements GameCommandHandler {
         validateEmptyPayload(payload);
         if (payload.has("skill")) {
             validateOptionalStringField(payload, "skill", true);
+        }
+    }
+
+    private void validateSetCombatStylePayload(JsonObject payload) {
+        validateEmptyPayload(payload);
+        validateRequiredStringField(payload, "style", false);
+
+        String style = payload.get("style").getAsString().trim().toLowerCase(Locale.ROOT);
+        if (!"balanced".equals(style) && !"aggressive".equals(style) && !"defensive".equals(style)) {
+            throw new InvalidRuntimeCommandException(
+                "style invalido. Valores permitidos: balanced, aggressive, defensive"
+            );
+        }
+    }
+
+    private void validateApplyBuffPayload(JsonObject payload) {
+        validateEmptyPayload(payload);
+        if (!payload.has("type") || payload.get("type").isJsonNull()) {
+            return;
+        }
+
+        validateOptionalStringField(payload, "type", false);
+        String type = payload.get("type").getAsString().trim().toLowerCase(Locale.ROOT);
+        if (!"power".equals(type) && !"guard".equals(type) && !"defense".equals(type)) {
+            throw new InvalidRuntimeCommandException(
+                "type invalido. Valores permitidos: power, guard, defense"
+            );
         }
     }
 

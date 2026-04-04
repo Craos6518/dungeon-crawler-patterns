@@ -6,7 +6,6 @@ import game.dungeon.model.Dungeon;
 import game.dungeon.model.Room;
 import game.domain.inventory.Item;
 import game.domain.personaje.Arquero;
-import game.domain.personaje.Guerrero;
 import game.domain.personaje.Mago;
 import game.domain.personaje.Personaje;
 import game.persistence.memento.GameMemento;
@@ -64,6 +63,21 @@ public class GamePresenter {
         vm.heroType = session.heroType();
         vm.heroSelectionLocked = session.isHeroSelectionLocked();
         vm.completedThemes = new ArrayList<>(session.completedThemes());
+        vm.nextCampaignTheme = session.nextCampaignTheme();
+        vm.campaignThemeOrder = new ArrayList<>(session.campaignThemeOrder());
+
+        vm.resource = new GameViewModel.ResourceInfo();
+        vm.resource.type = session.player().resourceType();
+        vm.resource.current = session.player().resource();
+        vm.resource.max = session.player().maxResource();
+        vm.resource.pct = safePct(vm.resource.current, vm.resource.max);
+
+        vm.combatTactics = new GameViewModel.CombatTacticsInfo();
+        vm.combatTactics.style = session.combat().playerStyle().displayName();
+        vm.combatTactics.offensiveBuffStacks = session.combat().offensiveBuffStacks();
+        vm.combatTactics.guardBuffStacks = session.combat().guardBuffStacks();
+        vm.combatTactics.hasCheckpoint = session.combat().hasTacticalCheckpoint();
+        vm.combatTactics.checkpointConsumed = session.combat().tacticalCheckpointConsumed();
 
         vm.eventLog = session.eventLog();
         vm.combatLog = session.combatLog();
@@ -176,9 +190,9 @@ public class GamePresenter {
         st.heroHp         = hero.getVida();
         st.heroHpMax      = hero.getVidaMaxima();
         st.heroHpPct      = safePct(hero.getVida(), hero.getVidaMaxima());
-        st.heroAtk        = inferHeroAttack(hero, heroType);
-        st.heroDef        = inferHeroDefense(heroType);
-        st.heroSpeed      = inferHeroSpeed(heroType);
+        st.heroAtk        = session.player().attackStat();
+        st.heroDef        = session.player().defenseStat();
+        st.heroSpeed      = session.player().speedStat();
         st.goldTotal      = session.player().gold();
         st.itemsCollected = session.inventory().items().size();
         st.roomsExplored  = session.dungeon().currentRoomIndex() + 1;
@@ -231,9 +245,10 @@ public class GamePresenter {
         st.heroHpMax = Math.max(0, readInt(charState.get("vidaMaxima"), st.heroHp));
         st.heroHpPct = safePct(st.heroHp, st.heroHpMax);
         GameBalance.HeroProfile profile = GameBalance.hero(heroType);
-        st.heroAtk = profile.attack();
-        st.heroDef = profile.defense();
-        st.heroSpeed = profile.speed();
+        int level = Math.max(1, readInt(charState.get("nivel"), memento.getNivelActual()));
+        st.heroAtk = profile.attack() + Math.max(0, level - 1) * 2;
+        st.heroDef = profile.defense() + Math.max(0, level - 1) * 2;
+        st.heroSpeed = profile.speed() + Math.max(0, level - 1);
         st.goldTotal = Math.max(0, readInt(charState.get("oroAcumulado"), 0));
         st.itemsCollected = extractItemsCount(inventoryState);
         st.roomsExplored = Math.max(1, memento.getSalaActual());
@@ -451,21 +466,6 @@ public class GamePresenter {
         };
     }
 
-    private static int inferHeroAttack(Personaje hero, String heroType) {
-        GameBalance.HeroProfile profile = GameBalance.hero(heroType);
-
-        if (hero instanceof Mago mago) {
-            return mago.getPoderMagico();
-        }
-        if (hero instanceof Arquero arquero) {
-            return arquero.getPrecision();
-        }
-        if (hero instanceof Guerrero) {
-            return profile.attack();
-        }
-        return profile.attack();
-    }
-
     private static int extractItemsCount(Map<String, Object> inventoryState) {
         if (inventoryState == null) {
             return 0;
@@ -475,14 +475,6 @@ public class GamePresenter {
             return list.size();
         }
         return 0;
-    }
-
-    private static int inferHeroDefense(String heroType) {
-        return GameBalance.hero(heroType).defense();
-    }
-
-    private static int inferHeroSpeed(String heroType) {
-        return GameBalance.hero(heroType).speed();
     }
 
     private static int safePct(int current, int max) {

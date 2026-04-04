@@ -37,6 +37,7 @@ public class DefendUseCase {
             }
 
             session.appendCombat("Te preparas para defender el proximo ataque.");
+            CombatUseCaseSupport.appendResourceFlow(session, result);
             CombatUseCaseSupport.appendEnemyTurnEffects(session, result, enemy);
 
             if (result.playerDefeated) {

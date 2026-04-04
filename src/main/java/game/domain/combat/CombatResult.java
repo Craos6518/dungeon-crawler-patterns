@@ -21,6 +21,20 @@ public class CombatResult {
     public boolean antidoteUsed;
     public boolean potionUsed;
 
+    public boolean styleChanged;
+    public String styleName;
+
+    public boolean buffApplied;
+    public String buffType;
+    public int buffStacks;
+
+    public boolean checkpointSaved;
+    public boolean checkpointRolledBack;
+
     public String warning;
     public String skillName;
+
+    public String resourceType;
+    public int resourceBefore;
+    public int resourceAfter;
 }

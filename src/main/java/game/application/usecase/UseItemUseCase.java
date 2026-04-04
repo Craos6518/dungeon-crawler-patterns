@@ -49,6 +49,8 @@ public class UseItemUseCase {
                 session.appendCombat("Estado alterado eliminado: veneno.");
             }
 
+            CombatUseCaseSupport.appendResourceFlow(session, result);
+
             session.eventManager().notificar(new game.events.observer.GameEvent(game.events.observer.EventType.ITEM_USADO)
                 .agregarDato("usuario", session.player().name())
                 .agregarDato("item", item.getName()));

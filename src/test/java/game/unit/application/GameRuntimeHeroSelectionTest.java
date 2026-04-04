@@ -23,7 +23,7 @@ class GameRuntimeHeroSelectionTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "mago");
-        payload.addProperty("theme", "fire");
+        payload.addProperty("theme", "poison");
         command.payload = payload;
 
         runtime.handleCommand(command);
@@ -42,7 +42,7 @@ class GameRuntimeHeroSelectionTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "arquero");
-        payload.addProperty("theme", "ice");
+        payload.addProperty("theme", "poison");
         command.payload = payload;
 
         runtime.handleCommand(command);
@@ -51,7 +51,7 @@ class GameRuntimeHeroSelectionTest {
         assertEquals("exploration", vm.screen);
         assertEquals(85, vm.playerHpMax);
         assertEquals(85, vm.playerHp);
-        assertEquals("ice", vm.theme);
+        assertEquals("poison", vm.theme);
     }
 
     @Test
@@ -79,9 +79,9 @@ class GameRuntimeHeroSelectionTest {
 
     @Test
     void lockedCampaignRejectsChangingHero() {
-        GameSession session = GameSessionFactory.createSessionForTheme("fire", "mago");
+        GameSession session = GameSessionFactory.createSessionForTheme("poison", "mago");
         session.setHeroSelectionLocked(true);
-        session.markThemeCompleted("fire");
+        session.markThemeCompleted("poison");
         session.setActiveScreen("hero");
 
         GameRuntime runtime = new GameRuntime(session);
@@ -98,9 +98,9 @@ class GameRuntimeHeroSelectionTest {
 
     @Test
     void completedThemeCannotBeStartedAgain() {
-        GameSession session = GameSessionFactory.createSessionForTheme("fire", "mago");
+        GameSession session = GameSessionFactory.createSessionForTheme("poison", "mago");
         session.setHeroSelectionLocked(true);
-        session.markThemeCompleted("fire");
+        session.markThemeCompleted("poison");
         session.setActiveScreen("hero");
 
         GameRuntime runtime = new GameRuntime(session);
@@ -109,7 +109,7 @@ class GameRuntimeHeroSelectionTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "mago");
-        payload.addProperty("theme", "fire");
+        payload.addProperty("theme", "poison");
         command.payload = payload;
 
         assertThrows(InvalidRuntimeCommandException.class, () -> runtime.handleCommand(command));
@@ -117,9 +117,9 @@ class GameRuntimeHeroSelectionTest {
 
     @Test
     void lockedCampaignAllowsNewThemeButKeepsSameHero() {
-        GameSession session = GameSessionFactory.createSessionForTheme("fire", "mago");
+        GameSession session = GameSessionFactory.createSessionForTheme("poison", "mago");
         session.setHeroSelectionLocked(true);
-        session.markThemeCompleted("fire");
+        session.markThemeCompleted("poison");
         session.setActiveScreen("hero");
 
         GameRuntime runtime = new GameRuntime(session);
@@ -137,6 +137,25 @@ class GameRuntimeHeroSelectionTest {
         assertEquals("exploration", vm.screen);
         assertEquals("ice", vm.theme);
         assertEquals(65, vm.playerHpMax);
-        assertTrue(vm.completedThemes.contains("fire"));
+        assertTrue(vm.completedThemes.contains("poison"));
+    }
+
+    @Test
+    void campaignOrderRejectsSkippingFirstDungeon() {
+        GameRuntime runtime = new GameRuntime();
+
+        UiCommand command = new UiCommand();
+        command.action = "heroNewGame";
+        JsonObject payload = new JsonObject();
+        payload.addProperty("heroType", "guerrero");
+        payload.addProperty("theme", "fire");
+        command.payload = payload;
+
+        InvalidRuntimeCommandException ex = assertThrows(
+            InvalidRuntimeCommandException.class,
+            () -> runtime.handleCommand(command)
+        );
+
+        assertTrue(ex.getMessage().contains("Arachnovex"));
     }
 }

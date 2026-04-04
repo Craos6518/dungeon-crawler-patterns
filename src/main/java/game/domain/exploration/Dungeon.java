@@ -1,6 +1,10 @@
 package game.domain.exploration;
 
+import game.balance.GameBalance;
 import game.domain.character.Enemy;
+import game.domain.personaje.Dragon;
+import game.domain.personaje.EnemigoBasico;
+import game.domain.personaje.Orco;
 import game.dungeon.builder.ConcreteDungeonBuilder;
 import game.dungeon.builder.DungeonBuilder;
 import game.dungeon.builder.ProceduralDungeonGenerator;
@@ -185,7 +189,7 @@ public class Dungeon {
             return Optional.empty();
         }
 
-        Enemy enemy = new Enemy(character);
+        Enemy enemy = buildEnemy(character, boss);
         enemy.setExperienceReward(Math.max(20, enemy.hp() * 2));
         return Optional.of(enemy);
     }
@@ -213,6 +217,36 @@ public class Dungeon {
             }
         }
         return symbols;
+    }
+
+    private Enemy buildEnemy(game.domain.personaje.Personaje character, boolean boss) {
+        if (boss) {
+            GameBalance.BossProfile profile = GameBalance.boss(themeKey());
+            return new Enemy(character, profile.attack(), profile.defense(), profile.speed());
+        }
+
+        if (character instanceof EnemigoBasico basic) {
+            int attack = basic.getAtaqueBase();
+            int defense = Math.max(6, attack + 3);
+            int speed = 18;
+            return new Enemy(character, attack, defense, speed);
+        }
+
+        if (character instanceof Orco orc) {
+            int attack = orc.getFuerza();
+            int defense = Math.max(10, attack + 6);
+            int speed = 12;
+            return new Enemy(character, attack, defense, speed);
+        }
+
+        if (character instanceof Dragon dragon) {
+            int attack = dragon.getFuegoDragon();
+            int defense = Math.max(12, attack + 8);
+            int speed = 16;
+            return new Enemy(character, attack, defense, speed);
+        }
+
+        return new Enemy(character);
     }
 
     private static String themeNameToKey(String themeName) {

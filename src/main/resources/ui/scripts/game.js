@@ -4,6 +4,8 @@
     var _selectedHeroType  = 'guerrero';
     var _heroSelectionLocked = false;
     var _completedThemes = [];
+    var _nextCampaignTheme = 'poison';
+    var _campaignThemeOrder = ['poison', 'ice', 'fire', 'dark'];
     var _selectedSaveSlot  = 1;
     var _selectedLootIndex = null;
     var _currentScreen = 'menu';
@@ -22,7 +24,7 @@
     var LORE_THEME_BOOK = {
       fire: {
         dungeonName: 'El Volcan de Ignareth',
-        dungeonIntroTitle: 'Primera Mazmorra',
+        dungeonIntroTitle: 'Tercera Mazmorra',
         dungeonIntroSubtitle: 'Bajo Ignareth arde un fuego que consume memorias',
         dungeonIntroLines: [
           'Bajo la montana de Ignareth arde un fuego que no consume madera sino memorias.',
@@ -30,10 +32,10 @@
           'No es solo un monstruo: es la guardiana legitima del artefacto, maldita a su rol eterno.',
           'Pasillos de obsidiana negra y rios de lava forjan un ciclo de fuego y renacimiento.'
         ],
-        guardianName: 'Pyraxis el Corazon de Ceniza',
+        guardianName: 'Pyraxis',
         guardianTitle: 'Guardian de Ignareth · Salamandra Ancestral',
         guardianLines: [
-          'VIDA 165 · ATAQUE 27 · DEFENSA 22.',
+          'VIDA 225 · ATAQUE 29 · DEFENSA 36.',
           'Antes de ser guardiana, Pyraxis fue un ser libre.',
           'La maldicion de Thessanor la encadeno a la Piedra del Fuego Eterno: mientras el artefacto exista, ella no puede morir, pero tampoco puede abandonar las cavernas.',
           'Cada aventurero que derrota reaviva en ella la esperanza de que alguno sea lo suficientemente fuerte como para liberarla.'
@@ -56,10 +58,10 @@
           'Kryovaleth, Dragon de Invierno, fue formado por siglos de nieve acumulada y dolor congelado.',
           'Aqui el hielo no solo congela el cuerpo: ralentiza pensamientos y adormece la voluntad.'
         ],
-        guardianName: 'Kryovaleth Vigia del Invierno',
-        guardianTitle: 'Centinela del Invierno · Dragon de Hielo',
+        guardianName: 'Kryovaleth',
+        guardianTitle: 'Espiritu del Invierno · Dragon de Hielo',
         guardianLines: [
-          'VIDA 155 · ATAQUE 26 · DEFENSA 30.',
+          'VIDA 190 · ATAQUE 25 · DEFENSA 32.',
           'No recuerda haber sido creado: simplemente existe, como el frio.',
           'Sus estrategias de combate son adaptativas; comienza defensivo, evaluando al rival, y solo ataca cuando la victoria esta garantizada al 97%.',
           'Es la personificacion del patron Strategy en su forma mas pura.'
@@ -74,7 +76,7 @@
       },
       poison: {
         dungeonName: 'Los Pantanos de Viridax',
-        dungeonIntroTitle: 'Tercera Mazmorra',
+        dungeonIntroTitle: 'Primera Mazmorra',
         dungeonIntroSubtitle: 'Vida retorcida, veneno y degeneracion lenta',
         dungeonIntroLines: [
           'En Viridax, la vida se pudre en patrones hermosos y peligrosos.',
@@ -82,10 +84,10 @@
           'Arachnovex, la Reina Tejedora, ha consumido tantos aventureros que sus ojos reflejan almas atrapadas.',
           'El veneno no mata de golpe: corrompe capa por capa, como un decorador no deseado sobre una base sana.'
         ],
-        guardianName: 'Arachnovex Matriarca Toxica',
+        guardianName: 'Arachnovex',
         guardianTitle: 'Reina Tejedora · Arana Primigenia',
         guardianLines: [
-          'VIDA 145 · ATAQUE 23 · DEFENSA 16.',
+          'VIDA 150 · ATAQUE 21 · DEFENSA 18.',
           'Arachnovex teje trampas con la misma precision con que un programador disena una trampa en el codigo.',
           'Sus ataques no son directos: aplican veneno, quemadura y entumecimiento en capas sucesivas, decoradores apilados uno sobre otro.',
           'La presa colapsa sin entender que la mato.'
@@ -108,10 +110,10 @@
           'Malachar no es un ser vivo: es la abstraccion del olvido.',
           'Sin un memento solido, quienes entran son sobrescritos y regresan sin identidad.'
         ],
-        guardianName: 'Malachar Heraldo del Vacio',
-        guardianTitle: 'El Sin-Nombre · Heraldo del Vacio',
+        guardianName: 'Malachar',
+        guardianTitle: 'El Sin-Nombre · Senor del Vacio',
         guardianLines: [
-          'VIDA 220 · ATAQUE 34 · DEFENSA 28.',
+          'VIDA 290 · ATAQUE 33 · DEFENSA 40.',
           'Malachar no ataca el cuerpo: ataca el estado.',
           'Su habilidad mas temida, Borrar Memoria, revierte al heroe a su estado anterior sin guardar, como un rollback de Memento.',
           'Derrotarlo requiere no solo fuerza, sino un sistema de persistencia impecable.'
@@ -179,11 +181,11 @@
       if (normalized === 'fire' || normalized === 'ice' || normalized === 'poison' || normalized === 'dark') {
         return normalized;
       }
-      return 'fire';
+      return 'poison';
     }
 
     function resolveThemeLore(themeKey) {
-      return LORE_THEME_BOOK[normalizeThemeKey(themeKey)] || LORE_THEME_BOOK.fire;
+      return LORE_THEME_BOOK[normalizeThemeKey(themeKey)] || LORE_THEME_BOOK.poison;
     }
 
     function buildHeroLoreEntry(heroType) {
@@ -267,7 +269,7 @@
       setNodeText('lore-window-subtitle', entry.subtitle || '');
       renderLoreBody(entry.lines || []);
 
-      overlay.dataset.theme = normalizeThemeKey(entry.theme || 'fire');
+      overlay.dataset.theme = normalizeThemeKey(entry.theme || 'poison');
       overlay.classList.add('lore-overlay--visible');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.classList.add('lore-open');
@@ -326,7 +328,7 @@
     }
 
     function evaluateLoreTriggers(state) {
-      var currentTheme = normalizeThemeKey(state.theme || 'fire');
+      var currentTheme = normalizeThemeKey(state.theme || 'poison');
 
       var currentFrame = {
         screen: String(state.screen || ''),
@@ -362,6 +364,13 @@
     function setNodeText(id, val) {
       var el = document.getElementById(id);
       if (el) el.textContent = (val !== null && val !== undefined) ? String(val) : '';
+    }
+
+    function formatResourceLabel(resourceType) {
+      var normalized = String(resourceType || '').trim().toLowerCase();
+      if (normalized === 'mana') return 'Mana';
+      if (normalized === 'concentracion') return 'Concentracion';
+      return 'Stamina';
     }
 
     function showTransientSystemMessage(message) {
@@ -461,6 +470,14 @@
       return _completedThemes.indexOf(String(themeKey || '').toLowerCase()) >= 0;
     }
 
+    function isThemeLockedByOrder(themeKey) {
+      var normalizedTheme = String(themeKey || '').toLowerCase();
+      if (!_nextCampaignTheme) {
+        return true;
+      }
+      return normalizedTheme !== String(_nextCampaignTheme).toLowerCase();
+    }
+
     function applyHeroScreenRestrictions() {
       document.querySelectorAll('.hero-card').forEach(function(card) {
         var cardHero = (card.dataset.hero || '').toLowerCase();
@@ -472,11 +489,21 @@
 
       document.querySelectorAll('.theme-card').forEach(function(card) {
         var themeKey = (card.dataset.theme || '').toLowerCase();
-        var isDisabled = isThemeCompleted(themeKey);
+        var alreadyCompleted = isThemeCompleted(themeKey);
+        var lockedByOrder = isThemeLockedByOrder(themeKey);
+        var isDisabled = alreadyCompleted || lockedByOrder;
         card.classList.toggle('theme-card--disabled', isDisabled);
         card.dataset.state = isDisabled ? 'disabled' : 'default';
         card.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
-        card.title = isDisabled ? 'Mazmorra ya completada' : '';
+        if (alreadyCompleted) {
+          card.title = 'Mazmorra ya completada';
+        } else if (lockedByOrder && _nextCampaignTheme) {
+          card.title = 'Primero debes completar: ' + String(_nextCampaignTheme);
+        } else if (lockedByOrder) {
+          card.title = 'Campaña completada';
+        } else {
+          card.title = '';
+        }
       });
     }
 
@@ -782,16 +809,16 @@
             sendCommand('newGame', {});
             return;
           } else if (action === 'heroNewGame') {
-            queueHeroAndDungeonLoreForSelection(el.dataset.theme || 'fire');
-            sendCommand('heroNewGame', { heroType: _selectedHeroType || 'guerrero', theme: el.dataset.theme || 'fire' });
+            queueHeroAndDungeonLoreForSelection(el.dataset.theme || 'poison');
+            sendCommand('heroNewGame', { heroType: _selectedHeroType || 'guerrero', theme: el.dataset.theme || 'poison' });
             return;
           } else if (action === 'startGame') {
             if (!_loreState.worldShown) {
               _loreState.worldShown = true;
               enqueueLoreWindow(buildWorldLoreEntry());
             }
-            enqueueLoreWindow(buildDungeonLoreEntry(el.dataset.theme || 'fire'));
-            sendCommand('startGame', { theme: el.dataset.theme || 'fire' });
+            enqueueLoreWindow(buildDungeonLoreEntry(el.dataset.theme || 'poison'));
+            sendCommand('startGame', { theme: el.dataset.theme || 'poison' });
             return;
           }
 
@@ -809,6 +836,14 @@
             sendCommand('attack', { targetId: 'current' });
           } else if (action === 'useSkill') {
             sendCommand('useSkill', {});
+          } else if (action === 'setCombatStyle') {
+            sendCommand('setCombatStyle', { style: el.dataset.style || 'balanced' });
+          } else if (action === 'applyBuff') {
+            sendCommand('applyBuff', { type: el.dataset.buff || 'power' });
+          } else if (action === 'saveCombatCheckpoint') {
+            sendCommand('saveCombatCheckpoint', {});
+          } else if (action === 'rollbackCombatCheckpoint') {
+            sendCommand('rollbackCombatCheckpoint', {});
           } else if (action === 'showStats') {
             sendCommand('showStats', {});
           } else if (action === 'closeStats') {
@@ -930,6 +965,10 @@
       _completedThemes = Array.isArray(state.completedThemes)
         ? state.completedThemes.map(function(theme) { return String(theme).toLowerCase(); })
         : [];
+      _nextCampaignTheme = state.nextCampaignTheme ? String(state.nextCampaignTheme).toLowerCase() : '';
+      _campaignThemeOrder = Array.isArray(state.campaignThemeOrder)
+        ? state.campaignThemeOrder.map(function(theme) { return String(theme).toLowerCase(); })
+        : _campaignThemeOrder;
       applyHeroScreenRestrictions();
 
       /* Exploración */
@@ -966,6 +1005,29 @@
         setWidth('s2-enemy-hp-fill',   (en.hpPct || 0) + '%');
         var tierEl = document.getElementById('s2-enemy-tier');
         if (tierEl) { tierEl.textContent = en.tier || ''; tierEl.dataset.tier = (en.tier||'').toLowerCase(); }
+      }
+
+      if (state.resource) {
+        var rs = state.resource;
+        var label = formatResourceLabel(rs.type);
+        var cur = Number(rs.current || 0);
+        var max = Number(rs.max || 0);
+        var pct = Number(rs.pct || 0);
+        setText('s2-resource-type', label);
+        setText('s2-resource-value', cur + ' / ' + max);
+        setText('s2-resource-pct', pct + '%');
+      }
+
+      if (state.combatTactics) {
+        var ct = state.combatTactics;
+        setText('s2-style-current', ct.style || 'Balanceado');
+        setText('s2-buff-power', ct.offensiveBuffStacks != null ? ct.offensiveBuffStacks : 0);
+        setText('s2-buff-guard', ct.guardBuffStacks != null ? ct.guardBuffStacks : 0);
+
+        var checkpointState = 'Sin guardar';
+        if (ct.hasCheckpoint && ct.checkpointConsumed) checkpointState = 'Consumido';
+        else if (ct.hasCheckpoint) checkpointState = 'Activo';
+        setText('s2-checkpoint-state', checkpointState);
       }
 
       if (Array.isArray(state.combatLog)) {

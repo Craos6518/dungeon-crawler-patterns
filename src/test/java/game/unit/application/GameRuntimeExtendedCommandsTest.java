@@ -17,18 +17,18 @@ class GameRuntimeExtendedCommandsTest {
     void quickSaveAndQuickLoadRestorePreferredSlotState() {
         GameRuntime runtime = new GameRuntime();
 
-        send(runtime, "heroNewGame", payload("heroType", "mago", "theme", "fire"));
+        send(runtime, "heroNewGame", payload("heroType", "mago", "theme", "poison"));
         send(runtime, "quickSave", payload("slot", 2));
 
-        send(runtime, "heroNewGame", payload("heroType", "arquero", "theme", "dark"));
+        send(runtime, "heroNewGame", payload("heroType", "arquero", "theme", "poison"));
         GameViewModel mutated = runtime.presentViewModel();
-        assertEquals("dark", mutated.theme);
+        assertEquals("poison", mutated.theme);
         assertEquals(85, mutated.playerHpMax);
 
         send(runtime, "quickLoad", payload("slot", 2));
         GameViewModel restored = runtime.presentViewModel();
 
-        assertEquals("fire", restored.theme);
+        assertEquals("poison", restored.theme);
         assertEquals(65, restored.playerHpMax);
         assertEquals("exploration", restored.screen);
     }
@@ -77,6 +77,61 @@ class GameRuntimeExtendedCommandsTest {
         assertTrue(vm.combatLog.stream().anyMatch(line -> line.toLowerCase().contains("retir")));
     }
 
+    @Test
+    void styleAndBuffCommandsUpdateCombatTacticsAndResource() {
+        GameRuntime runtime = new GameRuntime(GameSessionFactory.createSessionForTheme("poison", "mago"));
+
+        send(runtime, "forceCombat", new JsonObject());
+        int beforeResource = runtime.presentViewModel().resource.current;
+
+        send(runtime, "setCombatStyle", payload("style", "aggressive"));
+        send(runtime, "applyBuff", payload("type", "power"));
+
+        GameViewModel vm = runtime.presentViewModel();
+        assertNotNull(vm.combatTactics);
+        assertEquals("Agresivo", vm.combatTactics.style);
+        assertTrue(vm.combatTactics.offensiveBuffStacks >= 0);
+        assertTrue(vm.resource.current < beforeResource);
+        assertTrue(vm.combatLog.stream().anyMatch(line -> line.toLowerCase().contains("buff")));
+    }
+
+    @Test
+    void tacticalCheckpointRollbackRestoresPlayerHpAndConsumesCheckpoint() {
+        GameRuntime runtime = new GameRuntime(GameSessionFactory.createSessionForTheme("dark", "guerrero"));
+
+        send(runtime, "forceCombat", new JsonObject());
+        send(runtime, "saveCombatCheckpoint", new JsonObject());
+
+        GameViewModel afterSave = runtime.presentViewModel();
+        int hpSaved = afterSave.playerHp;
+
+        send(runtime, "defend", new JsonObject());
+        GameViewModel afterDefend = runtime.presentViewModel();
+        assertTrue(afterDefend.playerHp <= hpSaved);
+
+        send(runtime, "rollbackCombatCheckpoint", new JsonObject());
+        GameViewModel afterRollback = runtime.presentViewModel();
+
+        assertEquals("combat", afterRollback.screen);
+        assertEquals(hpSaved, afterRollback.playerHp);
+        assertTrue(afterRollback.combatTactics.hasCheckpoint);
+        assertTrue(afterRollback.combatTactics.checkpointConsumed);
+        assertTrue(afterRollback.combatLog.stream().anyMatch(line -> line.toLowerCase().contains("checkpoint")));
+    }
+
+    @Test
+    void useSkillConsumesClassResourcePool() {
+        GameRuntime runtime = new GameRuntime(GameSessionFactory.createSessionForTheme("ice", "mago"));
+
+        send(runtime, "forceCombat", new JsonObject());
+        int beforeResource = runtime.presentViewModel().resource.current;
+
+        send(runtime, "useSkill", new JsonObject());
+
+        GameViewModel vm = runtime.presentViewModel();
+        assertTrue(vm.resource.current < beforeResource);
+    }
+
     private static void send(GameRuntime runtime, String action, JsonObject payload) {
         UiCommand command = new UiCommand();
         command.action = action;
@@ -92,6 +147,12 @@ class GameRuntimeExtendedCommandsTest {
     }
 
     private static JsonObject payload(String key, int value) {
+        JsonObject payload = new JsonObject();
+        payload.addProperty(key, value);
+        return payload;
+    }
+
+    private static JsonObject payload(String key, String value) {
         JsonObject payload = new JsonObject();
         payload.addProperty(key, value);
         return payload;

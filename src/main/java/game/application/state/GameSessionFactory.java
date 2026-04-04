@@ -85,7 +85,7 @@ public final class GameSessionFactory {
             case HERO_TYPE_ARQUERO -> new ArqueroFactory(profile.hp(), profile.attack()).crearPersonaje(profile.displayName());
             default -> new GuerreroFactory(profile.hp(), profile.attack()).crearPersonaje(profile.displayName());
         };
-        return new Player(hero, Inventory.demo());
+        return new Player(hero, Inventory.demo(), profile.type());
     }
 
     private static DungeonThemeFactory resolveThemeFactory(String themeKey) {

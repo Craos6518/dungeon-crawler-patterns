@@ -29,6 +29,7 @@ public class RetreatCombatUseCase {
 
             if (result.retreatSuccessful) {
                 session.appendCombat("Lograste retirarte del combate contra " + enemy.name() + ".");
+                CombatUseCaseSupport.appendResourceFlow(session, result);
                 session.appendEvent("Te reagrupas tras una retirada tactica.");
                 session.setActiveScreen("exploration");
 
@@ -41,6 +42,7 @@ public class RetreatCombatUseCase {
             }
 
             session.appendCombat("No lograste retirarte. " + enemy.name() + " aprovecha para atacar.");
+            CombatUseCaseSupport.appendResourceFlow(session, result);
             CombatUseCaseSupport.appendEnemyTurnEffects(session, result, enemy);
 
             if (result.playerDefeated) {

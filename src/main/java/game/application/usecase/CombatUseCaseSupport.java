@@ -71,6 +71,21 @@ final class CombatUseCaseSupport {
         }
     }
 
+    static void appendResourceFlow(GameSession session, CombatResult result) {
+        if (result.resourceType == null || result.resourceType.isBlank()) {
+            return;
+        }
+
+        if (result.resourceBefore == result.resourceAfter) {
+            return;
+        }
+
+        String resourceName = result.resourceType.toUpperCase();
+        session.appendCombat(
+            resourceName + ": " + result.resourceBefore + " -> " + result.resourceAfter + "."
+        );
+    }
+
     static void handleVictory(GameSession session, Enemy enemy, CombatResult result) {
         session.player().registerDefeatedEnemy();
         session.dungeon().markCurrentRoomEnemyResolved();

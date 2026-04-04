@@ -31,6 +31,7 @@ public class GameSession {
     private static final int EVENT_LOG_LIMIT = 12;
     private static final int COMBAT_LOG_LIMIT = 16;
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final List<String> CAMPAIGN_THEME_ORDER = List.of("poison", "ice", "fire", "dark");
 
     private final Player player;
     private final Dungeon dungeon;
@@ -149,6 +150,25 @@ public class GameSession {
         for (String theme : restoredThemes) {
             markThemeCompleted(theme);
         }
+    }
+
+    public List<String> campaignThemeOrder() {
+        return CAMPAIGN_THEME_ORDER;
+    }
+
+    public String nextCampaignTheme() {
+        for (String theme : CAMPAIGN_THEME_ORDER) {
+            if (!completedThemes.contains(theme)) {
+                return theme;
+            }
+        }
+        return "";
+    }
+
+    public boolean isThemeUnlockedForCampaign(String themeKey) {
+        String normalized = normalizeThemeKey(themeKey);
+        String next = nextCampaignTheme();
+        return !normalized.isBlank() && !next.isBlank() && normalized.equals(next);
     }
 
     public boolean isBootstrapMenuSession() {
@@ -289,6 +309,28 @@ public class GameSession {
             ? "default" : "disabled");
 
         states.put("btn-habilidad", (heroAlive && combatScreen && combatActive)
+            ? "default" : "disabled");
+
+        states.put("btn-style-balanced", (heroAlive && combatScreen && combatActive)
+            ? "default" : "disabled");
+
+        states.put("btn-style-aggressive", (heroAlive && combatScreen && combatActive)
+            ? "default" : "disabled");
+
+        states.put("btn-style-defensive", (heroAlive && combatScreen && combatActive)
+            ? "default" : "disabled");
+
+        states.put("btn-buff-power", (heroAlive && combatScreen && combatActive)
+            ? "default" : "disabled");
+
+        states.put("btn-buff-guard", (heroAlive && combatScreen && combatActive)
+            ? "default" : "disabled");
+
+        states.put("btn-save-checkpoint", (heroAlive && combatScreen && combatActive)
+            ? "default" : "disabled");
+
+        states.put("btn-rollback-checkpoint", (heroAlive && combatScreen && combatActive
+            && combat.hasTacticalCheckpoint() && !combat.tacticalCheckpointConsumed())
             ? "default" : "disabled");
 
         states.put("btn-retreat", (heroAlive && combatScreen && combatActive)

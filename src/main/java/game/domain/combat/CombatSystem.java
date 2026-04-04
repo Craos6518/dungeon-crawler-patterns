@@ -22,13 +22,20 @@ import java.util.Random;
  */
 public class CombatSystem {
 
+    private static final int INITIATIVE_GAP = 4;
+    private static final int DOUBLE_TURN_GAP = 10;
+    private static final int MAX_EVASION_CHANCE = 35;
+
     public int playerAttack(Player player, Enemy enemy, CommandInvoker invoker) {
-        AttackCommand attack = new AttackCommand(player.character(), enemy.character());
-        if (!attack.canExecute()) {
+        if (player == null || enemy == null || !player.isAlive() || !enemy.isAlive()) {
             throw new IllegalStateException("No se puede ejecutar el ataque ahora.");
         }
-        invoker.ejecutarComando(attack);
-        return attack.getDanioAplicado();
+
+        int attackPower = computePlayerAttackPower(player, enemy, false);
+        int targetDefense = effectiveEnemyDefense(player, enemy, false);
+        int damage = applyDefenseFormula(attackPower, targetDefense);
+        enemy.receiveDamage(damage);
+        return damage;
     }
 
     public void playerDefend(Player player, TurnManager turnManager, CommandInvoker invoker) {
@@ -48,9 +55,23 @@ public class CombatSystem {
 
         invoker.ejecutarComando(skill);
 
-        int damage = 35 + Math.max(0, player.level() - 1) * 5;
+        int attackPower = computePlayerAttackPower(player, enemy, true);
+        int targetDefense = effectiveEnemyDefense(player, enemy, true);
+        int damage = applyDefenseFormula(attackPower, targetDefense);
         enemy.receiveDamage(damage);
         return damage;
+    }
+
+    public boolean enemyActsFirst(Player player, Enemy enemy) {
+        return enemy.speedStat() - player.speedStat() >= INITIATIVE_GAP;
+    }
+
+    public int playerActionCount(Player player, Enemy enemy) {
+        return player.speedStat() - enemy.speedStat() >= DOUBLE_TURN_GAP ? 2 : 1;
+    }
+
+    public int enemyActionCount(Player player, Enemy enemy) {
+        return enemy.speedStat() - player.speedStat() >= DOUBLE_TURN_GAP ? 2 : 1;
     }
 
     public EnemyTurnOutcome enemyTurn(
@@ -72,11 +93,22 @@ public class CombatSystem {
         }
 
         Command enemyAction = enemyAI.decidirAccion(List.of(player.character()));
-        int hpBeforeHit = player.hp();
-        invoker.ejecutarComando(enemyAction);
 
-        if (enemyAction instanceof AttackCommand attack) {
-            outcome.rawDamage = attack.getDanioAplicado();
+        if (enemyAction instanceof AttackCommand) {
+            int hpBeforeHit = player.hp();
+            if (playerEvadesIncomingAttack(player, enemy, random)) {
+                outcome.attackEvaded = true;
+                outcome.rawDamage = 0;
+                outcome.finalDamage = 0;
+                return outcome;
+            }
+
+            outcome.rawDamage = applyDefenseFormula(
+                computeEnemyAttackPower(enemy),
+                player.defenseStat()
+            );
+
+            player.receiveDamage(outcome.rawDamage);
             outcome.mitigatedDamage = turnManager.mitigateIncomingDamage(outcome.rawDamage);
             boolean defeatedByRawHit = !player.isAlive();
 
@@ -91,11 +123,12 @@ public class CombatSystem {
 
             outcome.finalDamage = Math.max(0, hpBeforeHit - player.hp());
 
-            if (player.isAlive() && "poison".equals(themeKey) && random.nextInt(100) < 35) {
+            if (player.isAlive() && outcome.rawDamage > 0 && "poison".equals(themeKey) && random.nextInt(100) < 35) {
                 turnManager.applyPoison(3, 4);
                 outcome.poisonApplied = true;
             }
         } else if (enemyAction instanceof DefendCommand) {
+            invoker.ejecutarComando(enemyAction);
             outcome.enemyDefended = true;
         }
 
@@ -118,6 +151,60 @@ public class CombatSystem {
         return new DefensiveStrategy();
     }
 
+    private int computePlayerAttackPower(Player player, Enemy enemy, boolean skillAttack) {
+        int base = player.attackStat();
+        return switch (player.heroType()) {
+            case "guerrero" -> base + (player.defenseStat() / 3) + (skillAttack ? 8 : 0);
+            case "mago" -> base + (skillAttack ? 16 : 10);
+            case "arquero" -> {
+                int speedGap = Math.max(0, player.speedStat() - enemy.speedStat());
+                double multiplier = 1.0 + Math.min(0.50, speedGap * 0.03);
+                if (skillAttack) {
+                    multiplier += 0.20;
+                }
+                yield Math.max(1, (int) Math.round(base * multiplier));
+            }
+            default -> base + (skillAttack ? 6 : 0);
+        };
+    }
+
+    private int effectiveEnemyDefense(Player player, Enemy enemy, boolean skillAttack) {
+        int defense = enemy.defenseStat();
+
+        if ("mago".equals(player.heroType())) {
+            int penetration = Math.max(4, (int) Math.round(defense * 0.35));
+            defense = Math.max(0, defense - penetration);
+        }
+
+        if (skillAttack) {
+            defense = Math.max(0, defense - 6);
+        }
+
+        return defense;
+    }
+
+    private int computeEnemyAttackPower(Enemy enemy) {
+        int speedBonus = Math.max(0, enemy.speedStat() - 10) / 3;
+        return Math.max(1, enemy.attackStat() + speedBonus);
+    }
+
+    private boolean playerEvadesIncomingAttack(Player player, Enemy enemy, Random random) {
+        int speedGap = player.speedStat() - enemy.speedStat();
+        if (speedGap <= 0) {
+            return false;
+        }
+
+        int evadeChance = Math.min(MAX_EVASION_CHANCE, 8 + speedGap * 2);
+        return random.nextInt(100) < evadeChance;
+    }
+
+    private int applyDefenseFormula(int attack, int defense) {
+        int safeAttack = Math.max(1, attack);
+        int safeDefense = Math.max(0, defense);
+        double reduced = (safeAttack * 100.0) / (100.0 + safeDefense);
+        return Math.max(1, (int) Math.round(reduced));
+    }
+
     public static class EnemyTurnOutcome {
         public int rawDamage;
         public int mitigatedDamage;
@@ -125,6 +212,7 @@ public class CombatSystem {
 
         public boolean enemyDefended;
         public boolean poisonApplied;
+        public boolean attackEvaded;
         public boolean strategyChanged;
         public String newStrategyName;
     }
