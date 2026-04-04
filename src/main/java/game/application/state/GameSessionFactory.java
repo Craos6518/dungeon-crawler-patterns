@@ -1,6 +1,8 @@
 package game.application.state;
 
 import game.balance.GameBalance;
+import game.application.observer.SessionEventCounterObserver;
+import game.application.observer.SessionEventFeedObserver;
 import game.domain.character.Player;
 import game.domain.combat.Combat;
 import game.domain.exploration.Dungeon;
@@ -32,6 +34,8 @@ public final class GameSessionFactory {
     private static final String HERO_TYPE_GUERRERO = "guerrero";
     private static final String HERO_TYPE_MAGO = "mago";
     private static final String HERO_TYPE_ARQUERO = "arquero";
+    private static final SessionEventFeedObserver SESSION_EVENT_FEED_OBSERVER = new SessionEventFeedObserver();
+    private static final SessionEventCounterObserver SESSION_EVENT_COUNTER_OBSERVER = new SessionEventCounterObserver();
 
     private GameSessionFactory() {
     }
@@ -43,7 +47,7 @@ public final class GameSessionFactory {
     public static GameSession createInitialMenuSession() {
         GameSession session = createSessionForTheme("fire", HERO_TYPE_GUERRERO);
         session.setBootstrapMenuSession(true);
-        session.setActiveScreen("menu");
+        session.transitionTo(GameFlowState.MENU);
         session.appendEvent("Selecciona una mazmorra para iniciar tu aventura.");
         return session;
     }
@@ -66,6 +70,8 @@ public final class GameSessionFactory {
         GameCaretaker caretaker = new GameCaretaker(resolveSaveDirectory());
 
         GameSession session = new GameSession(player, dungeon, combat, eventManager, caretaker);
+        registerRuntimeObservers(eventManager, session);
+        session.transitionTo(GameFlowState.EXPLORATION);
         session.setHeroType(normalizedHeroType);
         session.appendEvent("Partida UI iniciada para " + player.name() + ".");
         session.appendEvent("Mazmorra: " + dungeon.model().getNombre() + " (Tema: " + dungeon.themeName() + ").");
@@ -75,6 +81,14 @@ public final class GameSessionFactory {
             .agregarDato("tema", dungeon.themeName()));
 
         return session;
+    }
+
+    private static void registerRuntimeObservers(EventManager eventManager, GameSession session) {
+        SESSION_EVENT_FEED_OBSERVER.bindSession(session);
+        SESSION_EVENT_COUNTER_OBSERVER.bindSession(session);
+
+        eventManager.suscribir(SESSION_EVENT_FEED_OBSERVER);
+        eventManager.suscribir(SESSION_EVENT_COUNTER_OBSERVER);
     }
 
     private static Player createPlayerForHero(String heroType) {

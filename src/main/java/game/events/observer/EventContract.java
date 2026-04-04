@@ -29,6 +29,9 @@ public final class EventContract {
     public static class CombateIniciado {
         public static final String HEROE = "heroe";
         public static final String ENEMIGO = "enemigo";
+        public static final String SALA = "sala";
+        public static final String ATACANTE = "atacante";
+        public static final String DEFENSOR = "defensor";
         public static final String VIDA_HEROE = "vidaHeroe";
         public static final String VIDA_ENEMIGO = "vidaEnemigo";
         public static final String ESTRATEGIA = "estrategia";
@@ -70,6 +73,8 @@ public final class EventContract {
         public static final String ACCION = "accion";
         public static final String RONDA = "ronda";
         public static final String NOMBRE = "nombre"; // Opcional
+        public static final String RESULTADO = "resultado"; // Opcional
+        public static final String ENEMIGO = "enemigo"; // Opcional
     }
     
     /**
@@ -85,6 +90,7 @@ public final class EventContract {
         public static final String PERSONAJE = "personaje";
         public static final String EFECTO = "efecto";
         public static final String DURACION = "duracion";
+        public static final String ACUMULACIONES = "acumulaciones"; // Opcional
     }
     
     /**
@@ -129,6 +135,34 @@ public final class EventContract {
         public static final String GANADOR = "ganador";
         public static final String VENCIDO = "vencido";
         public static final String RONDAS = "rondas";
+        public static final String ENEMIGOS_DERROTADOS = "enemigosDerrotados"; // Opcional
+    }
+
+    public static class ItemRecogido {
+        public static final String ITEM = "item";
+        public static final String ORIGEN = "origen"; // Opcional
+    }
+
+    public static class ItemUsado {
+        public static final String USUARIO = "usuario";
+        public static final String ITEM = "item";
+    }
+
+    public static class TesoroEncontrado {
+        public static final String ITEM = "item";
+        public static final String ORO = "oro";
+    }
+
+    public static class SalaEntrar {
+        public static final String SALA = "sala";
+        public static final String NOMBRE = "nombre";
+    }
+
+    public static class SalaCompletada {
+        public static final String RESULTADO = "resultado";
+        public static final String MAZMORRA = "mazmorra";
+        public static final String TEMA = "tema";
+        public static final String SALAS = "salas";
     }
     
     // ==================== EVENTOS DE JUEGO ====================
@@ -155,6 +189,7 @@ public final class EventContract {
     public static class JuegoGuardado {
         public static final String TIPO = "tipo";
         public static final String ARCHIVO = "archivo";
+        public static final String SALA = "sala"; // Opcional
     }
     
     /**
@@ -166,6 +201,7 @@ public final class EventContract {
      * - tema: Tema de la mazmorra (String)
      */
     public static class JuegoCargado {
+        public static final String ARCHIVO = "archivo";
         public static final String JUGADOR = "jugador";
         public static final String SALA = "sala";
         public static final String TEMA = "tema";

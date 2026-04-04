@@ -26,7 +26,9 @@ class CombatResultFlowTest {
         new AttackUseCase(session).execute(request);
 
         assertFalse(session.combat().isActive());
-        assertEquals("exploration", session.activeScreen());
+        assertEquals("treasure", session.activeScreen());
+        assertTrue(session.hasPendingTreasure());
+        assertFalse(session.treasureLootOptions().isEmpty());
         assertTrue(session.combatLog().stream().anyMatch(line -> line.contains("Derrotaste")));
     }
 

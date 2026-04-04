@@ -8,6 +8,8 @@ import game.events.observer.EventType;
 import game.events.observer.GameEvent;
 import game.items.model.SimpleItem;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -96,27 +98,28 @@ final class CombatUseCaseSupport {
                 + session.player().level() + ".");
         }
 
-        SimpleItem reward = session.dungeon().randomCombatReward();
-        try {
-            session.inventory().add(reward);
-            session.player().addGold(reward.getValorTotal());
-            session.appendEvent("Recompensa de combate: " + reward.getNombre() + " (+" + reward.getValorTotal() + " oro).");
-
-            session.eventManager().notificar(new GameEvent(EventType.ITEM_RECOGIDO)
-                .agregarDato("item", reward.getNombre())
-                .agregarDato("origen", "combate"));
-        } catch (RuntimeException ex) {
-            session.appendEvent("Recompensa no recogida por inventario lleno: " + reward.getNombre() + ".");
-        }
+        boolean bossFight = session.combat().isBossFight();
+        List<SimpleItem> combatLoot = buildCombatLoot(session, bossFight);
 
         session.combat().finish();
-        session.setActiveScreen("exploration");
+        session.openTreasureRoom(enemy.name(), result.gainedXp, bossFight, combatLoot);
+        session.appendEvent("Sala de tesoro desbloqueada. Selecciona el botin de combate.");
 
         LOGGER.log(Level.INFO, "Combate finalizado por victoria. Enemigo={0}", enemy.name());
 
         session.eventManager().notificar(new GameEvent(EventType.COMBATE_FINALIZADO)
             .agregarDato("ganador", session.player().name())
             .agregarDato("enemigosDerrotados", session.player().defeatedEnemies()));
+    }
+
+    private static List<SimpleItem> buildCombatLoot(GameSession session, boolean bossFight) {
+        List<SimpleItem> loot = new ArrayList<>();
+        loot.add(session.dungeon().randomCombatReward());
+        loot.add(session.dungeon().randomCombatReward());
+        if (bossFight) {
+            loot.add(session.dungeon().randomCombatReward());
+        }
+        return loot;
     }
 
     static void handleDefeat(GameSession session) {

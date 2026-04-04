@@ -25,7 +25,17 @@ import java.util.Set;
  */
 public final class GameSessionMementoMapper {
 
-    private static final Set<String> SUPPORTED_SCREENS = Set.of("menu", "exploration", "combat", "inventory", "saves");
+    private static final Set<String> SUPPORTED_SCREENS = Set.of(
+        GameFlowState.MENU.screenKey(),
+        GameFlowState.HERO.screenKey(),
+        GameFlowState.EXPLORATION.screenKey(),
+        GameFlowState.COMBAT.screenKey(),
+        GameFlowState.INVENTORY.screenKey(),
+        GameFlowState.SAVES.screenKey(),
+        GameFlowState.STATS.screenKey(),
+        GameFlowState.TREASURE.screenKey(),
+        GameFlowState.GAME_OVER.screenKey()
+    );
 
     private GameSessionMementoMapper() {
     }
@@ -127,6 +137,14 @@ public final class GameSessionMementoMapper {
             .agregarEstadoMazmorra("enemigoAtaque", enemyAttack)
             .agregarEstadoMazmorra("enemigoDefensa", enemyDefense)
             .agregarEstadoMazmorra("enemigoVelocidad", enemySpeed)
+                .agregarEstadoMazmorra("treasureActive", session.hasPendingTreasure())
+                .agregarEstadoMazmorra("treasureEnemyName", session.treasureEnemyName())
+                .agregarEstadoMazmorra("treasureXp", session.treasureXpGained())
+                .agregarEstadoMazmorra("treasureBoss", session.treasureBossFight())
+                .agregarEstadoMazmorra("treasureRoomIndex", session.treasureRoomIndex())
+                .agregarEstadoMazmorra("treasureSelectedIndex", session.selectedTreasureIndex())
+                .agregarEstadoMazmorra("treasureAutoSaved", session.treasureAutoSaved())
+                .agregarEstadoMazmorra("treasureLoot", serializeItems(session.treasureLootOptions()))
             .agregarEstadoMazmorra("eventLog", new ArrayList<>(session.eventLog()))
             .agregarEstadoMazmorra("combatLog", new ArrayList<>(session.combatLog()))
             .build();
@@ -323,10 +341,76 @@ public final class GameSessionMementoMapper {
         if (!SUPPORTED_SCREENS.contains(screen)) {
             screen = "exploration";
         }
+
+        boolean treasureActive = readBoolean(dungeonState.get("treasureActive"), false);
+        String treasureEnemyName = readString(dungeonState.get("treasureEnemyName"), "");
+        int treasureXp = readInt(dungeonState.get("treasureXp"), 0);
+        boolean treasureBoss = readBoolean(dungeonState.get("treasureBoss"), false);
+        int treasureRoomIndex = readInt(dungeonState.get("treasureRoomIndex"), session.dungeon().currentRoomIndex());
+        int treasureSelectedIndex = readInt(dungeonState.get("treasureSelectedIndex"), 0);
+        boolean treasureAutoSaved = readBoolean(dungeonState.get("treasureAutoSaved"), false);
+        List<SimpleItem> treasureLoot = parseItems(dungeonState.get("treasureLoot"), strict);
+
+        if (strict && treasureXp < 0) {
+            throw corrupt("treasureXp invalido");
+        }
+        if (strict && treasureActive && treasureLoot.isEmpty()) {
+            throw corrupt("treasureLoot invalido");
+        }
+        if (strict && treasureActive
+            && (treasureSelectedIndex < 0 || treasureSelectedIndex >= treasureLoot.size())) {
+            throw corrupt("treasureSelectedIndex invalido");
+        }
+
+        if (treasureActive) {
+            if (!"treasure".equals(screen) && strict) {
+                throw corrupt("estadoActual inconsistente con treasureActive");
+            }
+            screen = "treasure";
+        } else if ("treasure".equals(screen)) {
+            if (strict) {
+                throw corrupt("estadoActual=treasure sin treasureActive");
+            }
+            screen = "exploration";
+        }
+
+        session.restoreTreasureState(
+            treasureActive,
+            treasureEnemyName,
+            Math.max(0, treasureXp),
+            treasureBoss,
+            treasureRoomIndex,
+            treasureLoot,
+            treasureSelectedIndex,
+            treasureAutoSaved
+        );
+
         session.setActiveScreen(screen);
 
         session.replaceEventLog(parseStringList(dungeonState.get("eventLog"), strict, "eventLog"));
         session.replaceCombatLog(parseStringList(dungeonState.get("combatLog"), strict, "combatLog"));
+    }
+
+    private static List<Map<String, Object>> serializeItems(List<SimpleItem> items) {
+        List<Map<String, Object>> serialized = new ArrayList<>();
+        if (items == null) {
+            return serialized;
+        }
+
+        for (SimpleItem item : items) {
+            if (item == null) {
+                continue;
+            }
+            Map<String, Object> data = new HashMap<>();
+            data.put("nombre", item.getNombre());
+            data.put("descripcion", item.getDescripcion());
+            data.put("tipo", item.getTipo());
+            data.put("valor", item.getValorTotal());
+            data.put("peso", item.getPesoTotal());
+            serialized.add(data);
+        }
+
+        return serialized;
     }
 
     private static Enemy parseEnemyState(Map<String, Object> dungeonState, boolean strict) {

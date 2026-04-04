@@ -11,6 +11,7 @@ import game.application.dto.StartGameCommandRequest;
 import game.application.dto.UiCommand;
 import game.application.dto.UseItemCommandRequest;
 import game.application.dto.UseSkillCommandRequest;
+import game.application.state.GameFlowState;
 import game.application.state.GameSession;
 import game.application.state.GameSessionFactory;
 import game.application.usecase.AdvanceTurnUseCase;
@@ -164,14 +165,14 @@ public class GameRuntime implements GameCommandHandler {
 
             String heroType = resolveHeroTypeForNewRun(payload.heroType);
             GameSession newSession = createSessionPreservingCampaignProgress(theme, heroType);
-            newSession.setActiveScreen("exploration");
+            newSession.transitionTo(GameFlowState.EXPLORATION);
 
             bindSession(newSession);
             preferredSaveSlot = MIN_SLOT;
         }, this::validateStartGamePayload));
 
         map.put("openMainMenu", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen("menu");
+            session.transitionTo(GameFlowState.MENU);
             session.appendEvent("Regresas al menu principal.");
         }, this::validateEmptyPayload));
 
@@ -184,23 +185,23 @@ public class GameRuntime implements GameCommandHandler {
         }, this::validateSearchTreasurePayload));
 
         map.put("openInventory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen("inventory");
+            session.transitionTo(GameFlowState.INVENTORY);
             session.inventory().clampSelection();
             session.appendEvent("Inventario abierto.");
         }, this::validateEmptyPayload));
 
         map.put("toggleInventory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            if ("inventory".equals(session.activeScreen())) {
-                session.setActiveScreen(session.hasActiveEnemy() ? "combat" : "exploration");
+            if (session.activeState() == GameFlowState.INVENTORY) {
+                session.transitionTo(session.hasActiveEnemy() ? GameFlowState.COMBAT : GameFlowState.EXPLORATION);
             } else {
-                session.setActiveScreen("inventory");
+                session.transitionTo(GameFlowState.INVENTORY);
                 session.inventory().clampSelection();
                 session.appendEvent("Inventario abierto.");
             }
         }, this::validateEmptyPayload));
 
         map.put("closeInventory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen(session.hasActiveEnemy() ? "combat" : "exploration");
+            session.transitionTo(session.hasActiveEnemy() ? GameFlowState.COMBAT : GameFlowState.EXPLORATION);
         }, this::validateEmptyPayload));
 
         map.put("saveGame", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
@@ -297,7 +298,7 @@ public class GameRuntime implements GameCommandHandler {
         // ── Nuevas pantallas ────────────────────────────────────────
 
         map.put("goToHeroSelect", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen("hero");
+            session.transitionTo(GameFlowState.HERO);
         }, this::validateEmptyPayload));
 
         map.put("selectHero", TypedCommandHandler.of(StartGameCommandRequest.class, Set.of(), payload -> {
@@ -330,21 +331,21 @@ public class GameRuntime implements GameCommandHandler {
 
             String heroType = resolveHeroTypeForNewRun(payload.heroType);
             GameSession newSession = createSessionPreservingCampaignProgress(theme, heroType);
-            newSession.setActiveScreen("exploration");
+            newSession.transitionTo(GameFlowState.EXPLORATION);
             bindSession(newSession);
             preferredSaveSlot = MIN_SLOT;
         }, this::validateStartGamePayload));
 
         map.put("showStats", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen("stats");
+            session.transitionTo(GameFlowState.STATS);
         }, this::validateEmptyPayload));
 
         map.put("closeStats", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen("menu");
+            session.transitionTo(GameFlowState.MENU);
         }, this::validateEmptyPayload));
 
         map.put("openSaves", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen("saves");
+            session.transitionTo(GameFlowState.SAVES);
         }, this::validateEmptyPayload));
 
         map.put("saveToSlot", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
@@ -361,7 +362,7 @@ public class GameRuntime implements GameCommandHandler {
         }, this::validateEmptyPayload));
 
         map.put("newGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen("hero");
+            session.transitionTo(GameFlowState.HERO);
         }, this::validateEmptyPayload));
 
         map.put("exitGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
@@ -371,17 +372,18 @@ public class GameRuntime implements GameCommandHandler {
 
         // ── Loot / Tesoro (no-op hasta implementar TreasureRoomState) ──
         map.put("takeLoot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen("exploration");
-            session.appendEvent("Has recogido el botin de la sala.");
+            session.takeSelectedTreasure();
         }, this::validateEmptyPayload));
 
         map.put("selectLoot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            // No-op por ahora: la selección de loot se usa para render en UI.
+            Integer lootIndex = payload.has("lootIndex") && !payload.get("lootIndex").isJsonNull()
+                ? payload.get("lootIndex").getAsInt()
+                : 0;
+            session.selectTreasureLoot(lootIndex);
         }, this::validateSelectLootPayload));
 
         map.put("skipLoot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.setActiveScreen("exploration");
-            session.appendEvent("Avanzas sin recoger el botin.");
+            session.skipTreasure();
         }, this::validateEmptyPayload));
 
         map.put("selectSaveSlot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
@@ -449,7 +451,22 @@ public class GameRuntime implements GameCommandHandler {
 
     private void validateSelectLootPayload(JsonObject payload) {
         validateEmptyPayload(payload);
+        if (!session.hasPendingTreasure()) {
+            throw new InvalidRuntimeCommandException("No hay una sala de tesoro activa.");
+        }
+
         validateOptionalIntegerField(payload, "lootIndex", 0, Integer.MAX_VALUE);
+
+        if (payload.has("lootIndex") && !payload.get("lootIndex").isJsonNull()) {
+            int requested = payload.get("lootIndex").getAsInt();
+            int lootSize = session.treasureLootOptions().size();
+            if (lootSize <= 0) {
+                throw new InvalidRuntimeCommandException("No hay botin disponible para seleccionar.");
+            }
+            if (requested >= lootSize) {
+                throw new InvalidRuntimeCommandException("lootIndex fuera de rango para el botin actual.");
+            }
+        }
     }
 
     private void validateAdvanceRoomPayload(JsonObject payload) {

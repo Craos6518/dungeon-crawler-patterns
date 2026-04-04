@@ -82,7 +82,9 @@ public class ObserverPatternTest {
         
         assertEquals(0, manager.getCantidadObservers());
         
-        GameEvent evento = new GameEvent(EventType.COMBATE_INICIADO);
+        GameEvent evento = new GameEvent(EventType.COMBATE_INICIADO)
+            .agregarDato("heroe", "Guerrero")
+            .agregarDato("enemigo", "Orco");
         manager.notificar(evento);
         
         assertTrue(logger.getLog().isEmpty(), "El logger no debería recibir eventos después de desuscribirse");
@@ -116,11 +118,20 @@ public class ObserverPatternTest {
         manager.suscribir(stats);
         
         // Simular varios eventos
-        manager.notificar(new GameEvent(EventType.COMBATE_INICIADO));
-        manager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO).agregarDato("danio", 30));
-        manager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO).agregarDato("danio", 45));
+        manager.notificar(new GameEvent(EventType.COMBATE_INICIADO)
+            .agregarDato("heroe", "Guerrero")
+            .agregarDato("enemigo", "Orco"));
+        manager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
+            .agregarDato("atacante", "Guerrero")
+            .agregarDato("defensor", "Orco")
+            .agregarDato("danio", 30));
+        manager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
+            .agregarDato("atacante", "Guerrero")
+            .agregarDato("defensor", "Orco")
+            .agregarDato("danio", 45));
         manager.notificar(new GameEvent(EventType.PERSONAJE_MUERTO));
-        manager.notificar(new GameEvent(EventType.COMBATE_FINALIZADO));
+        manager.notificar(new GameEvent(EventType.COMBATE_FINALIZADO)
+            .agregarDato("ganador", "Guerrero"));
         
         assertEquals(1, stats.getCombatesRealizados());
         assertEquals(2, stats.getAtaquesTotales());
@@ -132,8 +143,13 @@ public class ObserverPatternTest {
     public void testEventHistoryIsKept() {
         manager.limpiarHistorial();
         
-        GameEvent evento1 = new GameEvent(EventType.COMBATE_INICIADO);
-        GameEvent evento2 = new GameEvent(EventType.ATAQUE_REALIZADO);
+        GameEvent evento1 = new GameEvent(EventType.COMBATE_INICIADO)
+            .agregarDato("heroe", "Guerrero")
+            .agregarDato("enemigo", "Orco");
+        GameEvent evento2 = new GameEvent(EventType.ATAQUE_REALIZADO)
+            .agregarDato("atacante", "Guerrero")
+            .agregarDato("defensor", "Orco")
+            .agregarDato("danio", 15);
         
         manager.notificar(evento1);
         manager.notificar(evento2);
@@ -152,7 +168,9 @@ public class ObserverPatternTest {
         
         manager.setHabilitado(false);
         
-        GameEvent evento = new GameEvent(EventType.COMBATE_INICIADO);
+        GameEvent evento = new GameEvent(EventType.COMBATE_INICIADO)
+            .agregarDato("heroe", "Guerrero")
+            .agregarDato("enemigo", "Orco");
         manager.notificar(evento);
         
         assertTrue(logger.getLog().isEmpty(), 
@@ -193,5 +211,15 @@ public class ObserverPatternTest {
         assertTrue(log.contains("Héroe"));
         assertTrue(log.contains("Dragón"));
         assertTrue(log.contains("50"));
+    }
+
+    @Test
+    public void testEventContractValidationRejectsInvalidPayload() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+            manager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
+                .agregarDato("danio", 99))
+        );
+
+        assertTrue(ex.getMessage().contains("EventContract"));
     }
 }

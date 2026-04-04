@@ -1,10 +1,12 @@
 package game.ui.integration;
 
 import game.balance.GameBalance;
+import game.application.state.GameFlowState;
 import game.application.state.GameSession;
 import game.dungeon.model.Dungeon;
 import game.dungeon.model.Room;
 import game.domain.inventory.Item;
+import game.items.model.SimpleItem;
 import game.domain.personaje.Arquero;
 import game.domain.personaje.Mago;
 import game.domain.personaje.Personaje;
@@ -57,7 +59,10 @@ public class GamePresenter {
             );
         }
 
-        vm.screen = session.activeScreen();
+        GameFlowState activeState = session.activeState();
+        String screen = activeState.screenKey();
+
+        vm.screen = screen;
         vm.theme = session.dungeon().themeKey();
         vm.dungeonTheme = session.dungeon().themeName();
         vm.heroType = session.heroType();
@@ -119,17 +124,16 @@ public class GamePresenter {
         }
 
         // ── Pantallas nuevas ──
-        String screen = session.activeScreen();
-        if ("stats".equals(screen)) {
+        if (activeState == GameFlowState.STATS) {
             vm.stats = buildStatsInfo(session);
         }
-        if ("saves".equals(screen)) {
+        if (activeState == GameFlowState.SAVES) {
             vm.saveSlotsInfo = buildSaveSlotsInfo(session);
         }
-        if ("gameover".equals(screen)) {
+        if (activeState == GameFlowState.GAME_OVER) {
             vm.gameOver = buildGameOverInfo(session);
         }
-        if ("treasure".equals(screen)) {
+        if (activeState == GameFlowState.TREASURE) {
             vm.treasure = buildTreasureInfo(session);
         }
 
@@ -276,29 +280,65 @@ public class GamePresenter {
     }
 
     private static GameViewModel.TreasureInfo buildTreasureInfo(GameSession session) {
-        // Stub con datos representativos; se conectará a TreasureRoomState cuando exista.
         GameViewModel.TreasureInfo tr = new GameViewModel.TreasureInfo();
-        tr.enemyDefeated  = "Enemigo derrotado en sala " + (session.dungeon().currentRoomIndex() + 1);
-        tr.expGained      = 150;
-        tr.goldGained     = 80;
+        tr.enemyDefeated  = session.treasureEnemyName().isBlank()
+            ? "Enemigo derrotado en sala " + (session.dungeon().currentRoomIndex() + 1)
+            : session.treasureEnemyName();
+        tr.expGained      = session.treasureXpGained();
+        tr.goldGained     = session.selectedTreasureGoldReward();
         tr.roomsExplored  = session.dungeon().currentRoomIndex() + 1;
         tr.enemiesDefeated = session.player().defeatedEnemies();
         tr.goldTotal      = session.player().gold();
         tr.itemsCollected = session.inventory().items().size();
         tr.hpCurrent      = session.player().character().getVida();
         tr.hpMax          = session.player().character().getVidaMaxima();
-        tr.checkpointRoom = session.dungeon().currentRoomIndex() + 1;
-        tr.autoSaved      = true;
+        tr.checkpointRoom = session.treasureRoomIndex() + 1;
+        tr.autoSaved      = session.treasureAutoSaved();
         tr.loot           = new java.util.ArrayList<>();
-        GameViewModel.TreasureInfo.LootItem loot1 = new GameViewModel.TreasureInfo.LootItem();
-        loot1.icon = "⚔"; loot1.name = "Espada de Llamas"; loot1.rarity = "raro";
-        loot1.desc = "daño: 28 · quemadura al golpear"; loot1.selected = true;
-        tr.loot.add(loot1);
-        GameViewModel.TreasureInfo.LootItem loot2 = new GameViewModel.TreasureInfo.LootItem();
-        loot2.icon = "🧪"; loot2.name = "Pocion de Vida Mayor"; loot2.rarity = "comun";
-        loot2.desc = "restaura 60 hp"; loot2.selected = false;
-        tr.loot.add(loot2);
+
+        List<SimpleItem> loot = session.treasureLootOptions();
+        int selectedIndex = session.selectedTreasureIndex();
+        for (int i = 0; i < loot.size(); i++) {
+            SimpleItem item = loot.get(i);
+            GameViewModel.TreasureInfo.LootItem row = new GameViewModel.TreasureInfo.LootItem();
+            row.icon = inferTreasureIcon(item);
+            row.name = item.getNombre();
+            row.rarity = inferTreasureRarity(item);
+            row.desc = item.getDescripcion();
+            row.selected = i == selectedIndex;
+            tr.loot.add(row);
+        }
+
         return tr;
+    }
+
+    private static String inferTreasureIcon(SimpleItem item) {
+        String type = normalize(item.getTipo());
+        String name = normalize(item.getNombre());
+        if (type.contains("consum") || name.contains("poci") || name.contains("antid")) {
+            return "🧪";
+        }
+        if (type.contains("arma")) {
+            return "⚔";
+        }
+        if (type.contains("armadura")) {
+            return "🛡";
+        }
+        if (type.contains("gema") || type.contains("runa")) {
+            return "💎";
+        }
+        return "⭐";
+    }
+
+    private static String inferTreasureRarity(SimpleItem item) {
+        int value = item.getValorTotal();
+        if (value >= 120) {
+            return "epico";
+        }
+        if (value >= 60) {
+            return "raro";
+        }
+        return "comun";
     }
 
     private static GameViewModel.SaveSlotsInfo buildSaveSlotsInfo(GameSession session) {
