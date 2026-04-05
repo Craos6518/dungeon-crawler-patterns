@@ -1,3 +1,18 @@
+# ⚠️ DOCUMENTO OBSOLETO — NO USAR
+
+Este documento NO es fuente de verdad.
+
+Fuente vigente:
+👉 docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md
+
+Estado:
+- Obsoleto desde: 2026-04-04
+- Motivo: consolidación post-auditoría
+
+Este archivo se conserva únicamente por trazabilidad histórica.
+
+---
+
 # Cambios realizados - Persistencia y carga robusta (2026-03-31)
 
 ## Objetivo

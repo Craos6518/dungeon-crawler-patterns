@@ -4,7 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Valida que cada evento cumpla el contrato de claves requerido.
+ * Valida el contrato de eventos antes de notificarlos a observers productivos.
+ *
+ * Responsabilidad:
+ * - Exigir claves minimas por tipo de evento para mantener consistencia entre emisores.
+ * - Fallar de forma explicita cuando el payload no cumple EventContract.
+ *
+ * No hace:
+ * - notificacion de observers.
+ * - transformacion de datos del evento.
  */
 public final class EventContractValidator {
 

@@ -11,7 +11,15 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Administra guardado/carga por slots y el slot preferido de runtime.
+ * Gestiona persistencia por slots para el runtime productivo.
+ *
+ * Responsabilidad:
+ * - Resolver el slot objetivo (explicito o preferido) para operaciones save/load.
+ * - Reconstruir una sesion consistente antes de restaurar memento (tema, heroe y semilla).
+ *
+ * No hace:
+ * - validaciones de negocio fuera del dominio de slots.
+ * - orquestacion de UI ni transiciones de flujo de pantalla.
  */
 final class RuntimeSaveSlotManager {
 

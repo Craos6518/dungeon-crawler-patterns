@@ -9,7 +9,15 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Coordina arranque de sesiones de campana y herencia de progreso entre mazmorras.
+ * Coordina reglas de campana al iniciar una nueva sesion de runtime.
+ *
+ * Responsabilidad:
+ * - Validar orden de mazmorras y bloqueo de heroe durante continuidad de campana.
+ * - Heredar progreso persistente (nivel, inventario y temas completados) al crear nueva sesion.
+ *
+ * No hace:
+ * - persistencia en disco de partidas.
+ * - validacion estructural de payloads JSON.
  */
 final class CampaignSessionCoordinator {
 

@@ -10,7 +10,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Valida payloads de comandos runtime sin ejecutar reglas de negocio.
+ * Valida comandos entrantes en runtime.
+ *
+ * Responsabilidad:
+ * - Garantizar invariantes estructurales y tipadas del payload antes de invocar casos de uso.
+ * - Rechazar campos fuera de rango (slots, indices, estilos y tipos soportados).
+ *
+ * No hace:
+ * - logica de negocio de campana, combate o inventario.
+ * - mutaciones de estado sobre la sesion activa.
  */
 final class RuntimePayloadValidator {
 

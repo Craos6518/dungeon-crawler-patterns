@@ -1,9 +1,15 @@
 package game.state.game;
 
 /**
- * State Pattern - Context
- * 
- * Mantiene una referencia al estado actual y delega las operaciones a él.
+ * Contexto del patron State para flujo de juego.
+ *
+ * Responsabilidad:
+ * - Mantener la referencia al estado actual y delegar operaciones del ciclo (entrada, update, render).
+ * - Garantizar hooks de salida/entrada al cambiar de estado.
+ *
+ * No hace:
+ * - logica de negocio de dominio (combate, inventario, persistencia).
+ * - decisiones de UI o serializacion de estado.
  */
 public class GameStateContext {
     private GameState estadoActual;

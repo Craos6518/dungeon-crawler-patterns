@@ -1,3 +1,18 @@
+# ⚠️ DOCUMENTO OBSOLETO — NO USAR
+
+Este documento NO es fuente de verdad.
+
+Fuente vigente:
+👉 docs/README.md
+
+Estado:
+- Obsoleto desde: 2026-04-04
+- Motivo: consolidación post-auditoría
+
+Este archivo se conserva únicamente por trazabilidad histórica.
+
+---
+
 # Interfaces del juego - Estado actual (2026-03-31)
 
 Este documento consolida las interfaces de usuario del proyecto, separando lo implementado, lo parcial y lo pendiente.

@@ -300,11 +300,11 @@ public class GameRuntime implements GameCommandHandler {
         }, payloadValidator::validateEmptyPayload));
 
         map.put("rerenderCurrentScreen", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            // Stub explicito: la UI recibe estado completo en cada push.
+            handleRerenderCurrentScreenStub();
         }, payloadValidator::validateEmptyPayload));
 
         map.put("filterCategory", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            // Stub explicito: filtro de categoria se resuelve del lado de UI.
+            handleFilterCategoryStub();
         }, payloadValidator::validateFilterCategoryPayload));
 
         // ── Nuevas pantallas ────────────────────────────────────────
@@ -420,6 +420,36 @@ public class GameRuntime implements GameCommandHandler {
         UseItemCommandRequest request = new UseItemCommandRequest();
         request.itemIndex = consumableIndex;
         useItemUseCase.execute(request);
+    }
+
+    /**
+     * STUB:
+     * No implementado intencionalmente.
+     *
+     * Razon:
+     * - la UI recibe el estado completo en cada push y no necesita un repintado parcial desde backend.
+     * - fuera de alcance de la auditoria actual mientras se mantenga el modelo push-state.
+     *
+     * Referencia:
+     * - HU-02 en Docs/GDD.md (flujo de experiencia de seleccion de heroe en evolucion).
+     */
+    private void handleRerenderCurrentScreenStub() {
+        // No-op intencional.
+    }
+
+    /**
+     * STUB:
+     * No implementado intencionalmente.
+     *
+     * Razon:
+     * - el filtrado por categoria se resuelve en cliente para evitar estado duplicado en runtime.
+     * - fuera de alcance de la auditoria actual para backend de comandos.
+     *
+     * Referencia:
+     * - HU-03 en Docs/GDD.md (filtros avanzados de inventario pendientes de cierre).
+     */
+    private void handleFilterCategoryStub() {
+        // No-op intencional.
     }
 
     private static String normalizeAction(String action) {

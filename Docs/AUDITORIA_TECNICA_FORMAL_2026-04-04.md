@@ -1,3 +1,24 @@
+# ⚠️ DOCUMENTO OBSOLETO — NO USAR
+
+Este documento NO es fuente de verdad.
+
+Fuente vigente:
+👉 docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md
+
+Estado:
+- Obsoleto desde: 2026-04-04
+- Motivo: consolidación post-auditoría
+
+Este archivo se conserva únicamente por trazabilidad histórica.
+
+---
+
+# ESTADO DOCUMENTAL
+- Estado: historico (legacy conservado por trazabilidad)
+- Version canonica vigente: `docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md`
+- Fecha de reclasificacion: 2026-04-04
+- Rama auditada: Flujo-de-mazmorra
+
 # AUDITORIA ARQUITECTONICA CRITICA Y DEFENDIBLE
 ## Proyecto: Dungeon Crawler - Patrones de Diseno
 
@@ -12,7 +33,7 @@
 | Alcance | Runtime real, contratos UI-backend, persistencia, pruebas y coherencia documental |
 | Enfoque | Evaluacion arquitectonica estricta basada en evidencia verificable |
 | Estado | ✅ AUDITORIA CERRADA — todos los hallazgos resueltos |
-| Tests al cierre | 238 passed, 0 failed, 0 errors, 0 omitidos |
+| Tests al cierre | 241 passed, 0 failed, 0 errors, 2 omitidos |
 
 ---
 
@@ -51,12 +72,12 @@ Regla aplicada: codigo de demo, legado o pruebas aisladas no se considera eviden
 1. Runtime activo web y consola instancian [GameRuntime](../src/main/java/game/application/runtime/GameRuntime.java#L50): [GameWebApplication](../src/main/java/game/ui/GameWebApplication.java#L24), [InteractiveGame](../src/main/java/game/InteractiveGame.java#L20).
 2. ~~Flujo de pantalla se controla por string mutable~~ → Flujo de pantalla gobernado por `GameStateContext`; `activeScreen` es campo derivado/sincronizado. `transitionTo()` reemplaza `setActiveScreen()` directo en runtime y use cases.
 3. ~~Handlers no productivos/no-op~~ → `rerenderCurrentScreen`, `filterCategory` y `selectSaveSlot` marcados explicitamente como stubs. `selectLoot` y `takeLoot` son handlers activos desde resolucion de I-03.
-4. ~~Sala de tesoro con datos stub~~ → `buildTreasureInfo` produce datos reales. Estado de tesoro persistido en memento para consistencia en save/load.
-5. ~~Observer solo en demos~~ → `SessionEventFeedObserver` y `SessionEventCounterObserver` registrados al arranque en `GameSessionFactory`. `EventContractValidator` activo en `EventManager`.
+4. Hallazgo historico I-03 (tesoro incompleto) → `buildTreasureInfo` produce datos reales. Estado de tesoro persistido en memento para consistencia en save/load.
+5. Hallazgo historico I-02 (observer no productivo) → `SessionEventFeedObserver` y `SessionEventCounterObserver` registrados al arranque en `GameSessionFactory`. `EventContractValidator` activo en `EventManager`.
 6. ~~EventContract sin validadores~~ → `EventContractValidator` implementado y conectado. El contrato gobierna todos los emisores productivos.
 7. ~~Builder procedural con perfiles fijos~~ → Perfiles usan rangos (min/max). Semilla propagada a todas las decisiones aleatorias y persistida en memento para reproducibilidad al cargar.
 8. ~~Composite aplanado~~ → `simpleItems` recorre jerarquia completa. `useItem`/`useItemAtIndex` operan por remocion recursiva. API por indices planos intacta para `GameRuntime`.
-9. Metricas de pruebas al cierre: **238 tests, 0 failures, 0 errors, 0 skipped**.
+9. Metricas de pruebas al cierre: **241 tests, 0 failures, 0 errors, 2 skipped**.
 
 ---
 
@@ -153,10 +174,10 @@ Medicion de complejidad en `GameRuntime` al cierre: responsabilidades de validac
 
 | Metrica | Auditoria original | Al cierre |
 |---|---|---|
-| Total de tests | 172 | 238 |
+| Total de tests | previo al cierre | 241 |
 | Failures | 0 | 0 |
 | Errors | 0 | 0 |
-| Skipped | 0 | 0 |
+| Skipped | 0 | 2 |
 | Suites de integracion | 3 | 8+ |
 
 ### 8.2 Tests de integracion nuevos (runtime real)
@@ -216,9 +237,9 @@ Justificacion directa:
 
 **Deuda tecnica restante documentada:**
 
-- HU-02 (nombre de heroe) resuelta: `heroName` obligatorio en comando, dominio y memento con roundtrip save/load validado por pruebas.
+- HU-02 (nombre de heroe) pendiente de cierre academico de producto.
 - `selectSaveSlot` resuelto: estado de slot activo centralizado en `RuntimeSaveSlotManager` y consumido por Presenter/UI sin estado local duplicado.
-- Cobertura E2E resuelta para flujo sin UI real: pruebas de integración en `WebGameAdapter` y flujo completo runtime (start → combat → save → load).
+- Cobertura E2E parcial: pruebas de integracion de contrato runtime existentes; falta automatizacion visual completa en navegador real.
 - Gobernanza de tests activa: política de build en `DisabledAnnotationPolicyTest` que falla si aparece `@Disabled` sin razón explícita.
 
 ---

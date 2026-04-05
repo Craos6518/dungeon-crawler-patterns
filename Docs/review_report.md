@@ -1,3 +1,24 @@
+# ⚠️ DOCUMENTO OBSOLETO — NO USAR
+
+Este documento NO es fuente de verdad.
+
+Fuente vigente:
+👉 docs/04-testing/ESTRATEGIA_TESTING.md
+
+Estado:
+- Obsoleto desde: 2026-04-04
+- Motivo: consolidación post-auditoría
+
+Este archivo se conserva únicamente por trazabilidad histórica.
+
+---
+
+# ESTADO DOCUMENTAL
+- Estado: historico (legacy conservado por trazabilidad)
+- Referencia canonica vigente: `docs/04-testing/ESTRATEGIA_TESTING.md`
+- Fecha de reclasificacion: 2026-04-04
+- Rama auditada: Flujo-de-mazmorra
+
 # Reporte de Contraste: Documentación vs. Juego Funcional
 **Fecha de revisión:** 21 de marzo de 2026
 
@@ -52,7 +73,7 @@
 ### ESTADO_PROYECTO.md
 | Afirmación | Realidad | Acción |
 |-----------|---------|--------|
-| Backlog: "107+ tests" | 17 suites de test (conteo real de tests no ejecutable sin salida Maven) | ⚠️ Pendiente de ejecutar `mvn test` con salida visible para confirmar conteo |
+| Backlog de tests | Baseline academico: 241 en verde, 2 omitidos | ✅ Actualizar docs historicos para reflejar metrica canonica |
 | `StunEffect` no mencionado en ningún doc | Existe en `effects/status/` | ✏️ Agregar a `DISEÑO.md` |
 
 ---

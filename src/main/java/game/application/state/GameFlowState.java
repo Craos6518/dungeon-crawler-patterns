@@ -3,7 +3,15 @@ package game.application.state;
 import java.util.Locale;
 
 /**
- * Estados tipados de flujo de pantallas para el runtime productivo.
+ * Enum de estados de flujo para el runtime productivo.
+ *
+ * Responsabilidad:
+ * - Definir el conjunto cerrado de pantallas validas en GameSession/GameRuntime.
+ * - Normalizar aliases externos mediante fromScreenKey para evitar transiciones por strings arbitrarios.
+ *
+ * No hace:
+ * - ejecutar logica de transicion.
+ * - almacenar datos de sesion o UI.
  */
 public enum GameFlowState {
     MENU("menu"),

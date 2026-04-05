@@ -7,7 +7,15 @@ import game.effects.status.PoisonEffect;
 import game.effects.status.StrengthEffect;
 
 /**
- * Adaptador productivo que aplica estados de combate via decoradores.
+ * Aplica Decorator en el flujo real de combate.
+ *
+ * Responsabilidad:
+ * - Materializar efectos de veneno, buff ofensivo y mitigacion de guardia usando CharacterDecorator.
+ * - Entregar valores efectivos al agregado Combat sin acoplarlo a clases concretas de efectos.
+ *
+ * No hace:
+ * - control de turnos ni seleccion de acciones.
+ * - emision de eventos o transiciones de estado.
  */
 final class CombatStatusDecoratorPipeline {
 
