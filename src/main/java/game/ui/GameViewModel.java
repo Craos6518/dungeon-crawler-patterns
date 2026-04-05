@@ -32,6 +32,8 @@ public class GameViewModel {
     public String theme;
 
     // ── Progresión de campaña (pantalla héroe) ──────────────────
+    /** Nombre visible del heroe actual en HUD. */
+    public String heroName;
     /** Héroe actualmente seleccionado para campaña. */
     public String heroType;
     /** True cuando el héroe queda bloqueado para mantener continuidad de campaña. */

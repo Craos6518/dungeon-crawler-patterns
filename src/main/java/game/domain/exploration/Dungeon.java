@@ -30,15 +30,17 @@ public class Dungeon {
     private final Random random;
     private final DungeonThemeFactory theme;
     private final game.dungeon.model.Dungeon model;
+    private final Long generationSeed;
     private final Set<Integer> treasureResolved;
     private final Set<Integer> enemyResolved;
 
     private int currentRoomIndex;
 
-    public Dungeon(Random random, DungeonThemeFactory theme, game.dungeon.model.Dungeon model) {
+    public Dungeon(Random random, DungeonThemeFactory theme, game.dungeon.model.Dungeon model, Long generationSeed) {
         this.random = random;
         this.theme = theme;
         this.model = model;
+        this.generationSeed = generationSeed;
         this.treasureResolved = new HashSet<>();
         this.enemyResolved = new HashSet<>();
         this.currentRoomIndex = 0;
@@ -49,9 +51,13 @@ public class Dungeon {
     }
 
     public static Dungeon fromTheme(Random random, DungeonThemeFactory theme) {
+        return fromTheme(random, theme, null);
+    }
+
+    public static Dungeon fromTheme(Random random, DungeonThemeFactory theme, Long generationSeed) {
         DungeonBuilder builder = new ConcreteDungeonBuilder();
         game.dungeon.model.Dungeon generated = ProceduralDungeonGenerator.generar(builder, theme, random);
-        return new Dungeon(random, theme, generated);
+        return new Dungeon(random, theme, generated, generationSeed);
     }
 
     public game.dungeon.model.Dungeon model() {
@@ -68,6 +74,10 @@ public class Dungeon {
 
     public String themeKey() {
         return themeNameToKey(themeName());
+    }
+
+    public Long generationSeed() {
+        return generationSeed;
     }
 
     public int currentRoomIndex() {

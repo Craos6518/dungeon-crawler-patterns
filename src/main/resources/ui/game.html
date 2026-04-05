@@ -103,6 +103,8 @@
       <div class="hdr-left">
         <span class="hdr-dungeon-name" id="hdr-dungeon-name"
               data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-hero-name"
+          data-bind="state.heroName">Héroe · Aventurero</span>
         <span class="hdr-dungeon-theme" id="hdr-dungeon-theme"
               data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
       </div>
@@ -225,6 +227,8 @@
       <div class="hdr-left">
         <span class="hdr-dungeon-name" id="hdr-dungeon-name-combat"
               data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-hero-name-combat"
+          data-bind="state.heroName">Héroe · Aventurero</span>
         <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-combat"
               data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
       </div>
@@ -368,6 +372,8 @@
       <div class="hdr-left">
         <span class="hdr-dungeon-name" id="hdr-dungeon-name-inv"
               data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-hero-name-inv"
+          data-bind="state.heroName">Héroe · Aventurero</span>
         <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-inv"
               data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
       </div>
@@ -504,6 +510,17 @@
       <div class="hero-screen-shell">
         <h1 class="menu-title">Elige tu Héroe</h1>
         <p class="menu-subtitle">selecciona tu clase para esta aventura</p>
+        <div class="field-row" style="margin-bottom:var(--spacing-2);">
+          <span class="field-row__key">Nombre del héroe</span>
+          <input
+            id="hero-name-input"
+            type="text"
+            maxlength="24"
+            placeholder="Ingresa tu nombre"
+            aria-label="Nombre del héroe"
+            style="flex:1;background:#0f0f0f;color:#f2f2f2;border:1px solid #333;padding:10px 12px;border-radius:8px;"
+          />
+        </div>
         <div class="hero-step-label">PASO 1 — CLASE DE HÉROE</div>
         <div class="hero-selection-grid" id="hero-cards-container">
           <div class="hero-card hero-card--selected" id="hero-card-guerrero" data-hero="guerrero" data-action="selectHero" role="button" tabindex="0">

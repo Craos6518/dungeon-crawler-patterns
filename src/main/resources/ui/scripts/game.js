@@ -2,11 +2,11 @@
     var _selectedItemIndex = null;
     var _selectedItemId    = null;
     var _selectedHeroType  = 'guerrero';
+    var _heroName = 'Aventurero';
     var _heroSelectionLocked = false;
     var _completedThemes = [];
     var _nextCampaignTheme = 'poison';
     var _campaignThemeOrder = ['poison', 'ice', 'fire', 'dark'];
-    var _selectedSaveSlot  = 1;
     var _selectedLootIndex = null;
     var _currentScreen = 'menu';
     var _dispatchQueue = [];
@@ -186,6 +186,20 @@
 
     function resolveThemeLore(themeKey) {
       return LORE_THEME_BOOK[normalizeThemeKey(themeKey)] || LORE_THEME_BOOK.poison;
+    }
+
+    function readHeroNameFromInput() {
+      var input = document.getElementById('hero-name-input');
+      var raw = input ? String(input.value || '') : String(_heroName || '');
+      return raw.trim().replace(/\s+/g, ' ');
+    }
+
+    function syncHeroNameInput(heroName) {
+      var input = document.getElementById('hero-name-input');
+      if (!input) return;
+      if (input.value !== heroName) {
+        input.value = heroName;
+      }
     }
 
     function buildHeroLoreEntry(heroType) {
@@ -509,11 +523,8 @@
 
     /* ── Selección de slot de guardado ── */
     function selectSaveSlotRow(slot) {
-      _selectedSaveSlot = slot;
       document.querySelectorAll('.save-slot-row').forEach(function(row) {
-        if (!row.classList.contains('save-slot-row--empty')) {
-          row.classList.toggle('save-slot-row--active', Number(row.dataset.slot) === slot);
-        }
+        row.classList.toggle('save-slot-row--active', Number(row.dataset.slot) === slot);
       });
     }
 
@@ -619,10 +630,7 @@
         var row = document.getElementById('save-slot-row-' + n);
         if (!row) return;
         row.classList.toggle('save-slot-row--empty', !!slot.empty);
-        row.classList.remove('save-slot-row--active');
-        if (!slot.empty) {
-          row.classList.toggle('save-slot-row--active', n === (saveSlotsInfo.selectedSlot || 1));
-        }
+        row.classList.toggle('save-slot-row--active', n === (saveSlotsInfo.selectedSlot || 1));
         setNodeText('save-slot-icon-' + n, slot.heroIcon || '💭');
         setNodeText('save-slot-hero-' + n, slot.heroName || 'ranura vacía');
         if (slot.empty) {
@@ -747,8 +755,17 @@
       if (savesScreen) {
         savesScreen.addEventListener('click', function(e) {
           var row = e.target.closest('[data-action="selectSaveSlot"]');
-          if (!row || row.classList.contains('save-slot-row--empty')) return;
-          selectSaveSlotRow(Number(row.dataset.slot));
+          if (!row) return;
+          var slot = Number(row.dataset.slot);
+          if (!Number.isFinite(slot)) return;
+          sendCommand('selectSaveSlot', { slot: slot });
+        });
+      }
+
+      var heroNameInput = document.getElementById('hero-name-input');
+      if (heroNameInput) {
+        heroNameInput.addEventListener('input', function() {
+          _heroName = readHeroNameFromInput();
         });
       }
 
@@ -809,16 +826,34 @@
             sendCommand('newGame', {});
             return;
           } else if (action === 'heroNewGame') {
+            var heroName = readHeroNameFromInput();
+            if (!heroName) {
+              showTransientSystemMessage('Ingresa un nombre de heroe (3-24 caracteres).');
+              return;
+            }
             queueHeroAndDungeonLoreForSelection(el.dataset.theme || 'poison');
-            sendCommand('heroNewGame', { heroType: _selectedHeroType || 'guerrero', theme: el.dataset.theme || 'poison' });
+            sendCommand('heroNewGame', {
+              heroType: _selectedHeroType || 'guerrero',
+              heroName: heroName,
+              theme: el.dataset.theme || 'poison'
+            });
             return;
           } else if (action === 'startGame') {
+            var legacyHeroName = readHeroNameFromInput();
+            if (!legacyHeroName) {
+              showTransientSystemMessage('Ingresa un nombre de heroe (3-24 caracteres).');
+              return;
+            }
             if (!_loreState.worldShown) {
               _loreState.worldShown = true;
               enqueueLoreWindow(buildWorldLoreEntry());
             }
             enqueueLoreWindow(buildDungeonLoreEntry(el.dataset.theme || 'poison'));
-            sendCommand('startGame', { theme: el.dataset.theme || 'poison' });
+            sendCommand('startGame', {
+              theme: el.dataset.theme || 'poison',
+              heroType: _selectedHeroType || 'guerrero',
+              heroName: legacyHeroName
+            });
             return;
           }
 
@@ -851,9 +886,9 @@
           } else if (action === 'openSaves') {
             sendCommand('openSaves', {});
           } else if (action === 'saveToSlot') {
-            sendCommand('saveToSlot', { slot: _selectedSaveSlot || 1 });
+            sendCommand('saveToSlot', {});
           } else if (action === 'loadFromSlot') {
-            sendCommand('loadFromSlot', { slot: _selectedSaveSlot || 1 });
+            sendCommand('loadFromSlot', {});
           } else if (action === 'takeLoot') {
             sendCommand('takeLoot', {});
           } else if (action === 'selectLoot') {
@@ -925,6 +960,7 @@
       var hpText = (state.playerHp     || 0) + ' / ' + (state.playerHpMax || 0);
       ['', '-combat', '-inv'].forEach(function(sfx) {
         setText ('hdr-dungeon-name'    + sfx, state.dungeonName  || '');
+        setText ('hdr-hero-name'       + sfx, 'Héroe · ' + (state.heroName || _heroName || 'Aventurero'));
         setText ('hdr-dungeon-theme'   + sfx, state.dungeonTheme || '');
         setText ('hdr-room-progress'   + sfx, prog);
         setText ('hdr-gold'            + sfx, gold);
@@ -961,6 +997,10 @@
       if (state.heroType) {
         selectHeroCard(state.heroType);
       }
+      if (state.heroName) {
+        _heroName = String(state.heroName);
+      }
+      syncHeroNameInput(_heroName);
       _heroSelectionLocked = !!state.heroSelectionLocked;
       _completedThemes = Array.isArray(state.completedThemes)
         ? state.completedThemes.map(function(theme) { return String(theme).toLowerCase(); })

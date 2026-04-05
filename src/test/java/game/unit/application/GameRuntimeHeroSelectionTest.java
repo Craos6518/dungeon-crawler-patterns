@@ -23,6 +23,7 @@ class GameRuntimeHeroSelectionTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "mago");
+        payload.addProperty("heroName", "Selene");
         payload.addProperty("theme", "poison");
         command.payload = payload;
 
@@ -32,6 +33,7 @@ class GameRuntimeHeroSelectionTest {
         assertEquals("exploration", vm.screen);
         assertEquals(65, vm.playerHpMax);
         assertEquals(65, vm.playerHp);
+        assertEquals("Selene", vm.heroName);
     }
 
     @Test
@@ -42,6 +44,7 @@ class GameRuntimeHeroSelectionTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "arquero");
+        payload.addProperty("heroName", "Kael");
         payload.addProperty("theme", "poison");
         command.payload = payload;
 
@@ -52,6 +55,7 @@ class GameRuntimeHeroSelectionTest {
         assertEquals(85, vm.playerHpMax);
         assertEquals(85, vm.playerHp);
         assertEquals("poison", vm.theme);
+        assertEquals("Kael", vm.heroName);
     }
 
     @Test
@@ -62,6 +66,7 @@ class GameRuntimeHeroSelectionTest {
         newGame.action = "heroNewGame";
         JsonObject newGamePayload = new JsonObject();
         newGamePayload.addProperty("heroType", "mago");
+        newGamePayload.addProperty("heroName", "Aeris");
         newGamePayload.addProperty("theme", "poison");
         newGame.payload = newGamePayload;
         runtime.handleCommand(newGame);
@@ -109,6 +114,7 @@ class GameRuntimeHeroSelectionTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "mago");
+        payload.addProperty("heroName", "Mago");
         payload.addProperty("theme", "poison");
         command.payload = payload;
 
@@ -128,6 +134,7 @@ class GameRuntimeHeroSelectionTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "mago");
+        payload.addProperty("heroName", "Mago");
         payload.addProperty("theme", "ice");
         command.payload = payload;
 
@@ -148,6 +155,7 @@ class GameRuntimeHeroSelectionTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "guerrero");
+        payload.addProperty("heroName", "Guerrero");
         payload.addProperty("theme", "fire");
         command.payload = payload;
 

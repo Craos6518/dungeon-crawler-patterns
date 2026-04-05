@@ -17,10 +17,10 @@ class GameRuntimeExtendedCommandsTest {
     void quickSaveAndQuickLoadRestorePreferredSlotState() {
         GameRuntime runtime = new GameRuntime();
 
-        send(runtime, "heroNewGame", payload("heroType", "mago", "theme", "poison"));
+        send(runtime, "heroNewGame", payload("heroType", "mago", "heroName", "Lyria", "theme", "poison"));
         send(runtime, "quickSave", payload("slot", 2));
 
-        send(runtime, "heroNewGame", payload("heroType", "arquero", "theme", "poison"));
+        send(runtime, "heroNewGame", payload("heroType", "arquero", "heroName", "Thalan", "theme", "poison"));
         GameViewModel mutated = runtime.presentViewModel();
         assertEquals("poison", mutated.theme);
         assertEquals(85, mutated.playerHpMax);
@@ -139,10 +139,11 @@ class GameRuntimeExtendedCommandsTest {
         runtime.handleCommand(command);
     }
 
-    private static JsonObject payload(String key1, String val1, String key2, String val2) {
+    private static JsonObject payload(String key1, String val1, String key2, String val2, String key3, String val3) {
         JsonObject payload = new JsonObject();
         payload.addProperty(key1, val1);
         payload.addProperty(key2, val2);
+        payload.addProperty(key3, val3);
         return payload;
     }
 

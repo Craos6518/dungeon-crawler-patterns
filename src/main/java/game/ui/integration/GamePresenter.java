@@ -29,6 +29,10 @@ public class GamePresenter {
     private static final DateTimeFormatter SAVE_TIME_FMT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
 
     public GameViewModel present(GameSession session) {
+        return present(session, 1);
+    }
+
+    public GameViewModel present(GameSession session, int selectedSaveSlot) {
         Dungeon dungeon = session.dungeon().model();
         Room room = session.dungeon().currentRoom().model();
 
@@ -65,6 +69,7 @@ public class GamePresenter {
         vm.screen = screen;
         vm.theme = session.dungeon().themeKey();
         vm.dungeonTheme = session.dungeon().themeName();
+        vm.heroName = session.player().name();
         vm.heroType = session.heroType();
         vm.heroSelectionLocked = session.isHeroSelectionLocked();
         vm.completedThemes = new ArrayList<>(session.completedThemes());
@@ -128,7 +133,7 @@ public class GamePresenter {
             vm.stats = buildStatsInfo(session);
         }
         if (activeState == GameFlowState.SAVES) {
-            vm.saveSlotsInfo = buildSaveSlotsInfo(session);
+            vm.saveSlotsInfo = buildSaveSlotsInfo(session, selectedSaveSlot);
         }
         if (activeState == GameFlowState.GAME_OVER) {
             vm.gameOver = buildGameOverInfo(session);
@@ -341,7 +346,7 @@ public class GamePresenter {
         return "comun";
     }
 
-    private static GameViewModel.SaveSlotsInfo buildSaveSlotsInfo(GameSession session) {
+    private static GameViewModel.SaveSlotsInfo buildSaveSlotsInfo(GameSession session, int selectedSaveSlot) {
         GameViewModel.SaveSlotsInfo info = new GameViewModel.SaveSlotsInfo();
         info.slots = new java.util.ArrayList<>();
         for (int i = 1; i <= 3; i++) {
@@ -364,7 +369,7 @@ public class GamePresenter {
 
             info.slots.add(slot);
         }
-        info.selectedSlot = 1;
+        info.selectedSlot = selectedSaveSlot;
         return info;
     }
 

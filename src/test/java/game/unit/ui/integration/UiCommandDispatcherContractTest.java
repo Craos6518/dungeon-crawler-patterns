@@ -136,6 +136,73 @@ class UiCommandDispatcherContractTest {
         assertTrue(saveResponse.message.contains("antes de iniciar o cargar"));
     }
 
+    @Test
+    void startGameWithoutHeroNameReturnsControlledError() {
+        UiCommandDispatcher dispatcher = newDispatcher();
+
+        UiCommandResponse response = dispatcher.dispatchCommandJson(
+            "{\"action\":\"startGame\",\"payload\":{\"theme\":\"poison\",\"heroType\":\"mago\"}}"
+        );
+
+        assertEquals("error", response.status);
+        assertTrue(response.message.contains("heroName es obligatorio"));
+    }
+
+    @Test
+    void startGameWithBlankHeroNameReturnsControlledError() {
+        UiCommandDispatcher dispatcher = newDispatcher();
+
+        UiCommandResponse response = dispatcher.dispatchCommandJson(
+            "{\"action\":\"startGame\",\"payload\":{\"theme\":\"poison\",\"heroType\":\"mago\",\"heroName\":\"   \"}}"
+        );
+
+        assertEquals("error", response.status);
+        assertTrue(response.message.contains("heroName requerido"));
+    }
+
+    @Test
+    void selectSaveSlotUpdatesRuntimeSelectionInViewModel() {
+        UiCommandDispatcher dispatcher = newDispatcher();
+
+        UiCommandResponse open = dispatcher.dispatchCommandJson("{\"action\":\"openSaves\",\"payload\":{}}");
+        assertEquals("ok", open.status);
+
+        UiCommandResponse selected = dispatcher.dispatchCommandJson(
+            "{\"action\":\"selectSaveSlot\",\"payload\":{\"slot\":3}}"
+        );
+
+        assertEquals("ok", selected.status);
+        assertNotNull(selected.data);
+        assertNotNull(selected.data.saveSlotsInfo);
+        assertEquals(3, selected.data.saveSlotsInfo.selectedSlot);
+    }
+
+    @Test
+    void selectSaveSlotBelowRangeReturnsControlledError() {
+        UiCommandDispatcher dispatcher = newDispatcher();
+        dispatcher.dispatchCommandJson("{\"action\":\"openSaves\",\"payload\":{}}");
+
+        UiCommandResponse response = dispatcher.dispatchCommandJson(
+            "{\"action\":\"selectSaveSlot\",\"payload\":{\"slot\":0}}"
+        );
+
+        assertEquals("error", response.status);
+        assertTrue(response.message.contains("slot fuera de rango permitido [1, 3]"));
+    }
+
+    @Test
+    void selectSaveSlotAboveRangeReturnsControlledError() {
+        UiCommandDispatcher dispatcher = newDispatcher();
+        dispatcher.dispatchCommandJson("{\"action\":\"openSaves\",\"payload\":{}}");
+
+        UiCommandResponse response = dispatcher.dispatchCommandJson(
+            "{\"action\":\"selectSaveSlot\",\"payload\":{\"slot\":4}}"
+        );
+
+        assertEquals("error", response.status);
+        assertTrue(response.message.contains("slot fuera de rango permitido [1, 3]"));
+    }
+
     private static UiCommandDispatcher newDispatcher() {
         return new UiCommandDispatcher(new UiGameController(), () -> {
             // No-op en tests de contrato.

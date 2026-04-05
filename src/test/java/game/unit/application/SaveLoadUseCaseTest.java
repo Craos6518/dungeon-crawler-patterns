@@ -72,7 +72,7 @@ class SaveLoadUseCaseTest {
 
     @Test
     void loadRestoresSavedSessionState() {
-        var source = GameSessionFactory.createDemoSession();
+        var source = GameSessionFactory.createSessionForTheme("fire", "guerrero", "Nyx");
         source.dungeon().restoreProgress(1, Set.of(0), Set.of(0));
         source.combat().restoreTurnState(true, 2, 4);
         source.player().addGold(55);
@@ -86,9 +86,10 @@ class SaveLoadUseCaseTest {
         int expectedPoisonTurns = source.combat().poisonTurns();
         int expectedPoisonDamage = source.combat().poisonDamage();
         boolean expectedDefense = source.combat().isDefenseActive();
+        String expectedHeroName = source.player().name();
         new SaveGameUseCase(source).execute(2);
 
-        var target = GameSessionFactory.createDemoSession();
+        var target = GameSessionFactory.createSessionForTheme("fire", "guerrero", "Otro");
         LoadGameUseCase load = new LoadGameUseCase(target);
         load.execute(2);
 
@@ -99,6 +100,7 @@ class SaveLoadUseCaseTest {
         assertEquals(expectedPoisonTurns, target.combat().poisonTurns());
         assertEquals(expectedPoisonDamage, target.combat().poisonDamage());
         assertEquals(expectedDefense, target.combat().isDefenseActive());
+        assertEquals(expectedHeroName, target.player().name());
         assertTrue(!target.combat().isActive());
         assertEquals("inventory", target.activeScreen());
     }

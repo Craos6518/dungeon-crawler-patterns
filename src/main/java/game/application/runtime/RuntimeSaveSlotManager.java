@@ -17,6 +17,7 @@ final class RuntimeSaveSlotManager {
 
     private static final String DEFAULT_THEME = "fire";
     private static final String DEFAULT_HERO = "guerrero";
+    private static final String DEFAULT_HERO_NAME = "Aventurero";
 
     private final int minSlot;
     private final int maxSlot;
@@ -46,6 +47,14 @@ final class RuntimeSaveSlotManager {
         return preferredSaveSlot;
     }
 
+    void selectPreferredSlot(Integer requestedSlot) {
+        if (requestedSlot == null) {
+            throw new InvalidRuntimeCommandException("slot es obligatorio");
+        }
+
+        preferredSaveSlot = validateSlotOrThrow(requestedSlot);
+    }
+
     void saveToSlot(Integer requestedSlot) {
         int slot = resolveSlotOrPreferred(requestedSlot);
         saveGameUseCase.execute(slot);
@@ -63,7 +72,7 @@ final class RuntimeSaveSlotManager {
         if (requestedSlot == null) {
             return preferredSaveSlot;
         }
-        return clampSlot(requestedSlot);
+        return validateSlotOrThrow(requestedSlot);
     }
 
     private GameSession loadSessionFromSlot(int slot) {
@@ -75,7 +84,11 @@ final class RuntimeSaveSlotManager {
 
         String theme = resolveThemeFromMemento(memento);
         String heroType = resolveHeroTypeFromMemento(memento);
-        GameSession restoredSession = GameSessionFactory.createSessionForTheme(theme, heroType);
+        String heroName = resolveHeroNameFromMemento(memento);
+        Long generationSeed = resolveGenerationSeedFromMemento(memento);
+        GameSession restoredSession = generationSeed == null
+            ? GameSessionFactory.createSessionForTheme(theme, heroType, heroName)
+            : GameSessionFactory.createSessionForTheme(theme, heroType, heroName, generationSeed);
         new LoadGameUseCase(restoredSession).restoreFromMemento(fileName, memento);
         return restoredSession;
     }
@@ -111,7 +124,47 @@ final class RuntimeSaveSlotManager {
         return DEFAULT_HERO;
     }
 
-    private int clampSlot(int slot) {
-        return Math.max(minSlot, Math.min(maxSlot, slot));
+    private static Long resolveGenerationSeedFromMemento(GameMemento memento) {
+        if (memento == null || memento.getEstadoMazmorra() == null) {
+            return null;
+        }
+
+        Object rawSeed = memento.getEstadoMazmorra().get("generationSeed");
+        if (rawSeed == null) {
+            return null;
+        }
+
+        if (rawSeed instanceof Number number) {
+            return number.longValue();
+        }
+
+        try {
+            return Long.parseLong(String.valueOf(rawSeed));
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private static String resolveHeroNameFromMemento(GameMemento memento) {
+        if (memento == null) {
+            return DEFAULT_HERO_NAME;
+        }
+
+        String heroName = memento.getNombreJugador();
+        if (heroName == null) {
+            return DEFAULT_HERO_NAME;
+        }
+
+        String normalized = heroName.trim().replaceAll("\\s+", " ");
+        return normalized.isBlank() ? DEFAULT_HERO_NAME : normalized;
+    }
+
+    private int validateSlotOrThrow(int slot) {
+        if (slot < minSlot || slot > maxSlot) {
+            throw new InvalidRuntimeCommandException(
+                "slot fuera de rango permitido [" + minSlot + ", " + maxSlot + "]"
+            );
+        }
+        return slot;
     }
 }

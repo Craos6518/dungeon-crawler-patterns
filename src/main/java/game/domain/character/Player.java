@@ -77,6 +77,10 @@ public class Player {
         return character.getNombre();
     }
 
+    public void rename(String newName) {
+        character.renombrar(newName);
+    }
+
     public boolean isAlive() {
         return character.estaVivo();
     }

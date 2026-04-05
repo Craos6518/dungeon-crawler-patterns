@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import game.application.dto.AttackCommandRequest;
 import game.application.dto.LoadGameCommandRequest;
 import game.application.dto.SaveGameCommandRequest;
+import game.application.dto.SelectSaveSlotCommandRequest;
 import game.application.dto.SelectItemCommandRequest;
 import game.application.dto.StartGameCommandRequest;
 import game.application.dto.UiCommand;
@@ -135,7 +136,7 @@ public class GameRuntime implements GameCommandHandler {
 
     @Override
     public synchronized GameViewModel presentViewModel() {
-        return presenter.present(session);
+        return presenter.present(session, saveSlotManager.preferredSaveSlot());
     }
 
     @Override
@@ -169,10 +170,12 @@ public class GameRuntime implements GameCommandHandler {
             String theme = campaignSessionCoordinator.resolveThemeOrDefault(session, payload.theme);
             campaignSessionCoordinator.ensureThemeAvailableForCampaign(session, theme);
             String heroType = campaignSessionCoordinator.resolveHeroTypeForNewRun(session, payload.heroType);
+            String heroName = campaignSessionCoordinator.resolveHeroNameForNewRun(session, payload.heroName);
             GameSession newSession = campaignSessionCoordinator.createSessionPreservingCampaignProgress(
                 session,
                 theme,
-                heroType
+                heroType,
+                heroName
             );
             newSession.transitionTo(GameFlowState.EXPLORATION);
 
@@ -338,10 +341,12 @@ public class GameRuntime implements GameCommandHandler {
             String theme = campaignSessionCoordinator.resolveThemeOrDefault(session, payload.theme);
             campaignSessionCoordinator.ensureThemeAvailableForCampaign(session, theme);
             String heroType = campaignSessionCoordinator.resolveHeroTypeForNewRun(session, payload.heroType);
+            String heroName = campaignSessionCoordinator.resolveHeroNameForNewRun(session, payload.heroName);
             GameSession newSession = campaignSessionCoordinator.createSessionPreservingCampaignProgress(
                 session,
                 theme,
-                heroType
+                heroType,
+                heroName
             );
             newSession.transitionTo(GameFlowState.EXPLORATION);
             bindSession(newSession);
@@ -399,9 +404,9 @@ public class GameRuntime implements GameCommandHandler {
             session.skipTreasure();
         }, payloadValidator::validateEmptyPayload));
 
-        map.put("selectSaveSlot", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            // Stub explicito: la seleccion de slot se maneja localmente en JS.
-        }, payloadValidator::validateEmptyPayload));
+        map.put("selectSaveSlot", TypedCommandHandler.of(SelectSaveSlotCommandRequest.class, Set.of("slot"), payload -> {
+            saveSlotManager.selectPreferredSlot(payload.slot);
+        }, payloadValidator::validateSelectSaveSlotPayload));
 
         return map;
     }
