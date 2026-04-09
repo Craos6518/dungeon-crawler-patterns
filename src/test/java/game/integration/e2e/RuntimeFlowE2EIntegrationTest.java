@@ -19,11 +19,11 @@ class RuntimeFlowE2EIntegrationTest {
 
         UiCommandResponse started = dispatch(
             dispatcher,
-            "{\"action\":\"heroNewGame\",\"payload\":{\"heroType\":\"arquero\",\"heroName\":\"Nora\",\"theme\":\"poison\"}}"
+            "{\"action\":\"heroNewGame\",\"payload\":{\"heroType\":\"arquero\",\"theme\":\"poison\"}}"
         );
         assertOk(started);
         assertEquals("exploration", started.data.screen);
-        assertEquals("Nora", started.data.heroName);
+        assertEquals("arquero", started.data.heroType);
 
         UiCommandResponse combat = dispatch(dispatcher, "{\"action\":\"forceCombat\",\"payload\":{}}");
         assertOk(combat);
@@ -50,16 +50,16 @@ class RuntimeFlowE2EIntegrationTest {
 
         UiCommandResponse mutated = dispatch(
             dispatcher,
-            "{\"action\":\"heroNewGame\",\"payload\":{\"heroType\":\"mago\",\"heroName\":\"Bran\",\"theme\":\"poison\"}}"
+            "{\"action\":\"heroNewGame\",\"payload\":{\"heroType\":\"mago\",\"theme\":\"poison\"}}"
         );
         assertOk(mutated);
-        assertEquals("Bran", mutated.data.heroName);
+        assertEquals("mago", mutated.data.heroType);
 
         UiCommandResponse loaded = dispatch(dispatcher, "{\"action\":\"loadFromSlot\",\"payload\":{\"slot\":2}}");
         assertOk(loaded);
         assertEquals("exploration", loaded.data.screen);
         assertEquals("poison", loaded.data.theme);
-        assertEquals("Nora", loaded.data.heroName);
+        assertEquals("arquero", loaded.data.heroType);
     }
 
     private static UiCommandResponse dispatch(UiCommandDispatcher dispatcher, String raw) {

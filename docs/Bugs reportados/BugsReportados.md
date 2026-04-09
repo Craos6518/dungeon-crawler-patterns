@@ -3,4 +3,4 @@
 
 
 ## Nota de documentación
-- El nombre del héroe solo puede registrarse en minúsculas.
+- La selección vigente se define por clase de héroe.

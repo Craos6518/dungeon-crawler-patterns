@@ -15,7 +15,7 @@ class GameRuntimeSaveSlotSelectionTest {
     void selectedSaveSlotIsRuntimeStateAndDrivesSaveAndLoad() {
         GameRuntime runtime = new GameRuntime();
 
-        send(runtime, "heroNewGame", payload("heroType", "guerrero", "heroName", "Alaric", "theme", "poison"));
+        send(runtime, "heroNewGame", payload("heroType", "guerrero", "theme", "poison"));
         send(runtime, "openSaves", new JsonObject());
 
         GameViewModel savesScreen = runtime.presentViewModel();
@@ -32,7 +32,7 @@ class GameRuntimeSaveSlotSelectionTest {
 
         send(runtime, "saveToSlot", new JsonObject());
 
-        send(runtime, "heroNewGame", payload("heroType", "mago", "heroName", "Borin", "theme", "poison"));
+        send(runtime, "heroNewGame", payload("heroType", "mago", "theme", "poison"));
         send(runtime, "saveToSlot", payload("slot", 1));
 
         send(runtime, "openSaves", new JsonObject());
@@ -41,7 +41,7 @@ class GameRuntimeSaveSlotSelectionTest {
 
         GameViewModel restored = runtime.presentViewModel();
         assertEquals("exploration", restored.screen);
-        assertEquals("Alaric", restored.heroName);
+        assertEquals("guerrero", restored.heroType);
     }
 
     private static JsonObject payload(String key, int value) {
@@ -50,18 +50,10 @@ class GameRuntimeSaveSlotSelectionTest {
         return payload;
     }
 
-    private static JsonObject payload(
-        String key1,
-        String val1,
-        String key2,
-        String val2,
-        String key3,
-        String val3
-    ) {
+    private static JsonObject payload(String key1, String val1, String key2, String val2) {
         JsonObject payload = new JsonObject();
         payload.addProperty(key1, val1);
         payload.addProperty(key2, val2);
-        payload.addProperty(key3, val3);
         return payload;
     }
 

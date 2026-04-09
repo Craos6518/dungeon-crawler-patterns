@@ -71,7 +71,6 @@ mvn test
 - `target/surefire-reports/*` se trata como evidencia generada, no como fuente canonica de documentacion.
 
 ## Deuda tecnica conocida
-- HU-02: pendiente de cierre academico.
 - Cobertura E2E: parcial (hay pruebas E2E de contrato runtime, falta E2E visual de navegador completo).
 - STUBs explicitos en `GameRuntime`:
 	- `rerenderCurrentScreen`

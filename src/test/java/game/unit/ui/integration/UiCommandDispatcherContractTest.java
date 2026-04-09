@@ -169,27 +169,28 @@ class UiCommandDispatcherContractTest {
     }
 
     @Test
-    void startGameWithoutHeroNameReturnsControlledError() {
+    void startGameWithoutCustomNameStillStartsNormally() {
         UiCommandDispatcher dispatcher = newDispatcher();
 
         UiCommandResponse response = dispatcher.dispatchCommandJson(
             "{\"action\":\"startGame\",\"payload\":{\"theme\":\"poison\",\"heroType\":\"mago\"}}"
         );
 
-        assertEquals("error", response.status);
-        assertTrue(response.message.contains("heroName es obligatorio"));
+        assertEquals("ok", response.status);
+        assertNotNull(response.data);
+        assertEquals("exploration", response.data.screen);
     }
 
     @Test
-    void startGameWithBlankHeroNameReturnsControlledError() {
+    void startGameWithInvalidThemeReturnsControlledError() {
         UiCommandDispatcher dispatcher = newDispatcher();
 
         UiCommandResponse response = dispatcher.dispatchCommandJson(
-            "{\"action\":\"startGame\",\"payload\":{\"theme\":\"poison\",\"heroType\":\"mago\",\"heroName\":\"   \"}}"
+            "{\"action\":\"startGame\",\"payload\":{\"theme\":\"forest\",\"heroType\":\"mago\"}}"
         );
 
         assertEquals("error", response.status);
-        assertTrue(response.message.contains("heroName requerido"));
+        assertTrue(response.message.contains("theme invalido"));
     }
 
     @Test

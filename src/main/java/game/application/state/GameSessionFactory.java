@@ -59,27 +59,14 @@ public final class GameSessionFactory {
     }
 
     public static GameSession createSessionForTheme(String themeKey, String heroType) {
-        String normalizedHeroType = normalizeHeroType(heroType);
-        String heroName = defaultHeroNameForType(normalizedHeroType);
-        return createSessionForTheme(themeKey, normalizedHeroType, heroName, DEFAULT_DUNGEON_SEED);
-    }
-
-    public static GameSession createSessionForTheme(String themeKey, String heroType, String heroName) {
-        return createSessionForTheme(themeKey, heroType, heroName, DEFAULT_DUNGEON_SEED);
+        return createSessionForTheme(themeKey, heroType, DEFAULT_DUNGEON_SEED);
     }
 
     public static GameSession createSessionForTheme(String themeKey, String heroType, long dungeonSeed) {
-        String normalizedHeroType = normalizeHeroType(heroType);
-        String heroName = defaultHeroNameForType(normalizedHeroType);
-        return createSessionForTheme(themeKey, normalizedHeroType, heroName, dungeonSeed);
-    }
-
-    public static GameSession createSessionForTheme(String themeKey, String heroType, String heroName, long dungeonSeed) {
         Random random = new Random(dungeonSeed);
 
         String normalizedHeroType = normalizeHeroType(heroType);
-        String normalizedHeroName = normalizeHeroName(heroName, normalizedHeroType);
-        Player player = createPlayerForHero(normalizedHeroType, normalizedHeroName);
+        Player player = createPlayerForHero(normalizedHeroType);
         DungeonThemeFactory theme = resolveThemeFactory(themeKey);
         Dungeon dungeon = Dungeon.fromTheme(random, theme, dungeonSeed);
         TurnManager turnManager = new TurnManager();
@@ -103,14 +90,8 @@ public final class GameSessionFactory {
     }
 
     public static GameSession createSessionForThemeRandomized(String themeKey, String heroType) {
-        String normalizedHeroType = normalizeHeroType(heroType);
-        String heroName = defaultHeroNameForType(normalizedHeroType);
-        return createSessionForThemeRandomized(themeKey, normalizedHeroType, heroName);
-    }
-
-    public static GameSession createSessionForThemeRandomized(String themeKey, String heroType, String heroName) {
         long dungeonSeed = ThreadLocalRandom.current().nextLong();
-        return createSessionForTheme(themeKey, heroType, heroName, dungeonSeed);
+        return createSessionForTheme(themeKey, heroType, dungeonSeed);
     }
 
     private static void registerRuntimeObservers(EventManager eventManager, GameSession session) {
@@ -121,31 +102,20 @@ public final class GameSessionFactory {
         eventManager.suscribir(SESSION_EVENT_COUNTER_OBSERVER);
     }
 
-    private static Player createPlayerForHero(String heroType, String heroName) {
+    private static Player createPlayerForHero(String heroType) {
         GameBalance.HeroProfile profile = GameBalance.hero(heroType);
+        String heroDisplayName = defaultHeroLabelForType(profile.type());
 
         Personaje hero = switch (profile.type()) {
-            case HERO_TYPE_MAGO -> new MagoFactory(profile.hp(), profile.attack()).crearPersonaje(heroName);
-            case HERO_TYPE_ARQUERO -> new ArqueroFactory(profile.hp(), profile.attack()).crearPersonaje(heroName);
-            default -> new GuerreroFactory(profile.hp(), profile.attack()).crearPersonaje(heroName);
+            case HERO_TYPE_MAGO -> new MagoFactory(profile.hp(), profile.attack()).crearPersonaje(heroDisplayName);
+            case HERO_TYPE_ARQUERO -> new ArqueroFactory(profile.hp(), profile.attack()).crearPersonaje(heroDisplayName);
+            default -> new GuerreroFactory(profile.hp(), profile.attack()).crearPersonaje(heroDisplayName);
         };
         return new Player(hero, Inventory.demo(), profile.type());
     }
 
-    private static String defaultHeroNameForType(String heroType) {
+    private static String defaultHeroLabelForType(String heroType) {
         return GameBalance.hero(heroType).displayName();
-    }
-
-    private static String normalizeHeroName(String heroName, String heroType) {
-        if (heroName == null) {
-            return defaultHeroNameForType(heroType);
-        }
-
-        String normalized = heroName.trim().replaceAll("\\s+", " ");
-        if (normalized.isBlank()) {
-            return defaultHeroNameForType(heroType);
-        }
-        return normalized;
     }
 
     private static DungeonThemeFactory resolveThemeFactory(String themeKey) {

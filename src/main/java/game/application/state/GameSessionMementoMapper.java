@@ -172,11 +172,6 @@ public final class GameSessionMementoMapper {
             throw corrupt("secciones de estado faltantes");
         }
 
-        String heroName = readString(memento.getNombreJugador(), session.player().name());
-        if (strict && (memento.getNombreJugador() == null || String.valueOf(memento.getNombreJugador()).trim().isBlank())) {
-            throw corrupt("nombreJugador invalido");
-        }
-
         int level = readInt(characterState.get("nivel"), memento.getNivelActual());
         int experience = readInt(characterState.get("experiencia"), 0);
         String heroType = normalizeHeroType(readString(characterState.get("heroType"), session.heroType()));
@@ -221,7 +216,6 @@ public final class GameSessionMementoMapper {
             Math.max(0, defeatedEnemies),
             Math.max(0, resource)
         );
-        session.player().rename(heroName);
 
         if (!heroType.isBlank()) {
             session.setHeroType(heroType);

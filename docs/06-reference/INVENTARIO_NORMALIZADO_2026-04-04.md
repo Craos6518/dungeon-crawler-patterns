@@ -89,5 +89,4 @@ Pendiente de documentacion Javadoc profunda en clases de dominio legado:
 
 ## 6) Deuda real identificada
 - STUBs en `GameRuntime`: `rerenderCurrentScreen`, `filterCategory` (documentados explicitamente).
-- HU-02 pendiente de cierre academico.
 - Cobertura E2E parcial: hay validacion E2E de contrato runtime, falta automatizacion visual full-browser.

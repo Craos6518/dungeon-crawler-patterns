@@ -25,7 +25,6 @@ final class RuntimeSaveSlotManager {
 
     private static final String DEFAULT_THEME = "fire";
     private static final String DEFAULT_HERO = "guerrero";
-    private static final String DEFAULT_HERO_NAME = "Aventurero";
 
     private final int minSlot;
     private final int maxSlot;
@@ -92,11 +91,10 @@ final class RuntimeSaveSlotManager {
 
         String theme = resolveThemeFromMemento(memento);
         String heroType = resolveHeroTypeFromMemento(memento);
-        String heroName = resolveHeroNameFromMemento(memento);
         Long generationSeed = resolveGenerationSeedFromMemento(memento);
         GameSession restoredSession = generationSeed == null
-            ? GameSessionFactory.createSessionForTheme(theme, heroType, heroName)
-            : GameSessionFactory.createSessionForTheme(theme, heroType, heroName, generationSeed);
+            ? GameSessionFactory.createSessionForTheme(theme, heroType)
+            : GameSessionFactory.createSessionForTheme(theme, heroType, generationSeed);
         new LoadGameUseCase(restoredSession).restoreFromMemento(fileName, memento);
         return restoredSession;
     }
@@ -151,20 +149,6 @@ final class RuntimeSaveSlotManager {
         } catch (NumberFormatException ignored) {
             return null;
         }
-    }
-
-    private static String resolveHeroNameFromMemento(GameMemento memento) {
-        if (memento == null) {
-            return DEFAULT_HERO_NAME;
-        }
-
-        String heroName = memento.getNombreJugador();
-        if (heroName == null) {
-            return DEFAULT_HERO_NAME;
-        }
-
-        String normalized = heroName.trim().replaceAll("\\s+", " ");
-        return normalized.isBlank() ? DEFAULT_HERO_NAME : normalized;
     }
 
     private int validateSlotOrThrow(int slot) {

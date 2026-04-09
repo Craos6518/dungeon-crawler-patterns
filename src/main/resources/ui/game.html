@@ -103,8 +103,8 @@
       <div class="hdr-left">
         <span class="hdr-dungeon-name" id="hdr-dungeon-name"
               data-bind="state.dungeonName">La Cripta de Malgrath</span>
-        <span class="hdr-dungeon-theme" id="hdr-hero-name"
-          data-bind="state.heroName">Héroe · Aventurero</span>
+        <span class="hdr-dungeon-theme" id="hdr-hero-type"
+          data-bind="state.heroType">Clase · Guerrero</span>
         <span class="hdr-dungeon-theme" id="hdr-dungeon-theme"
               data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
       </div>
@@ -227,8 +227,8 @@
       <div class="hdr-left">
         <span class="hdr-dungeon-name" id="hdr-dungeon-name-combat"
               data-bind="state.dungeonName">La Cripta de Malgrath</span>
-        <span class="hdr-dungeon-theme" id="hdr-hero-name-combat"
-          data-bind="state.heroName">Héroe · Aventurero</span>
+        <span class="hdr-dungeon-theme" id="hdr-hero-type-combat"
+          data-bind="state.heroType">Clase · Guerrero</span>
         <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-combat"
               data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
       </div>
@@ -371,8 +371,8 @@
       <div class="hdr-left">
         <span class="hdr-dungeon-name" id="hdr-dungeon-name-inv"
               data-bind="state.dungeonName">La Cripta de Malgrath</span>
-        <span class="hdr-dungeon-theme" id="hdr-hero-name-inv"
-          data-bind="state.heroName">Héroe · Aventurero</span>
+        <span class="hdr-dungeon-theme" id="hdr-hero-type-inv"
+          data-bind="state.heroType">Clase · Guerrero</span>
         <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-inv"
               data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
       </div>
@@ -512,17 +512,6 @@
       <div class="hero-screen-shell">
         <h1 class="menu-title">Elige tu Héroe</h1>
         <p class="menu-subtitle">selecciona tu clase para esta aventura</p>
-        <div class="field-row" style="margin-bottom:var(--spacing-2);">
-          <span class="field-row__key">Nombre del héroe</span>
-          <input
-            id="hero-name-input"
-            type="text"
-            maxlength="24"
-            placeholder="Ingresa tu nombre"
-            aria-label="Nombre del héroe"
-            style="flex:1;background:#0f0f0f;color:#f2f2f2;border:1px solid #333;padding:10px 12px;border-radius:8px;"
-          />
-        </div>
         <div class="hero-step-label">PASO 1 — CLASE DE HÉROE</div>
         <div class="hero-selection-grid" id="hero-cards-container">
           <div class="hero-card hero-card--selected" id="hero-card-guerrero" data-hero="guerrero" data-action="selectHero" role="button" tabindex="0">
@@ -579,7 +568,7 @@
         <h1 class="menu-title">Estadísticas</h1>
         <div class="stats-hero-banner">
           <div class="stats-hero-icon" id="stats-hero-icon">🗡️</div>
-          <div><div class="stats-hero-name" id="stats-hero-name">Guerrero</div><div class="stats-hero-type" id="stats-hero-type">clase · guerrero</div></div>
+          <div><div class="stats-hero-classname" id="stats-hero-class">Guerrero</div><div class="stats-hero-type" id="stats-hero-type">clase · guerrero</div></div>
         </div>
         <div class="stats-grid-2">
           <div>
@@ -659,17 +648,17 @@
         <p class="menu-subtitle" style="text-align:left;">memento — selecciona una ranura</p>
         <div class="save-slot-row save-slot-row--empty" id="save-slot-row-1" data-slot="1" data-action="selectSaveSlot" role="button" tabindex="0">
           <span class="save-slot__number">01</span><span class="save-slot__icon" id="save-slot-icon-1">💭</span>
-          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-hero-1">ranura vacía</div><div class="save-slot__details" id="save-slot-details-1">—</div><div class="save-slot__date" id="save-slot-date-1"></div></div>
+          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-label-1">ranura vacía</div><div class="save-slot__details" id="save-slot-details-1">—</div><div class="save-slot__date" id="save-slot-date-1"></div></div>
           <span class="save-slot__type-badge" id="save-slot-type-1">vacío</span>
         </div>
         <div class="save-slot-row save-slot-row--empty" id="save-slot-row-2" data-slot="2" data-action="selectSaveSlot" role="button" tabindex="0">
           <span class="save-slot__number">02</span><span class="save-slot__icon" id="save-slot-icon-2">💭</span>
-          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-hero-2">ranura vacía</div><div class="save-slot__details" id="save-slot-details-2">—</div><div class="save-slot__date" id="save-slot-date-2"></div></div>
+          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-label-2">ranura vacía</div><div class="save-slot__details" id="save-slot-details-2">—</div><div class="save-slot__date" id="save-slot-date-2"></div></div>
           <span class="save-slot__type-badge" id="save-slot-type-2">vacío</span>
         </div>
         <div class="save-slot-row save-slot-row--empty" id="save-slot-row-3" data-slot="3" data-action="selectSaveSlot" role="button" tabindex="0">
           <span class="save-slot__number">03</span><span class="save-slot__icon" id="save-slot-icon-3">💭</span>
-          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-hero-3">ranura vacía</div><div class="save-slot__details" id="save-slot-details-3">—</div><div class="save-slot__date" id="save-slot-date-3"></div></div>
+          <div class="save-slot__meta"><div class="save-slot__hero" id="save-slot-label-3">ranura vacía</div><div class="save-slot__details" id="save-slot-details-3">—</div><div class="save-slot__date" id="save-slot-date-3"></div></div>
           <span class="save-slot__type-badge" id="save-slot-type-3">vacío</span>
         </div>
         <div class="saves-actions">
@@ -688,7 +677,7 @@
     <div class="gameover-shell">
       <div class="gameover-skull">💀</div>
       <div class="gameover-title">Game Over</div>
-      <div class="gameover-subtitle"><span id="gameover-hero-name">el guerrero</span> ha caído<br><span id="gameover-context">derrotado por un enemigo</span></div>
+        <div class="gameover-subtitle"><span id="gameover-hero-type">el guerrero</span> ha caído<br><span id="gameover-context">derrotado por un enemigo</span></div>
       <div class="gameover-stats-row">
         <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-rooms">0</span><span class="gameover-stat-chip__lbl">salas explor.</span></div>
         <div class="gameover-stat-chip"><span class="gameover-stat-chip__val" id="gameover-enemies">0</span><span class="gameover-stat-chip__lbl">enemigos</span></div>

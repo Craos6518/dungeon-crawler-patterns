@@ -2,7 +2,6 @@
     var _selectedItemIndex = null;
     var _selectedItemId    = null;
     var _selectedHeroType  = 'guerrero';
-    var _heroName = 'Aventurero';
     var _heroSelectionLocked = false;
     var _completedThemes = [];
     var _nextCampaignTheme = 'poison';
@@ -229,18 +228,11 @@
       return LORE_THEME_BOOK[normalizeThemeKey(themeKey)] || LORE_THEME_BOOK.poison;
     }
 
-    function readHeroNameFromInput() {
-      var input = document.getElementById('hero-name-input');
-      var raw = input ? String(input.value || '') : String(_heroName || '');
-      return raw.trim().replace(/\s+/g, ' ');
-    }
-
-    function syncHeroNameInput(heroName) {
-      var input = document.getElementById('hero-name-input');
-      if (!input) return;
-      if (input.value !== heroName) {
-        input.value = heroName;
-      }
+    function formatHeroTypeLabel(heroType) {
+      var normalized = normalizeHeroType(heroType);
+      if (normalized === 'mago') return 'Mago';
+      if (normalized === 'arquero') return 'Arquero';
+      return 'Guerrero';
     }
 
     function buildHeroLoreEntry(heroType) {
@@ -703,18 +695,6 @@
           card.title = '';
         }
       });
-
-      var heroNameInput = document.getElementById('hero-name-input');
-      if (heroNameInput) {
-        heroNameInput.readOnly = !!_heroSelectionLocked;
-        heroNameInput.setAttribute('aria-disabled', _heroSelectionLocked ? 'true' : 'false');
-        heroNameInput.title = _heroSelectionLocked
-          ? 'El nombre queda bloqueado durante la continuidad de la campaña.'
-          : '';
-        if (_heroSelectionLocked) {
-          syncHeroNameInput(_heroName);
-        }
-      }
     }
 
     /* ── Selección de slot de guardado ── */
@@ -828,7 +808,7 @@
         row.classList.toggle('save-slot-row--empty', !!slot.empty);
         row.classList.toggle('save-slot-row--active', n === (saveSlotsInfo.selectedSlot || 1));
         setNodeText('save-slot-icon-' + n, slot.heroIcon || '💭');
-        setNodeText('save-slot-hero-' + n, slot.heroName || 'ranura vacía');
+        setNodeText('save-slot-label-' + n, slot.heroLabel || ('heroe · ' + formatHeroTypeLabel(slot.heroType)));
         if (slot.empty) {
           setNodeText('save-slot-details-' + n, '—');
           setNodeText('save-slot-date-' + n, '');
@@ -964,17 +944,6 @@
         });
       }
 
-      var heroNameInput = document.getElementById('hero-name-input');
-      if (heroNameInput) {
-        heroNameInput.addEventListener('input', function() {
-          if (_heroSelectionLocked) {
-            syncHeroNameInput(_heroName);
-            return;
-          }
-          _heroName = readHeroNameFromInput();
-        });
-      }
-
       /* ── Selección de item en inventario ── */
       var inventoryRows = document.getElementById('s3-item-rows');
       if (inventoryRows) {
@@ -1035,12 +1004,6 @@
             toggleCombatTacticsMenu();
             return;
           } else if (action === 'heroNewGame') {
-            var heroName = readHeroNameFromInput();
-            if (!heroName) {
-              showTransientSystemMessage('Ingresa un nombre de heroe (3-24 caracteres).');
-              return;
-            }
-
             var selectedTheme = el.dataset.theme || 'poison';
             _pendingRunStartLore = {
               theme: selectedTheme,
@@ -1050,16 +1013,10 @@
 
             sendCommand('heroNewGame', {
               heroType: _selectedHeroType || 'guerrero',
-              heroName: heroName,
               theme: selectedTheme
             });
             return;
           } else if (action === 'startGame') {
-            var legacyHeroName = readHeroNameFromInput();
-            if (!legacyHeroName) {
-              showTransientSystemMessage('Ingresa un nombre de heroe (3-24 caracteres).');
-              return;
-            }
             if (!_loreState.worldShown) {
               _loreState.worldShown = true;
               enqueueLoreWindow(buildWorldLoreEntry());
@@ -1067,8 +1024,7 @@
             enqueueLoreWindow(buildDungeonLoreEntry(el.dataset.theme || 'poison'));
             sendCommand('startGame', {
               theme: el.dataset.theme || 'poison',
-              heroType: _selectedHeroType || 'guerrero',
-              heroName: legacyHeroName
+              heroType: _selectedHeroType || 'guerrero'
             });
             return;
           }
@@ -1244,7 +1200,7 @@
       var hpText = (state.playerHp     || 0) + ' / ' + (state.playerHpMax || 0);
       ['', '-combat', '-inv'].forEach(function(sfx) {
         setText ('hdr-dungeon-name'    + sfx, state.dungeonName  || '');
-        setText ('hdr-hero-name'       + sfx, 'Héroe · ' + (state.heroName || _heroName || 'Aventurero'));
+        setText ('hdr-hero-type'       + sfx, 'Clase · ' + formatHeroTypeLabel(state.heroType));
         setText ('hdr-dungeon-theme'   + sfx, state.dungeonTheme || '');
         setText ('hdr-room-progress'   + sfx, prog);
         setText ('hdr-gold'            + sfx, gold);
@@ -1281,10 +1237,6 @@
       if (state.heroType) {
         selectHeroCard(state.heroType);
       }
-      if (state.heroName) {
-        _heroName = String(state.heroName);
-      }
-      syncHeroNameInput(_heroName);
       _heroSelectionLocked = !!state.heroSelectionLocked;
       _completedThemes = Array.isArray(state.completedThemes)
         ? state.completedThemes.map(function(theme) { return String(theme).toLowerCase(); })
@@ -1406,7 +1358,7 @@
         var iconMap = { guerrero: '\ud83d\udde1\ufe0f', mago: '\ud83d\udd2e', arquero: '\ud83c\udff9' };
         var isEmptyStats = st.heroType === 'sin_partida';
         setText('stats-hero-icon', isEmptyStats ? '\ud83d\udcad' : (iconMap[st.heroType] || '\ud83d\udde1\ufe0f'));
-        setText('stats-hero-name', st.heroName || '');
+        setText('stats-hero-class', isEmptyStats ? 'Sin partida activa' : formatHeroTypeLabel(st.heroType));
         setText('stats-hero-type', isEmptyStats ? 'inicia o carga una partida' : ('clase \u00b7 ' + (st.heroType || '')));
         setText('stats-hp',      st.heroHp         || 0);
         setText('stats-atk',     st.heroAtk        || 0);
@@ -1443,7 +1395,7 @@
       /* Game Over */
       if (state.gameOver) {
         var go = state.gameOver;
-        setText('gameover-hero-name', go.heroName || 'el héroe');
+        setText('gameover-hero-type', 'el ' + formatHeroTypeLabel(go.heroType).toLowerCase());
         setText('gameover-context',   'derrotado por ' + (go.defeatedBy || 'un enemigo'));
         setText('gameover-rooms',     go.roomsExplored   || 0);
         setText('gameover-enemies',   go.enemiesDefeated || 0);

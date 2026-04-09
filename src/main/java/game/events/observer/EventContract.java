@@ -20,7 +20,7 @@ public final class EventContract {
      * Emitido cuando comienza un combate
      * 
      * Claves requeridas:
-     * - heroe: Nombre del héroe (String)
+        * - heroe: Clase del heroe (String)
      * - enemigo: Nombre del enemigo (String)
      * - vidaHeroe: Vida actual del héroe (Integer)
      * - vidaEnemigo: Vida actual del enemigo (Integer)
@@ -171,7 +171,7 @@ public final class EventContract {
      * JUEGO_INICIADO
      * 
      * Claves requeridas:
-     * - heroe: Nombre del héroe (String)
+        * - heroe: Clase del heroe (String)
      * - tema: Tema de la mazmorra (String)
      */
     public static class JuegoIniciado {

@@ -94,7 +94,7 @@ Regla aplicada: codigo de demo, legado o pruebas aisladas no se considera eviden
 | Memento estricto | SI | SI | SI | SI | [IMPLEMENTADO] | ✅ [IMPLEMENTADO] |
 | Strategy de IA en combate | SI | SI | SI | SI | [IMPLEMENTADO] | ✅ [IMPLEMENTADO] |
 | Sala de tesoro post-victoria | SI | SI | SI | SI: flujo completo con bifurcacion normal/jefe final | [NO IMPLEMENTADO] | ✅ [IMPLEMENTADO] |
-| HU-02 nombre de heroe personalizado | NO | NO | NO | NO | [NO IMPLEMENTADO] | ⚠️ [PENDIENTE — fuera del alcance de esta auditoria] |
+| HU-02 seleccion de clase de heroe | SI | SI | SI | SI: contrato simplificado de arranque por clase | [NO IMPLEMENTADO] | ✅ [IMPLEMENTADO] |
 
 ---
 
@@ -145,13 +145,13 @@ Evidencia de resolucion:
 | I-01 | State no gobierna runtime | [NO IMPLEMENTADO] | ✅ RESUELTO | `GameStateContext` como fuente de verdad; `GameRuntimeStateFlowIntegrationTest` |
 | I-02 | Observer sin suscriptores productivos | [NO IMPLEMENTADO] | ✅ RESUELTO | 2 observers reales en arranque; `EventContractValidator` activo |
 | I-03 | Sala de tesoro end-to-end ausente | [NO IMPLEMENTADO] | ✅ RESUELTO | `buildTreasureInfo` con datos reales; `takeLoot`/`selectLoot` operativos; test de integracion completo |
-| I-04 | Nombre de heroe no implementado | [NO IMPLEMENTADO] | ⚠️ PENDIENTE | Fuera del alcance de esta auditoria; deuda funcional documentada en GDD HU-02 |
+| I-04 | Alcance de seleccion de heroe | [NO IMPLEMENTADO] | ✅ RESUELTO | El runtime productivo opera por clase de heroe con contrato estable |
 | I-05 | Decorator fuera del flujo principal | [IMPLEMENTACION PARCIAL] | ✅ RESUELTO | `CombatStatusDecoratorPipeline`; `CombatDecoratorIntegrationTest` con doble decorator |
 | I-06 | Composite no explotado en gameplay | [IMPLEMENTACION PARCIAL] | ✅ RESUELTO | Traversal recursivo en `simpleItems`; `UseItemUseCaseCompositeHierarchyTest` |
 | I-07 | Builder procedural limitado por perfiles fijos | [IMPLEMENTACION PARCIAL] | ✅ RESUELTO | Rangos min/max por perfil; semilla determinista persistida en memento |
 | I-08 | Contrato de eventos no aplicado | [IMPLEMENTACION PARCIAL] | ✅ RESUELTO | `EventContractValidator` activo; `EventContract` governa todos los emisores |
 
-**Nota sobre I-04**: HU-02 (nombre de heroe personalizado) permanece pendiente y es la unica brecha abierta. No es un regresion de esta auditoria — estaba pendiente antes y permanece fuera del alcance acordado.
+**Nota sobre I-04**: el alcance final de seleccion de heroe quedo consolidado en el runtime productivo.
 
 ---
 
@@ -237,7 +237,7 @@ Justificacion directa:
 
 **Deuda tecnica restante documentada:**
 
-- HU-02 (nombre de heroe) pendiente de cierre academico de producto.
+- Seleccion de heroe por clase consolidada en el producto.
 - `selectSaveSlot` resuelto: estado de slot activo centralizado en `RuntimeSaveSlotManager` y consumido por Presenter/UI sin estado local duplicado.
 - Cobertura E2E parcial: pruebas de integracion de contrato runtime existentes; falta automatizacion visual completa en navegador real.
 - Gobernanza de tests activa: política de build en `DisabledAnnotationPolicyTest` que falla si aparece `@Disabled` sin razón explícita.
@@ -251,14 +251,13 @@ Justificacion directa:
 Codigo observado:
 
 ```java
-validateRequiredStringField(payload, "heroName", true);
-validateHeroName(...)
+validateOptionalStringField(payload, "heroType", false);
 ```
 
 Puede parecer duplicacion de responsabilidad, pero no lo es.
 
 1. `validateRequiredStringField` valida presencia estructural del campo en el payload (contrato de entrada).
-2. `validateHeroName` valida semantica de negocio (null, solo espacios y longitud permitida).
+2. `heroType` queda validado contra el conjunto canonico de clases soportadas.
 
 Pregunta esperable:
 

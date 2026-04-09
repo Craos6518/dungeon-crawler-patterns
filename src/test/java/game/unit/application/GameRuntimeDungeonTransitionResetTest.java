@@ -36,7 +36,6 @@ class GameRuntimeDungeonTransitionResetTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "mago");
-        payload.addProperty("heroName", "Mago");
         payload.addProperty("theme", "ice");
         command.payload = payload;
 

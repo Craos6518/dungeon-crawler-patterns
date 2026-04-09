@@ -59,31 +59,6 @@ final class CampaignSessionCoordinator {
         return "guerrero";
     }
 
-    String resolveHeroNameForNewRun(GameSession session, String payloadHeroName) {
-        String requestedHeroName = normalizeHeroName(payloadHeroName);
-        if (requestedHeroName.isBlank()) {
-            throw new InvalidRuntimeCommandException("heroName invalido. Debe tener entre 3 y 24 caracteres");
-        }
-
-        if (session.isHeroSelectionLocked()) {
-            String lockedHeroName = normalizeHeroName(session.player().name());
-            if (lockedHeroName.isBlank()) {
-                return requestedHeroName;
-            }
-
-            if (!lockedHeroName.equalsIgnoreCase(requestedHeroName)) {
-                throw new InvalidRuntimeCommandException(
-                    "No puedes cambiar el nombre del heroe despues de completar una mazmorra."
-                );
-            }
-
-            // Mantiene el casing original ya persistido en la campaña.
-            return session.player().name();
-        }
-
-        return requestedHeroName;
-    }
-
     void ensureThemeAvailableForCampaign(GameSession session, String theme) {
         String nextTheme = session.nextCampaignTheme();
         if (nextTheme.isBlank()) {
@@ -110,10 +85,9 @@ final class CampaignSessionCoordinator {
     GameSession createSessionPreservingCampaignProgress(
         GameSession currentSession,
         String theme,
-        String heroType,
-        String heroName
+        String heroType
     ) {
-        GameSession newSession = GameSessionFactory.createSessionForThemeRandomized(theme, heroType, heroName);
+        GameSession newSession = GameSessionFactory.createSessionForThemeRandomized(theme, heroType);
         newSession.setHeroType(heroType);
 
         newSession.replaceCompletedThemes(currentSession.completedThemes());
@@ -129,14 +103,6 @@ final class CampaignSessionCoordinator {
         }
         String normalized = heroType.trim().toLowerCase(Locale.ROOT);
         return supportedHeroTypes.contains(normalized) ? normalized : "";
-    }
-
-    String normalizeHeroName(String heroName) {
-        if (heroName == null) {
-            return "";
-        }
-
-        return heroName.trim().replaceAll("\\s+", " ");
     }
 
     private void inheritHeroProgressForLockedCampaign(GameSession currentSession, GameSession newSession) {

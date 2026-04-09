@@ -76,7 +76,7 @@ class SaveLoadUseCaseTest {
 
     @Test
     void loadRestoresSavedSessionState() {
-        var source = GameSessionFactory.createSessionForTheme("fire", "guerrero", "Nyx");
+        var source = GameSessionFactory.createSessionForTheme("fire", "guerrero");
         source.dungeon().restoreProgress(1, Set.of(0), Set.of(0));
         source.combat().restoreTurnState(true, 2, 4);
         source.player().addGold(55);
@@ -90,10 +90,10 @@ class SaveLoadUseCaseTest {
         int expectedPoisonTurns = source.combat().poisonTurns();
         int expectedPoisonDamage = source.combat().poisonDamage();
         boolean expectedDefense = source.combat().isDefenseActive();
-        String expectedHeroName = source.player().name();
+        String expectedHeroLabel = source.player().name();
         new SaveGameUseCase(source).execute(2);
 
-        var target = GameSessionFactory.createSessionForTheme("fire", "guerrero", "Otro");
+        var target = GameSessionFactory.createSessionForTheme("fire", "guerrero");
         LoadGameUseCase load = new LoadGameUseCase(target);
         load.execute(2);
 
@@ -104,7 +104,7 @@ class SaveLoadUseCaseTest {
         assertEquals(expectedPoisonTurns, target.combat().poisonTurns());
         assertEquals(expectedPoisonDamage, target.combat().poisonDamage());
         assertEquals(expectedDefense, target.combat().isDefenseActive());
-        assertEquals(expectedHeroName, target.player().name());
+        assertEquals(expectedHeroLabel, target.player().name());
         assertTrue(!target.combat().isActive());
         assertEquals("inventory", target.activeScreen());
     }
@@ -159,7 +159,7 @@ class SaveLoadUseCaseTest {
 
     @Test
     void loadToleratesInvalidInventoryItemEntriesInLegacySaves() {
-        var source = GameSessionFactory.createSessionForTheme("poison", "guerrero", "Nyx");
+        var source = GameSessionFactory.createSessionForTheme("poison", "guerrero");
         new SaveGameUseCase(source).execute(1);
 
         GameMemento valid = source.caretaker().obtenerUltimoMemento();
@@ -199,7 +199,7 @@ class SaveLoadUseCaseTest {
             dungeonState
         );
 
-        var target = GameSessionFactory.createSessionForTheme("poison", "guerrero", "Otro");
+        var target = GameSessionFactory.createSessionForTheme("poison", "guerrero");
         LoadGameUseCase load = new LoadGameUseCase(target);
 
         assertDoesNotThrow(() -> load.restoreFromMemento("Slot_legacy", legacyWithCorruptItem));
