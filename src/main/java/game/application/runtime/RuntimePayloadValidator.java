@@ -22,9 +22,6 @@ import java.util.function.Supplier;
  */
 final class RuntimePayloadValidator {
 
-    private static final int HERO_NAME_MIN_LENGTH = 3;
-    private static final int HERO_NAME_MAX_LENGTH = 24;
-
     private final Supplier<GameSession> sessionSupplier;
     private final Set<String> supportedThemeKeys;
     private final Set<String> supportedHeroTypes;
@@ -61,28 +58,15 @@ final class RuntimePayloadValidator {
 
     void validateStartGamePayload(JsonObject payload) {
         validateEmptyPayload(payload);
-        validateRequiredStringField(payload, "heroName", true);
-        validateHeroName(payload.get("heroName").getAsString());
 
-        if (!payload.has("theme") || payload.get("theme").isJsonNull()) {
-            if (payload.has("heroType") && !payload.get("heroType").isJsonNull()) {
-                validateOptionalStringField(payload, "heroType", false);
-                String normalizedHeroType = normalizeHeroType(payload.get("heroType").getAsString());
-                if (normalizedHeroType.isBlank()) {
-                    throw new InvalidRuntimeCommandException(
-                        "heroType invalido. Valores permitidos: " + String.join(", ", supportedHeroTypes)
-                    );
-                }
+        if (payload.has("theme") && !payload.get("theme").isJsonNull()) {
+            validateOptionalStringField(payload, "theme", false);
+            String normalizedTheme = payload.get("theme").getAsString().trim().toLowerCase(Locale.ROOT);
+            if (!supportedThemeKeys.contains(normalizedTheme)) {
+                throw new InvalidRuntimeCommandException(
+                    "theme invalido. Valores permitidos: " + String.join(", ", supportedThemeKeys)
+                );
             }
-            return;
-        }
-
-        validateOptionalStringField(payload, "theme", false);
-        String normalizedTheme = payload.get("theme").getAsString().trim().toLowerCase(Locale.ROOT);
-        if (!supportedThemeKeys.contains(normalizedTheme)) {
-            throw new InvalidRuntimeCommandException(
-                "theme invalido. Valores permitidos: " + String.join(", ", supportedThemeKeys)
-            );
         }
 
         if (payload.has("heroType") && !payload.get("heroType").isJsonNull()) {
@@ -303,23 +287,5 @@ final class RuntimePayloadValidator {
 
     private String normalizeHeroType(String heroType) {
         return heroTypeNormalizer.apply(heroType);
-    }
-
-    private static void validateHeroName(String heroName) {
-        if (heroName == null || heroName.trim().isEmpty()) {
-            throw new InvalidRuntimeCommandException("heroName requerido");
-        }
-
-        String normalized = heroName.trim().replaceAll("\\s+", " ");
-        int length = normalized.length();
-        if (length < HERO_NAME_MIN_LENGTH || length > HERO_NAME_MAX_LENGTH) {
-            throw new InvalidRuntimeCommandException(
-                "heroName invalido. Debe tener entre "
-                    + HERO_NAME_MIN_LENGTH
-                    + " y "
-                    + HERO_NAME_MAX_LENGTH
-                    + " caracteres"
-            );
-        }
     }
 }

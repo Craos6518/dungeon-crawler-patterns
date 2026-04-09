@@ -37,13 +37,13 @@ Este proyecto demuestra implementacion verificable de patrones de diseno en un d
 
 ## Historias de usuario (estado al cierre de auditoria)
 - HU-01 Combate basico: implementada.
-- HU-02 Creacion de heroes: pendiente de cierre academico.
+- HU-02 Seleccion de clase de heroe: implementada.
 - HU-03 Sistema de inventario: implementada.
 - HU-04 Generacion procedural: implementada.
 - HU-05 Guardado/carga: implementada.
 
 ## Nota de HU-02
-El runtime acepta `heroType` y `heroName`, pero se mantiene HU-02 como deuda abierta de cierre documental/academico hasta completar criterios funcionales finales de la historia (alcance de producto, no de arquitectura).
+El runtime productivo opera con seleccion por `heroType` y contrato simplificado de inicio de partida.
 
 ## Reglas de runtime relevantes para documentacion
 - Fuente de verdad del flujo: `GameStateContext` + `GameFlowState`.
@@ -52,5 +52,4 @@ El runtime acepta `heroType` y `heroName`, pero se mantiene HU-02 como deuda abi
 - Tesoro post-combate forma parte del loop principal y persiste en memento.
 
 ## Fuera de alcance actual
-- Cierre formal de HU-02 en terminos de producto final.
 - Cobertura E2E con navegador real y validacion visual automatizada.

@@ -173,12 +173,10 @@ public class GameRuntime implements GameCommandHandler {
             String theme = campaignSessionCoordinator.resolveThemeOrDefault(session, payload.theme);
             campaignSessionCoordinator.ensureThemeAvailableForCampaign(session, theme);
             String heroType = campaignSessionCoordinator.resolveHeroTypeForNewRun(session, payload.heroType);
-            String heroName = campaignSessionCoordinator.resolveHeroNameForNewRun(session, payload.heroName);
             GameSession newSession = campaignSessionCoordinator.createSessionPreservingCampaignProgress(
                 session,
                 theme,
-                heroType,
-                heroName
+                heroType
             );
             newSession.transitionTo(GameFlowState.EXPLORATION);
 
@@ -352,12 +350,10 @@ public class GameRuntime implements GameCommandHandler {
             String theme = campaignSessionCoordinator.resolveThemeOrDefault(session, payload.theme);
             campaignSessionCoordinator.ensureThemeAvailableForCampaign(session, theme);
             String heroType = campaignSessionCoordinator.resolveHeroTypeForNewRun(session, payload.heroType);
-            String heroName = campaignSessionCoordinator.resolveHeroNameForNewRun(session, payload.heroName);
             GameSession newSession = campaignSessionCoordinator.createSessionPreservingCampaignProgress(
                 session,
                 theme,
-                heroType,
-                heroName
+                heroType
             );
             newSession.transitionTo(GameFlowState.EXPLORATION);
             bindSession(newSession);
@@ -458,7 +454,7 @@ public class GameRuntime implements GameCommandHandler {
      * - fuera de alcance de la auditoria actual mientras se mantenga el modelo push-state.
      *
      * Referencia:
-     * - HU-02 en Docs/GDD.md (flujo de experiencia de seleccion de heroe en evolucion).
+     * - deuda tecnica de UX: repintado parcial no requerido en el contrato actual.
      */
     private void handleRerenderCurrentScreenStub() {
         // No-op intencional.

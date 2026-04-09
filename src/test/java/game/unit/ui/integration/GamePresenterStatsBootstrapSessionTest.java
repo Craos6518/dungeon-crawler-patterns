@@ -19,7 +19,6 @@ class GamePresenterStatsBootstrapSessionTest {
         var vm = new GamePresenter().present(session);
 
         assertNotNull(vm.stats);
-        assertEquals("Sin partida activa", vm.stats.heroName);
         assertEquals("sin_partida", vm.stats.heroType);
         assertEquals(0, vm.stats.heroHp);
         assertEquals(0, vm.stats.heroHpMax);
@@ -45,7 +44,6 @@ class GamePresenterStatsBootstrapSessionTest {
         var vm = new GamePresenter().present(bootstrap);
 
         assertNotNull(vm.stats);
-        assertEquals("Mago", vm.stats.heroName);
         assertEquals("mago", vm.stats.heroType);
         assertEquals(source.player().hp(), vm.stats.heroHp);
         assertEquals(source.player().gold(), vm.stats.goldTotal);

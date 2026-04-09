@@ -69,7 +69,6 @@ public class GamePresenter {
         vm.screen = screen;
         vm.theme = session.dungeon().themeKey();
         vm.dungeonTheme = session.dungeon().themeName();
-        vm.heroName = session.player().name();
         vm.heroType = session.heroType();
         vm.heroSelectionLocked = session.isHeroSelectionLocked();
         vm.completedThemes = new ArrayList<>(session.completedThemes());
@@ -197,7 +196,6 @@ public class GamePresenter {
         Personaje hero = session.player().character();
         String heroType = resolveHeroType(session, hero);
 
-        st.heroName       = hero.getNombre();
         st.heroType       = heroType;
         st.heroHp         = hero.getVida();
         st.heroHpMax      = hero.getVidaMaxima();
@@ -248,10 +246,9 @@ public class GamePresenter {
 
         String heroType = normalizeHeroType(readString(charState.get("heroType"), ""));
         if (heroType.isBlank()) {
-            heroType = inferHeroTypeFromName(memento.getNombreJugador());
+            heroType = "guerrero";
         }
 
-        st.heroName = readString(memento.getNombreJugador(), "Aventurero");
         st.heroType = heroType;
         st.heroHp = Math.max(0, readInt(charState.get("vida"), 0));
         st.heroHpMax = Math.max(0, readInt(charState.get("vidaMaxima"), st.heroHp));
@@ -271,7 +268,6 @@ public class GamePresenter {
 
     private static GameViewModel.StatsInfo buildEmptyStatsInfo() {
         GameViewModel.StatsInfo st = new GameViewModel.StatsInfo();
-        st.heroName = "Sin partida activa";
         st.heroType = "sin_partida";
         st.heroHp = 0;
         st.heroHpMax = 0;
@@ -380,7 +376,6 @@ public class GamePresenter {
         GameViewModel.GameOverInfo go = new GameViewModel.GameOverInfo();
         Personaje hero = session.player().character();
         String heroType = resolveHeroType(session, hero);
-        go.heroName          = hero.getNombre();
         go.heroType          = heroType;
         go.defeatedBy        = "enemigo en la sala " + (session.dungeon().currentRoomIndex() + 1);
         go.roomsExplored     = session.dungeon().currentRoomIndex() + 1;
@@ -398,12 +393,10 @@ public class GamePresenter {
         Map<String, Object> dungeonState = memento.getEstadoMazmorra();
 
         slot.empty = false;
-        slot.heroName = memento.getNombreJugador();
 
         String heroTypeFromMemento = normalizeHeroType(readString(charState.get("heroType"), ""));
-        slot.heroType = heroTypeFromMemento.isBlank()
-            ? inferHeroTypeFromName(slot.heroName)
-            : heroTypeFromMemento;
+        slot.heroType = heroTypeFromMemento.isBlank() ? "guerrero" : heroTypeFromMemento;
+        slot.heroLabel = "heroe · " + displayHeroType(slot.heroType);
 
         slot.heroIcon = iconForHeroType(slot.heroType);
         slot.hp = readInt(charState.get("vida"), 0);
@@ -419,7 +412,7 @@ public class GamePresenter {
     private static void applyEmptySlot(GameViewModel.SaveSlotsInfo.SlotInfo slot) {
         slot.empty = true;
         slot.heroIcon = "💭";
-        slot.heroName = "ranura vacía";
+        slot.heroLabel = "ranura vacia";
         slot.heroType = "guerrero";
         slot.hp = 0;
         slot.hpMax = 0;
@@ -495,22 +488,19 @@ public class GamePresenter {
         return "";
     }
 
-    private static String inferHeroTypeFromName(String heroName) {
-        String normalized = normalize(heroName);
-        if (normalized.contains("mago")) {
-            return "mago";
-        }
-        if (normalized.contains("arquero")) {
-            return "arquero";
-        }
-        return "guerrero";
-    }
-
     private static String iconForHeroType(String heroType) {
         return switch (heroType) {
             case "mago" -> "🔮";
             case "arquero" -> "🏹";
             default -> "🗡️";
+        };
+    }
+
+    private static String displayHeroType(String heroType) {
+        return switch (normalizeHeroType(heroType)) {
+            case "mago" -> "Mago";
+            case "arquero" -> "Arquero";
+            default -> "Guerrero";
         };
     }
 

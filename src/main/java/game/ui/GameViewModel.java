@@ -32,8 +32,6 @@ public class GameViewModel {
     public String theme;
 
     // ── Progresión de campaña (pantalla héroe) ──────────────────
-    /** Nombre visible del heroe actual en HUD. */
-    public String heroName;
     /** Héroe actualmente seleccionado para campaña. */
     public String heroType;
     /** True cuando el héroe queda bloqueado para mantener continuidad de campaña. */
@@ -139,7 +137,6 @@ public class GameViewModel {
 
     // ── Estadísticas del héroe y partida ──────────────────────────
     public static class StatsInfo {
-        public String heroName;
         /** "guerrero" | "mago" | "arquero" */
         public String heroType;
         public int heroHp;
@@ -189,7 +186,7 @@ public class GameViewModel {
             public int     slot;
             public boolean empty;
             public String  heroIcon;
-            public String  heroName;
+            public String  heroLabel;
             public String  heroType;
             public int     hp;
             public int     hpMax;
@@ -203,7 +200,6 @@ public class GameViewModel {
 
     // ── Game Over ─────────────────────────────────────────────────
     public static class GameOverInfo {
-        public String heroName;
         public String heroType;
         public String defeatedBy;
         public int    roomsExplored;

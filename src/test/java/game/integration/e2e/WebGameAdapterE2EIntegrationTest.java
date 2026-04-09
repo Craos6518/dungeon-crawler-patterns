@@ -19,16 +19,16 @@ class WebGameAdapterE2EIntegrationTest {
         WebGameAdapter adapter = new WebGameAdapter(runtime, pushCount::incrementAndGet);
 
         UiCommandResponse response = adapter.dispatchAlertMessage(
-            "{\"action\":\"heroNewGame\",\"payload\":{\"heroType\":\"mago\",\"heroName\":\"Iria\",\"theme\":\"poison\"}}"
+            "{\"action\":\"heroNewGame\",\"payload\":{\"heroType\":\"mago\",\"theme\":\"poison\"}}"
         );
 
         assertEquals("ok", response.status);
         assertNotNull(response.data);
         assertEquals("exploration", response.data.screen);
         assertEquals("poison", response.data.theme);
-        assertEquals("Iria", response.data.heroName);
+        assertEquals("mago", response.data.heroType);
 
         assertEquals(1, pushCount.get());
-        assertEquals("Iria", adapter.presentViewModel().heroName);
+        assertEquals("mago", adapter.presentViewModel().heroType);
     }
 }

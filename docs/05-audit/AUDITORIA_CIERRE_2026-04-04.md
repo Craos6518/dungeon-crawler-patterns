@@ -24,7 +24,6 @@ State, Observer, Decorator, Composite, Builder (procedural), Memento y Strategy.
 - Persistencia por slots con restauracion de sesion y semilla de mazmorra.
 
 ## Deuda abierta y aceptada
-- HU-02: pendiente de cierre academico.
 - STUBs backend intencionales en `GameRuntime`: `rerenderCurrentScreen`, `filterCategory`.
 - Cobertura E2E visual completa: pendiente (actualmente E2E de contrato/runtime).
 
