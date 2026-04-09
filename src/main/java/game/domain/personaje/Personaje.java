@@ -3,7 +3,7 @@ package game.domain.personaje;
 import game.combat.model.ResultadoAtaque;
 
 public abstract class Personaje {
-    private final String nombre;
+    private String nombre;
     private int vida;
     private int vidaMaxima;
     private int nivel;
@@ -69,5 +69,18 @@ public abstract class Personaje {
 
     public String getNombre() {
         return nombre;
+    }
+
+    public void renombrar(String nuevoNombre) {
+        if (nuevoNombre == null) {
+            return;
+        }
+
+        String normalized = nuevoNombre.trim();
+        if (normalized.isBlank()) {
+            return;
+        }
+
+        this.nombre = normalized;
     }
 }

@@ -8,9 +8,13 @@ import game.domain.DomainRuleViolationException;
 import game.persistence.memento.GameMemento;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -72,7 +76,7 @@ class SaveLoadUseCaseTest {
 
     @Test
     void loadRestoresSavedSessionState() {
-        var source = GameSessionFactory.createDemoSession();
+        var source = GameSessionFactory.createSessionForTheme("fire", "guerrero", "Nyx");
         source.dungeon().restoreProgress(1, Set.of(0), Set.of(0));
         source.combat().restoreTurnState(true, 2, 4);
         source.player().addGold(55);
@@ -86,9 +90,10 @@ class SaveLoadUseCaseTest {
         int expectedPoisonTurns = source.combat().poisonTurns();
         int expectedPoisonDamage = source.combat().poisonDamage();
         boolean expectedDefense = source.combat().isDefenseActive();
+        String expectedHeroName = source.player().name();
         new SaveGameUseCase(source).execute(2);
 
-        var target = GameSessionFactory.createDemoSession();
+        var target = GameSessionFactory.createSessionForTheme("fire", "guerrero", "Otro");
         LoadGameUseCase load = new LoadGameUseCase(target);
         load.execute(2);
 
@@ -99,6 +104,7 @@ class SaveLoadUseCaseTest {
         assertEquals(expectedPoisonTurns, target.combat().poisonTurns());
         assertEquals(expectedPoisonDamage, target.combat().poisonDamage());
         assertEquals(expectedDefense, target.combat().isDefenseActive());
+        assertEquals(expectedHeroName, target.player().name());
         assertTrue(!target.combat().isActive());
         assertEquals("inventory", target.activeScreen());
     }
@@ -149,5 +155,72 @@ class SaveLoadUseCaseTest {
         assertEquals(roomBefore, session.dungeon().currentRoomIndex());
         assertEquals(goldBefore, session.player().gold());
         assertEquals(screenBefore, session.activeScreen());
+    }
+
+    @Test
+    void loadToleratesInvalidInventoryItemEntriesInLegacySaves() {
+        var source = GameSessionFactory.createSessionForTheme("poison", "guerrero", "Nyx");
+        new SaveGameUseCase(source).execute(1);
+
+        GameMemento valid = source.caretaker().obtenerUltimoMemento();
+        Map<String, Object> characterState = new HashMap<>(valid.getEstadoPersonaje());
+        Map<String, Object> inventoryState = new HashMap<>(valid.getEstadoInventario());
+        Map<String, Object> dungeonState = new HashMap<>(valid.getEstadoMazmorra());
+
+        Object rawItems = inventoryState.get("items");
+        List<Map<String, Object>> items = new ArrayList<>();
+        if (rawItems instanceof List<?> list) {
+            for (Object entry : list) {
+                if (entry instanceof Map<?, ?> map) {
+                    Map<String, Object> cloned = new HashMap<>();
+                    for (Map.Entry<?, ?> e : map.entrySet()) {
+                        if (e.getKey() != null) {
+                            cloned.put(String.valueOf(e.getKey()), e.getValue());
+                        }
+                    }
+                    items.add(cloned);
+                }
+            }
+        }
+
+        Map<String, Object> invalidItem = new HashMap<>();
+        invalidItem.put("nombre", "   ");
+        invalidItem.put("descripcion", "entrada legacy invalida");
+        invalidItem.put("tipo", "Consumible");
+        invalidItem.put("valor", 50);
+        invalidItem.put("peso", 0);
+        items.add(invalidItem);
+        inventoryState.put("items", items);
+
+        GameMemento legacyWithCorruptItem = buildMementoFromMaps(
+            valid,
+            characterState,
+            inventoryState,
+            dungeonState
+        );
+
+        var target = GameSessionFactory.createSessionForTheme("poison", "guerrero", "Otro");
+        LoadGameUseCase load = new LoadGameUseCase(target);
+
+        assertDoesNotThrow(() -> load.restoreFromMemento("Slot_legacy", legacyWithCorruptItem));
+        assertEquals(source.player().name(), target.player().name());
+        assertEquals(source.inventory().size(), target.inventory().size());
+    }
+
+    private static GameMemento buildMementoFromMaps(
+        GameMemento base,
+        Map<String, Object> characterState,
+        Map<String, Object> inventoryState,
+        Map<String, Object> dungeonState
+    ) {
+        GameMemento.Builder builder = new GameMemento.Builder()
+            .nombreJugador(base.getNombreJugador())
+            .nivelActual(base.getNivelActual())
+            .salaActual(base.getSalaActual());
+
+        characterState.forEach(builder::agregarEstadoPersonaje);
+        inventoryState.forEach(builder::agregarEstadoInventario);
+        dungeonState.forEach(builder::agregarEstadoMazmorra);
+        return builder.build();
     }
 }

@@ -7,6 +7,7 @@ import game.items.model.SimpleItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
  * Agregado de inventario. Controla seleccion, uso y consistencia de items.
@@ -129,7 +130,9 @@ public class Inventory {
         }
 
         Item selected = candidate.get();
-        container.remover(selected.getRaw());
+        if (!removeSimpleItem(selected.getRaw())) {
+            throw new IllegalStateException("No se pudo remover el item seleccionado del inventario.");
+        }
         clampSelection();
         return selected;
     }
@@ -139,7 +142,21 @@ public class Inventory {
         Item selected = getByIndex(index)
             .orElseThrow(() -> new IllegalStateException("Selecciona un objeto valido para usar."));
 
-        container.remover(selected.getRaw());
+        if (!removeSimpleItem(selected.getRaw())) {
+            throw new IllegalStateException("No se pudo remover el item seleccionado del inventario.");
+        }
+        clampSelection();
+        return selected;
+    }
+
+    public Item removeItemAtIndex(Integer requestedIndex) {
+        int index = requestedIndex == null ? selectedItemIndex : requestedIndex;
+        Item selected = getByIndex(index)
+            .orElseThrow(() -> new IllegalStateException("Selecciona un objeto valido para vender."));
+
+        if (!removeSimpleItem(selected.getRaw())) {
+            throw new IllegalStateException("No se pudo remover el item seleccionado del inventario.");
+        }
         clampSelection();
         return selected;
     }
@@ -150,6 +167,29 @@ public class Inventory {
 
     public boolean isSelectedConsumable() {
         return selectedItem().map(Item::isConsumable).orElse(false);
+    }
+
+    public OptionalInt firstConsumableIndex() {
+        List<SimpleItem> simples = simpleItems();
+        for (int i = 0; i < simples.size(); i++) {
+            if (Item.from(simples.get(i), i).isConsumable()) {
+                return OptionalInt.of(i);
+            }
+        }
+        return OptionalInt.empty();
+    }
+
+    public OptionalInt selectedConsumableIndex() {
+        clampSelection();
+
+        if (selectedItemIndex >= 0) {
+            Optional<Item> selected = getByIndex(selectedItemIndex);
+            if (selected.isPresent() && selected.get().isConsumable()) {
+                return OptionalInt.of(selectedItemIndex);
+            }
+        }
+
+        return firstConsumableIndex();
     }
 
     public void clampSelection() {
@@ -165,12 +205,40 @@ public class Inventory {
 
     public List<SimpleItem> simpleItems() {
         List<SimpleItem> simples = new ArrayList<>();
-        for (ItemComponent component : container.obtenerItems()) {
-            if (component instanceof SimpleItem simple) {
-                simples.add(simple);
+        collectSimpleItems(container, simples);
+        return simples;
+    }
+
+    private boolean removeSimpleItem(SimpleItem target) {
+        return removeSimpleItemRecursive(container, target);
+    }
+
+    private static boolean removeSimpleItemRecursive(ContainerItem parent, SimpleItem target) {
+        List<ItemComponent> snapshot = new ArrayList<>(parent.obtenerItems());
+        for (ItemComponent component : snapshot) {
+            if (component == target) {
+                parent.remover(component);
+                return true;
+            }
+
+            if (component instanceof ContainerItem nested && removeSimpleItemRecursive(nested, target)) {
+                return true;
             }
         }
-        return simples;
+        return false;
+    }
+
+    private static void collectSimpleItems(ContainerItem parent, List<SimpleItem> sink) {
+        for (ItemComponent component : parent.obtenerItems()) {
+            if (component instanceof SimpleItem simple) {
+                sink.add(simple);
+                continue;
+            }
+
+            if (component instanceof ContainerItem nested) {
+                collectSimpleItems(nested, sink);
+            }
+        }
     }
 
     public void replaceItems(List<SimpleItem> restoredItems, Integer selectedIndex) {

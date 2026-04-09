@@ -2,6 +2,8 @@ package game.application.state;
 
 import game.domain.DomainRuleViolationException;
 import game.domain.character.Enemy;
+import game.domain.combat.Combat;
+import game.domain.combat.PlayerCombatStyle;
 import game.domain.inventory.Item;
 import game.domain.personaje.Dragon;
 import game.domain.personaje.EnemigoBasico;
@@ -23,7 +25,17 @@ import java.util.Set;
  */
 public final class GameSessionMementoMapper {
 
-    private static final Set<String> SUPPORTED_SCREENS = Set.of("menu", "exploration", "combat", "inventory", "saves");
+    private static final Set<String> SUPPORTED_SCREENS = Set.of(
+        GameFlowState.MENU.screenKey(),
+        GameFlowState.HERO.screenKey(),
+        GameFlowState.EXPLORATION.screenKey(),
+        GameFlowState.COMBAT.screenKey(),
+        GameFlowState.INVENTORY.screenKey(),
+        GameFlowState.SAVES.screenKey(),
+        GameFlowState.STATS.screenKey(),
+        GameFlowState.TREASURE.screenKey(),
+        GameFlowState.GAME_OVER.screenKey()
+    );
 
     private GameSessionMementoMapper() {
     }
@@ -51,21 +63,34 @@ public final class GameSessionMementoMapper {
         Integer enemyXpReward = null;
         String enemyType = null;
         Integer enemyAttack = null;
+        Integer enemyDefense = null;
+        Integer enemySpeed = null;
+        Map<String, Object> tacticalCheckpointState = null;
         if (combatActive) {
             var enemy = session.combat().currentEnemy();
             enemyName = enemy.name();
             enemyHp = enemy.hp();
             enemyHpMax = enemy.maxHp();
             enemyXpReward = enemy.getExperienceReward();
+            enemyAttack = enemy.attackStat();
+            enemyDefense = enemy.defenseStat();
+            enemySpeed = enemy.speedStat();
 
             var enemyCharacter = enemy.character();
             enemyType = enemyCharacter.getClass().getSimpleName();
-            if (enemyCharacter instanceof EnemigoBasico basicEnemy) {
-                enemyAttack = basicEnemy.getAtaqueBase();
-            } else if (enemyCharacter instanceof Orco orc) {
-                enemyAttack = orc.getFuerza();
-            } else if (enemyCharacter instanceof Dragon dragon) {
-                enemyAttack = dragon.getFuegoDragon();
+
+            Combat.TacticalCheckpoint checkpoint = session.combat().tacticalCheckpoint();
+            if (checkpoint != null) {
+                tacticalCheckpointState = new HashMap<>();
+                tacticalCheckpointState.put("playerHp", checkpoint.playerHp());
+                tacticalCheckpointState.put("enemyHp", checkpoint.enemyHp());
+                tacticalCheckpointState.put("playerResource", checkpoint.playerResource());
+                tacticalCheckpointState.put("defenseActive", checkpoint.defenseActive());
+                tacticalCheckpointState.put("poisonTurns", checkpoint.poisonTurns());
+                tacticalCheckpointState.put("poisonDamage", checkpoint.poisonDamage());
+                tacticalCheckpointState.put("style", checkpoint.playerStyle().key());
+                tacticalCheckpointState.put("offensiveStacks", checkpoint.offensiveBuffStacks());
+                tacticalCheckpointState.put("guardStacks", checkpoint.guardBuffStacks());
             }
         }
 
@@ -81,6 +106,9 @@ public final class GameSessionMementoMapper {
             .agregarEstadoPersonaje("experiencia", session.player().experience())
             .agregarEstadoPersonaje("enemigosDerrotados", session.player().defeatedEnemies())
             .agregarEstadoPersonaje("oroAcumulado", session.player().gold())
+            .agregarEstadoPersonaje("recursoTipo", session.player().resourceType())
+            .agregarEstadoPersonaje("recursoActual", session.player().resource())
+            .agregarEstadoPersonaje("recursoMaximo", session.player().maxResource())
             .agregarEstadoPersonaje("defensaActiva", session.combat().isDefenseActive())
             .agregarEstadoPersonaje("venenoTurnos", session.combat().poisonTurns())
             .agregarEstadoPersonaje("venenoDanio", session.combat().poisonDamage())
@@ -88,6 +116,7 @@ public final class GameSessionMementoMapper {
             .agregarEstadoInventario("selectedIndex", session.inventory().selectedIndex())
             .agregarEstadoMazmorra("tema", session.dungeon().themeName())
             .agregarEstadoMazmorra("schemaVersion", 1)
+            .agregarEstadoMazmorra("generationSeed", session.dungeon().generationSeed())
             .agregarEstadoMazmorra("totalRooms", session.dungeon().totalRooms())
             .agregarEstadoMazmorra("estadoActual", currentScreen)
             .agregarEstadoMazmorra("salaActualIndex", session.dungeon().currentRoomIndex())
@@ -96,12 +125,27 @@ public final class GameSessionMementoMapper {
             .agregarEstadoMazmorra("salasEnemigoResuelto", new ArrayList<>(session.dungeon().enemyResolvedRooms()))
             .agregarEstadoMazmorra("combateActivo", combatActive)
             .agregarEstadoMazmorra("combateBoss", session.combat().isBossFight())
+            .agregarEstadoMazmorra("estiloCombate", session.combat().playerStyle().key())
+            .agregarEstadoMazmorra("buffOfensivo", session.combat().offensiveBuffStacks())
+            .agregarEstadoMazmorra("buffGuardia", session.combat().guardBuffStacks())
+            .agregarEstadoMazmorra("checkpointTactico", tacticalCheckpointState)
+            .agregarEstadoMazmorra("checkpointTacticoConsumido", session.combat().tacticalCheckpointConsumed())
             .agregarEstadoMazmorra("enemigoNombre", enemyName)
             .agregarEstadoMazmorra("enemigoHp", enemyHp)
             .agregarEstadoMazmorra("enemigoHpMax", enemyHpMax)
             .agregarEstadoMazmorra("enemigoXp", enemyXpReward)
             .agregarEstadoMazmorra("enemigoTipo", enemyType)
             .agregarEstadoMazmorra("enemigoAtaque", enemyAttack)
+            .agregarEstadoMazmorra("enemigoDefensa", enemyDefense)
+            .agregarEstadoMazmorra("enemigoVelocidad", enemySpeed)
+                .agregarEstadoMazmorra("treasureActive", session.hasPendingTreasure())
+                .agregarEstadoMazmorra("treasureEnemyName", session.treasureEnemyName())
+                .agregarEstadoMazmorra("treasureXp", session.treasureXpGained())
+                .agregarEstadoMazmorra("treasureBoss", session.treasureBossFight())
+                .agregarEstadoMazmorra("treasureRoomIndex", session.treasureRoomIndex())
+                .agregarEstadoMazmorra("treasureSelectedIndex", session.selectedTreasureIndex())
+                .agregarEstadoMazmorra("treasureAutoSaved", session.treasureAutoSaved())
+                .agregarEstadoMazmorra("treasureLoot", serializeItems(session.treasureLootOptions()))
             .agregarEstadoMazmorra("eventLog", new ArrayList<>(session.eventLog()))
             .agregarEstadoMazmorra("combatLog", new ArrayList<>(session.combatLog()))
             .build();
@@ -128,6 +172,11 @@ public final class GameSessionMementoMapper {
             throw corrupt("secciones de estado faltantes");
         }
 
+        String heroName = readString(memento.getNombreJugador(), session.player().name());
+        if (strict && (memento.getNombreJugador() == null || String.valueOf(memento.getNombreJugador()).trim().isBlank())) {
+            throw corrupt("nombreJugador invalido");
+        }
+
         int level = readInt(characterState.get("nivel"), memento.getNivelActual());
         int experience = readInt(characterState.get("experiencia"), 0);
         String heroType = normalizeHeroType(readString(characterState.get("heroType"), session.heroType()));
@@ -136,6 +185,8 @@ public final class GameSessionMementoMapper {
         int hp = readInt(characterState.get("vida"), maxHp);
         int gold = readInt(characterState.get("oroAcumulado"), 0);
         int defeatedEnemies = readInt(characterState.get("enemigosDerrotados"), 0);
+        int resource = readInt(characterState.get("recursoActual"), session.player().maxResource());
+        int resourceMax = readInt(characterState.get("recursoMaximo"), session.player().maxResource());
 
         if (strict && level < 1) {
             throw corrupt("nivel invalido");
@@ -155,14 +206,22 @@ public final class GameSessionMementoMapper {
         if (strict && defeatedEnemies < 0) {
             throw corrupt("enemigosDerrotados invalido");
         }
+        if (strict && resourceMax <= 0) {
+            throw corrupt("recursoMaximo invalido");
+        }
+        if (strict && resource < 0) {
+            throw corrupt("recursoActual invalido");
+        }
 
         session.player().restoreProgress(
             Math.max(1, level),
             Math.max(0, experience),
             Math.max(0, Math.min(hp, Math.max(1, maxHp))),
             Math.max(0, gold),
-            Math.max(0, defeatedEnemies)
+            Math.max(0, defeatedEnemies),
+            Math.max(0, resource)
         );
+        session.player().rename(heroName);
 
         if (!heroType.isBlank()) {
             session.setHeroType(heroType);
@@ -248,6 +307,30 @@ public final class GameSessionMementoMapper {
         }
         session.combat().restoreTurnState(defenseActive, Math.max(0, poisonTurns), Math.max(0, poisonDamage));
 
+        String styleKey = readString(dungeonState.get("estiloCombate"), "balanced");
+        int offensiveStacks = readInt(dungeonState.get("buffOfensivo"), 0);
+        int guardStacks = readInt(dungeonState.get("buffGuardia"), 0);
+        if (strict && offensiveStacks < 0) {
+            throw corrupt("buffOfensivo invalido");
+        }
+        if (strict && guardStacks < 0) {
+            throw corrupt("buffGuardia invalido");
+        }
+
+        Combat.TacticalCheckpoint tacticalCheckpoint = parseTacticalCheckpoint(
+            dungeonState.get("checkpointTactico"),
+            strict
+        );
+        boolean checkpointConsumed = readBoolean(dungeonState.get("checkpointTacticoConsumido"), false);
+
+        session.combat().restoreTacticalState(
+            styleKey,
+            Math.max(0, offensiveStacks),
+            Math.max(0, guardStacks),
+            tacticalCheckpoint,
+            checkpointConsumed
+        );
+
         String screen = readString(dungeonState.get("estadoActual"), "exploration");
         if (strict && !SUPPORTED_SCREENS.contains(screen)) {
             throw corrupt("estadoActual invalido");
@@ -265,10 +348,76 @@ public final class GameSessionMementoMapper {
         if (!SUPPORTED_SCREENS.contains(screen)) {
             screen = "exploration";
         }
+
+        boolean treasureActive = readBoolean(dungeonState.get("treasureActive"), false);
+        String treasureEnemyName = readString(dungeonState.get("treasureEnemyName"), "");
+        int treasureXp = readInt(dungeonState.get("treasureXp"), 0);
+        boolean treasureBoss = readBoolean(dungeonState.get("treasureBoss"), false);
+        int treasureRoomIndex = readInt(dungeonState.get("treasureRoomIndex"), session.dungeon().currentRoomIndex());
+        int treasureSelectedIndex = readInt(dungeonState.get("treasureSelectedIndex"), 0);
+        boolean treasureAutoSaved = readBoolean(dungeonState.get("treasureAutoSaved"), false);
+        List<SimpleItem> treasureLoot = parseItems(dungeonState.get("treasureLoot"), strict);
+
+        if (strict && treasureXp < 0) {
+            throw corrupt("treasureXp invalido");
+        }
+        if (strict && treasureActive && treasureLoot.isEmpty()) {
+            throw corrupt("treasureLoot invalido");
+        }
+        if (strict && treasureActive
+            && (treasureSelectedIndex < 0 || treasureSelectedIndex >= treasureLoot.size())) {
+            throw corrupt("treasureSelectedIndex invalido");
+        }
+
+        if (treasureActive) {
+            if (!"treasure".equals(screen) && strict) {
+                throw corrupt("estadoActual inconsistente con treasureActive");
+            }
+            screen = "treasure";
+        } else if ("treasure".equals(screen)) {
+            if (strict) {
+                throw corrupt("estadoActual=treasure sin treasureActive");
+            }
+            screen = "exploration";
+        }
+
+        session.restoreTreasureState(
+            treasureActive,
+            treasureEnemyName,
+            Math.max(0, treasureXp),
+            treasureBoss,
+            treasureRoomIndex,
+            treasureLoot,
+            treasureSelectedIndex,
+            treasureAutoSaved
+        );
+
         session.setActiveScreen(screen);
 
         session.replaceEventLog(parseStringList(dungeonState.get("eventLog"), strict, "eventLog"));
         session.replaceCombatLog(parseStringList(dungeonState.get("combatLog"), strict, "combatLog"));
+    }
+
+    private static List<Map<String, Object>> serializeItems(List<SimpleItem> items) {
+        List<Map<String, Object>> serialized = new ArrayList<>();
+        if (items == null) {
+            return serialized;
+        }
+
+        for (SimpleItem item : items) {
+            if (item == null) {
+                continue;
+            }
+            Map<String, Object> data = new HashMap<>();
+            data.put("nombre", item.getNombre());
+            data.put("descripcion", item.getDescripcion());
+            data.put("tipo", item.getTipo());
+            data.put("valor", item.getValorTotal());
+            data.put("peso", item.getPesoTotal());
+            serialized.add(data);
+        }
+
+        return serialized;
     }
 
     private static Enemy parseEnemyState(Map<String, Object> dungeonState, boolean strict) {
@@ -290,8 +439,16 @@ public final class GameSessionMementoMapper {
 
         String enemyType = readString(dungeonState.get("enemigoTipo"), "EnemigoBasico");
         int attack = readInt(dungeonState.get("enemigoAtaque"), Math.max(1, hpMax / 10));
+        int defense = readInt(dungeonState.get("enemigoDefensa"), Math.max(6, attack + 3));
+        int speed = readInt(dungeonState.get("enemigoVelocidad"), Math.max(10, 12 + attack / 4));
         if (strict && attack <= 0) {
             throw corrupt("ataque de enemigo invalido");
+        }
+        if (strict && defense < 0) {
+            throw corrupt("defensa de enemigo invalida");
+        }
+        if (strict && speed <= 0) {
+            throw corrupt("velocidad de enemigo invalida");
         }
 
         Personaje enemyCharacter = buildEnemyCharacter(enemyType, enemyName, hpMax, Math.max(1, attack));
@@ -301,7 +458,7 @@ public final class GameSessionMementoMapper {
             enemyCharacter.recibirDanio(hpMax - hp);
         }
 
-        Enemy enemy = new Enemy(enemyCharacter);
+        Enemy enemy = new Enemy(enemyCharacter, Math.max(1, attack), Math.max(0, defense), Math.max(1, speed));
         int xpReward = readInt(dungeonState.get("enemigoXp"), Math.max(20, hpMax * 2));
         if (strict && xpReward <= 0) {
             throw corrupt("enemigoXp invalido");
@@ -344,8 +501,19 @@ public final class GameSessionMementoMapper {
             int value = readInt(map.get("valor"), 0);
             int weight = readInt(map.get("peso"), 1);
 
-            if (strict && (name.isBlank() || weight <= 0)) {
-                throw corrupt("item con datos invalidos");
+            if (name.isBlank() || weight <= 0) {
+                if (strict) {
+                    // Compatibilidad con guardados legacy/corruptos parciales:
+                    // ignorar solo la entrada invalida en lugar de abortar toda la carga.
+                    continue;
+                }
+
+                if (name.isBlank()) {
+                    name = "Item";
+                }
+                if (weight <= 0) {
+                    weight = 1;
+                }
             }
 
             restored.add(new SimpleItem(name, description, type, Math.max(0, value), Math.max(1, weight)));
@@ -413,6 +581,63 @@ public final class GameSessionMementoMapper {
         }
 
         return themes;
+    }
+
+    private static Combat.TacticalCheckpoint parseTacticalCheckpoint(Object rawCheckpoint, boolean strict) {
+        if (rawCheckpoint == null) {
+            return null;
+        }
+
+        if (!(rawCheckpoint instanceof Map<?, ?> map)) {
+            if (strict) {
+                throw corrupt("checkpointTactico invalido");
+            }
+            return null;
+        }
+
+        int playerHp = readInt(map.get("playerHp"), 0);
+        int enemyHp = readInt(map.get("enemyHp"), 1);
+        int playerResource = readInt(map.get("playerResource"), 0);
+        boolean defenseActive = readBoolean(map.get("defenseActive"), false);
+        int poisonTurns = readInt(map.get("poisonTurns"), 0);
+        int poisonDamage = readInt(map.get("poisonDamage"), 0);
+        String styleKey = readString(map.get("style"), "balanced");
+        int offensiveStacks = readInt(map.get("offensiveStacks"), 0);
+        int guardStacks = readInt(map.get("guardStacks"), 0);
+
+        if (strict && playerHp < 0) {
+            throw corrupt("checkpointTactico.playerHp invalido");
+        }
+        if (strict && enemyHp <= 0) {
+            throw corrupt("checkpointTactico.enemyHp invalido");
+        }
+        if (strict && playerResource < 0) {
+            throw corrupt("checkpointTactico.playerResource invalido");
+        }
+        if (strict && poisonTurns < 0) {
+            throw corrupt("checkpointTactico.poisonTurns invalido");
+        }
+        if (strict && poisonDamage < 0) {
+            throw corrupt("checkpointTactico.poisonDamage invalido");
+        }
+        if (strict && offensiveStacks < 0) {
+            throw corrupt("checkpointTactico.offensiveStacks invalido");
+        }
+        if (strict && guardStacks < 0) {
+            throw corrupt("checkpointTactico.guardStacks invalido");
+        }
+
+        return new Combat.TacticalCheckpoint(
+            Math.max(0, playerHp),
+            Math.max(1, enemyHp),
+            Math.max(0, playerResource),
+            defenseActive,
+            Math.max(0, poisonTurns),
+            Math.max(0, poisonDamage),
+            PlayerCombatStyle.fromRaw(styleKey),
+            Math.max(0, offensiveStacks),
+            Math.max(0, guardStacks)
+        );
     }
 
     private static List<String> parseStringList(Object raw, boolean strict, String fieldName) {

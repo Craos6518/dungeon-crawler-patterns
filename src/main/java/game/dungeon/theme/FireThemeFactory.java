@@ -1,5 +1,6 @@
 package game.dungeon.theme;
 
+import game.balance.GameBalance;
 import game.domain.personaje.Dragon;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Orco;
@@ -25,7 +26,8 @@ public class FireThemeFactory implements DungeonThemeFactory {
 
     @Override
     public Personaje crearJefe() {
-        return new Dragon("Pyraxis", 150, 28);
+        GameBalance.BossProfile profile = GameBalance.boss("fire");
+        return new Dragon(profile.name(), profile.hp(), profile.attack());
     }
 
     @Override

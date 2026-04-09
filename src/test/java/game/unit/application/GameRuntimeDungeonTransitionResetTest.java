@@ -17,7 +17,7 @@ class GameRuntimeDungeonTransitionResetTest {
 
     @Test
     void lockedCampaignStartsNextDungeonWithInheritedProgressAndFullHeal() throws Exception {
-        GameSession completedSession = GameSessionFactory.createSessionForTheme("fire", "mago");
+        GameSession completedSession = GameSessionFactory.createSessionForTheme("poison", "mago");
         completedSession.player().restoreProgress(3, 40, 73, 900, 12);
         completedSession.inventory().add(new SimpleItem(
             "Elixir Arcano",
@@ -27,7 +27,7 @@ class GameRuntimeDungeonTransitionResetTest {
             1
         ));
         completedSession.setHeroSelectionLocked(true);
-        completedSession.markThemeCompleted("fire");
+        completedSession.markThemeCompleted("poison");
         completedSession.setActiveScreen("hero");
 
         GameRuntime runtime = new GameRuntime(completedSession);
@@ -36,6 +36,7 @@ class GameRuntimeDungeonTransitionResetTest {
         command.action = "heroNewGame";
         JsonObject payload = new JsonObject();
         payload.addProperty("heroType", "mago");
+        payload.addProperty("heroName", "Mago");
         payload.addProperty("theme", "ice");
         command.payload = payload;
 
@@ -45,16 +46,16 @@ class GameRuntimeDungeonTransitionResetTest {
 
         assertEquals(3, startedSession.player().level());
         assertEquals(40, startedSession.player().experience());
-        assertEquals(95, startedSession.player().maxHp());
+        assertEquals(105, startedSession.player().maxHp());
 
         // Al entrar a una nueva mazmorra de campaña, el héroe conserva progreso y se cura completo.
-        assertEquals(95, startedSession.player().hp());
+        assertEquals(105, startedSession.player().hp());
         assertEquals(900, startedSession.player().gold());
         assertEquals(12, startedSession.player().defeatedEnemies());
         assertEquals(4, startedSession.inventory().size());
         assertTrue(startedSession.inventory().items().stream().anyMatch(i -> "Elixir Arcano".equals(i.getName())));
 
-        assertTrue(startedSession.isThemeCompleted("fire"));
+        assertTrue(startedSession.isThemeCompleted("poison"));
         assertTrue(startedSession.isHeroSelectionLocked());
         assertEquals("ice", startedSession.dungeon().themeKey());
         assertEquals("exploration", startedSession.activeScreen());

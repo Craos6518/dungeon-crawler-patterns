@@ -1,11 +1,13 @@
 package game.ui.integration;
 
+import game.balance.GameBalance;
+import game.application.state.GameFlowState;
 import game.application.state.GameSession;
 import game.dungeon.model.Dungeon;
 import game.dungeon.model.Room;
 import game.domain.inventory.Item;
+import game.items.model.SimpleItem;
 import game.domain.personaje.Arquero;
-import game.domain.personaje.Guerrero;
 import game.domain.personaje.Mago;
 import game.domain.personaje.Personaje;
 import game.persistence.memento.GameMemento;
@@ -27,6 +29,10 @@ public class GamePresenter {
     private static final DateTimeFormatter SAVE_TIME_FMT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
 
     public GameViewModel present(GameSession session) {
+        return present(session, 1);
+    }
+
+    public GameViewModel present(GameSession session, int selectedSaveSlot) {
         Dungeon dungeon = session.dungeon().model();
         Room room = session.dungeon().currentRoom().model();
 
@@ -57,12 +63,34 @@ public class GamePresenter {
             );
         }
 
-        vm.screen = session.activeScreen();
+        GameFlowState activeState = session.activeState();
+        String screen = activeState.screenKey();
+
+        vm.screen = screen;
         vm.theme = session.dungeon().themeKey();
         vm.dungeonTheme = session.dungeon().themeName();
+        vm.heroName = session.player().name();
         vm.heroType = session.heroType();
         vm.heroSelectionLocked = session.isHeroSelectionLocked();
         vm.completedThemes = new ArrayList<>(session.completedThemes());
+        vm.nextCampaignTheme = session.nextCampaignTheme();
+        vm.campaignThemeOrder = new ArrayList<>(session.campaignThemeOrder());
+
+        vm.resource = new GameViewModel.ResourceInfo();
+        vm.resource.type = session.player().resourceType();
+        vm.resource.current = session.player().resource();
+        vm.resource.max = session.player().maxResource();
+        vm.resource.pct = safePct(vm.resource.current, vm.resource.max);
+
+        vm.combatTactics = new GameViewModel.CombatTacticsInfo();
+        vm.combatTactics.style = session.combat().playerStyle().displayName();
+        vm.combatTactics.offensiveBuffStacks = session.combat().offensiveBuffStacks();
+        vm.combatTactics.guardBuffStacks = session.combat().guardBuffStacks();
+        vm.combatTactics.defenseActive = session.combat().isDefenseActive();
+        vm.combatTactics.poisonTurns = session.combat().poisonTurns();
+        vm.combatTactics.poisonDamage = session.combat().poisonDamage();
+        vm.combatTactics.hasCheckpoint = session.combat().hasTacticalCheckpoint();
+        vm.combatTactics.checkpointConsumed = session.combat().tacticalCheckpointConsumed();
 
         vm.eventLog = session.eventLog();
         vm.combatLog = session.combatLog();
@@ -104,17 +132,16 @@ public class GamePresenter {
         }
 
         // ── Pantallas nuevas ──
-        String screen = session.activeScreen();
-        if ("stats".equals(screen)) {
+        if (activeState == GameFlowState.STATS) {
             vm.stats = buildStatsInfo(session);
         }
-        if ("saves".equals(screen)) {
-            vm.saveSlotsInfo = buildSaveSlotsInfo(session);
+        if (activeState == GameFlowState.SAVES) {
+            vm.saveSlotsInfo = buildSaveSlotsInfo(session, selectedSaveSlot);
         }
-        if ("gameover".equals(screen)) {
+        if (activeState == GameFlowState.GAME_OVER) {
             vm.gameOver = buildGameOverInfo(session);
         }
-        if ("treasure".equals(screen)) {
+        if (activeState == GameFlowState.TREASURE) {
             vm.treasure = buildTreasureInfo(session);
         }
 
@@ -175,9 +202,9 @@ public class GamePresenter {
         st.heroHp         = hero.getVida();
         st.heroHpMax      = hero.getVidaMaxima();
         st.heroHpPct      = safePct(hero.getVida(), hero.getVidaMaxima());
-        st.heroAtk        = inferHeroAttack(hero, heroType);
-        st.heroDef        = inferHeroDefense(heroType);
-        st.heroSpeed      = inferHeroSpeed(heroType);
+        st.heroAtk        = session.player().attackStat();
+        st.heroDef        = session.player().defenseStat();
+        st.heroSpeed      = session.player().speedStat();
         st.goldTotal      = session.player().gold();
         st.itemsCollected = session.inventory().items().size();
         st.roomsExplored  = session.dungeon().currentRoomIndex() + 1;
@@ -195,7 +222,7 @@ public class GamePresenter {
             }
 
             try {
-                GameMemento candidate = session.caretaker().cargarDesdeDisco(fileName);
+                GameMemento candidate = session.caretaker().cargarDesdeDiscoSilencioso(fileName);
                 if (latestMemento == null
                     || (candidate.getFechaGuardado() != null
                     && (latestMemento.getFechaGuardado() == null
@@ -229,9 +256,11 @@ public class GamePresenter {
         st.heroHp = Math.max(0, readInt(charState.get("vida"), 0));
         st.heroHpMax = Math.max(0, readInt(charState.get("vidaMaxima"), st.heroHp));
         st.heroHpPct = safePct(st.heroHp, st.heroHpMax);
-        st.heroAtk = inferHeroAttackFromType(heroType);
-        st.heroDef = inferHeroDefense(heroType);
-        st.heroSpeed = inferHeroSpeed(heroType);
+        GameBalance.HeroProfile profile = GameBalance.hero(heroType);
+        int level = Math.max(1, readInt(charState.get("nivel"), memento.getNivelActual()));
+        st.heroAtk = profile.attack() + Math.max(0, level - 1) * 2;
+        st.heroDef = profile.defense() + Math.max(0, level - 1) * 2;
+        st.heroSpeed = profile.speed() + Math.max(0, level - 1);
         st.goldTotal = Math.max(0, readInt(charState.get("oroAcumulado"), 0));
         st.itemsCollected = extractItemsCount(inventoryState);
         st.roomsExplored = Math.max(1, memento.getSalaActual());
@@ -259,32 +288,68 @@ public class GamePresenter {
     }
 
     private static GameViewModel.TreasureInfo buildTreasureInfo(GameSession session) {
-        // Stub con datos representativos; se conectará a TreasureRoomState cuando exista.
         GameViewModel.TreasureInfo tr = new GameViewModel.TreasureInfo();
-        tr.enemyDefeated  = "Enemigo derrotado en sala " + (session.dungeon().currentRoomIndex() + 1);
-        tr.expGained      = 150;
-        tr.goldGained     = 80;
+        tr.enemyDefeated  = session.treasureEnemyName().isBlank()
+            ? "Enemigo derrotado en sala " + (session.dungeon().currentRoomIndex() + 1)
+            : session.treasureEnemyName();
+        tr.expGained      = session.treasureXpGained();
+        tr.goldGained     = session.selectedTreasureGoldReward();
         tr.roomsExplored  = session.dungeon().currentRoomIndex() + 1;
         tr.enemiesDefeated = session.player().defeatedEnemies();
         tr.goldTotal      = session.player().gold();
         tr.itemsCollected = session.inventory().items().size();
         tr.hpCurrent      = session.player().character().getVida();
         tr.hpMax          = session.player().character().getVidaMaxima();
-        tr.checkpointRoom = session.dungeon().currentRoomIndex() + 1;
-        tr.autoSaved      = true;
+        tr.checkpointRoom = session.treasureRoomIndex() + 1;
+        tr.autoSaved      = session.treasureAutoSaved();
         tr.loot           = new java.util.ArrayList<>();
-        GameViewModel.TreasureInfo.LootItem loot1 = new GameViewModel.TreasureInfo.LootItem();
-        loot1.icon = "⚔"; loot1.name = "Espada de Llamas"; loot1.rarity = "raro";
-        loot1.desc = "daño: 28 · quemadura al golpear"; loot1.selected = true;
-        tr.loot.add(loot1);
-        GameViewModel.TreasureInfo.LootItem loot2 = new GameViewModel.TreasureInfo.LootItem();
-        loot2.icon = "🧪"; loot2.name = "Pocion de Vida Mayor"; loot2.rarity = "comun";
-        loot2.desc = "restaura 60 hp"; loot2.selected = false;
-        tr.loot.add(loot2);
+
+        List<SimpleItem> loot = session.treasureLootOptions();
+        int selectedIndex = session.selectedTreasureIndex();
+        for (int i = 0; i < loot.size(); i++) {
+            SimpleItem item = loot.get(i);
+            GameViewModel.TreasureInfo.LootItem row = new GameViewModel.TreasureInfo.LootItem();
+            row.icon = inferTreasureIcon(item);
+            row.name = item.getNombre();
+            row.rarity = inferTreasureRarity(item);
+            row.desc = item.getDescripcion();
+            row.selected = i == selectedIndex;
+            tr.loot.add(row);
+        }
+
         return tr;
     }
 
-    private static GameViewModel.SaveSlotsInfo buildSaveSlotsInfo(GameSession session) {
+    private static String inferTreasureIcon(SimpleItem item) {
+        String type = normalize(item.getTipo());
+        String name = normalize(item.getNombre());
+        if (type.contains("consum") || name.contains("poci") || name.contains("antid")) {
+            return "🧪";
+        }
+        if (type.contains("arma")) {
+            return "⚔";
+        }
+        if (type.contains("armadura")) {
+            return "🛡";
+        }
+        if (type.contains("gema") || type.contains("runa")) {
+            return "💎";
+        }
+        return "⭐";
+    }
+
+    private static String inferTreasureRarity(SimpleItem item) {
+        int value = item.getValorTotal();
+        if (value >= 120) {
+            return "epico";
+        }
+        if (value >= 60) {
+            return "raro";
+        }
+        return "comun";
+    }
+
+    private static GameViewModel.SaveSlotsInfo buildSaveSlotsInfo(GameSession session, int selectedSaveSlot) {
         GameViewModel.SaveSlotsInfo info = new GameViewModel.SaveSlotsInfo();
         info.slots = new java.util.ArrayList<>();
         for (int i = 1; i <= 3; i++) {
@@ -299,7 +364,7 @@ public class GamePresenter {
             }
 
             try {
-                GameMemento memento = session.caretaker().cargarDesdeDisco(fileName);
+                GameMemento memento = session.caretaker().cargarDesdeDiscoSilencioso(fileName);
                 fillSlotFromMemento(memento, slot);
             } catch (RuntimeException ex) {
                 applyEmptySlot(slot);
@@ -307,7 +372,7 @@ public class GamePresenter {
 
             info.slots.add(slot);
         }
-        info.selectedSlot = 1;
+        info.selectedSlot = selectedSaveSlot;
         return info;
     }
 
@@ -369,7 +434,7 @@ public class GamePresenter {
             return false;
         }
         try {
-            session.caretaker().cargarDesdeDisco(fileName);
+            session.caretaker().cargarDesdeDiscoSilencioso(fileName);
             return true;
         } catch (RuntimeException ex) {
             return false;
@@ -449,31 +514,6 @@ public class GamePresenter {
         };
     }
 
-    private static int inferHeroAttack(Personaje hero, String heroType) {
-        if (hero instanceof Mago mago) {
-            return mago.getPoderMagico();
-        }
-        if (hero instanceof Arquero arquero) {
-            return arquero.getPrecision();
-        }
-        if (hero instanceof Guerrero) {
-            return 18;
-        }
-        return switch (heroType) {
-            case "mago" -> 30;
-            case "arquero" -> 24;
-            default -> 18;
-        };
-    }
-
-    private static int inferHeroAttackFromType(String heroType) {
-        return switch (heroType) {
-            case "mago" -> 30;
-            case "arquero" -> 24;
-            default -> 18;
-        };
-    }
-
     private static int extractItemsCount(Map<String, Object> inventoryState) {
         if (inventoryState == null) {
             return 0;
@@ -483,22 +523,6 @@ public class GamePresenter {
             return list.size();
         }
         return 0;
-    }
-
-    private static int inferHeroDefense(String heroType) {
-        return switch (heroType) {
-            case "mago" -> 8;
-            case "arquero" -> 15;
-            default -> 25;
-        };
-    }
-
-    private static int inferHeroSpeed(String heroType) {
-        return switch (heroType) {
-            case "mago" -> 22;
-            case "arquero" -> 20;
-            default -> 10;
-        };
     }
 
     private static int safePct(int current, int max) {

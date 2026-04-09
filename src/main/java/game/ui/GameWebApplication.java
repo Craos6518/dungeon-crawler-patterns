@@ -25,12 +25,13 @@ public class GameWebApplication extends Application {
 
     private WebGameAdapter webAdapter;
     private WebEngine engine;
+    private String lastStateJson = "";
 
     @Override
     public void start(Stage stage) {
         WebView webView = new WebView();
         engine = webView.getEngine();
-        webAdapter = new WebGameAdapter(runtime, this::pushStateToUi);
+        webAdapter = new WebGameAdapter(runtime, this::pushStateToUi, this::requestApplicationExit);
 
         engine.setOnAlert(event -> webAdapter.dispatchAlertMessage(event.getData()));
 
@@ -48,9 +49,19 @@ public class GameWebApplication extends Application {
         stage.show();
     }
 
+    private void requestApplicationExit() {
+        Runnable exitTask = Platform::exit;
+        if (Platform.isFxApplicationThread()) {
+            exitTask.run();
+        } else {
+            Platform.runLater(exitTask);
+        }
+    }
+
     private void registerBridge() {
         JSObject window = (JSObject) engine.executeScript("window");
         window.setMember("javabridge", webAdapter.createBridge());
+        lastStateJson = "";
     }
 
     private void pushStateToUi() {
@@ -61,6 +72,12 @@ public class GameWebApplication extends Application {
         Runnable task = () -> {
             try {
                 String json = gson.toJson(webAdapter.presentViewModel());
+
+                if (json.equals(lastStateJson)) {
+                    return;
+                }
+                lastStateJson = json;
+
                 engine.executeScript("window.updateGameState(" + json + ");");
             } catch (RuntimeException ignored) {
                 // Ignorado: la pagina puede no estar lista temporalmente.

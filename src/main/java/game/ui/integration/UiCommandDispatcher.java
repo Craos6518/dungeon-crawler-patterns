@@ -22,12 +22,20 @@ public class UiCommandDispatcher {
 
     private final GameCommandHandler commandHandler;
     private final Runnable onStateChanged;
+    private final Runnable onExitRequested;
     private final GlobalCommandExceptionHandler exceptionHandler;
     private final Gson gson;
 
     public UiCommandDispatcher(GameCommandHandler commandHandler, Runnable onStateChanged) {
+        this(commandHandler, onStateChanged, () -> {
+            // No-op por compatibilidad: solo la app JavaFX debe cerrar la ventana.
+        });
+    }
+
+    public UiCommandDispatcher(GameCommandHandler commandHandler, Runnable onStateChanged, Runnable onExitRequested) {
         this.commandHandler = commandHandler;
         this.onStateChanged = onStateChanged;
+        this.onExitRequested = onExitRequested;
         this.exceptionHandler = new GlobalCommandExceptionHandler();
         this.gson = new Gson();
     }
@@ -53,6 +61,9 @@ public class UiCommandDispatcher {
             }
 
             commandHandler.handleCommand(command);
+            if ("exitGame".equals(action)) {
+                triggerExitRequest();
+            }
             return UiCommandResponse.ok(commandHandler.presentViewModel());
         } catch (RuntimeException ex) {
             if (ex instanceof InvalidCommandException
@@ -117,6 +128,14 @@ public class UiCommandDispatcher {
     public String dispatchCommandJsonAsString(String commandJson) {
         UiCommandResponse response = dispatchCommandJson(commandJson);
         return gson.toJson(response);
+    }
+
+    private void triggerExitRequest() {
+        try {
+            onExitRequested.run();
+        } catch (RuntimeException ex) {
+            LOGGER.log(Level.WARNING, "No se pudo ejecutar callback de salida UI.", ex);
+        }
     }
 
     private static String summarize(String rawCommand) {

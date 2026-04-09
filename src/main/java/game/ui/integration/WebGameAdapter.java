@@ -13,8 +13,14 @@ public class WebGameAdapter {
     private final UiCommandDispatcher dispatcher;
 
     public WebGameAdapter(GameRuntime runtime, Runnable onStateChanged) {
+        this(runtime, onStateChanged, () -> {
+            // No-op por compatibilidad.
+        });
+    }
+
+    public WebGameAdapter(GameRuntime runtime, Runnable onStateChanged, Runnable onExitRequested) {
         this.runtime = runtime;
-        this.dispatcher = new UiCommandDispatcher(runtime, onStateChanged);
+        this.dispatcher = new UiCommandDispatcher(runtime, onStateChanged, onExitRequested);
     }
 
     public UiCommandResponse dispatchAlertMessage(String rawMessage) {

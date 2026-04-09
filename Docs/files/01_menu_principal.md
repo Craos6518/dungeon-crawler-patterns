@@ -1,3 +1,18 @@
+# ⚠️ DOCUMENTO OBSOLETO — NO USAR
+
+Este documento NO es fuente de verdad.
+
+Fuente vigente:
+👉 docs/README.md
+
+Estado:
+- Obsoleto desde: 2026-04-04
+- Motivo: consolidación post-auditoría
+
+Este archivo se conserva únicamente por trazabilidad histórica.
+
+---
+
 # Mockup 01 — Menú Principal / Selección de Héroe
 
 **Patrón relacionado:** Factory Method (creación de héroes), Memento (cargar partida)  

@@ -24,6 +24,7 @@ public class GameViewModel {
     public int    playerHp;
     public int    playerHpMax;
     public int    playerHpPct;   // 0–100 para width del fill
+    public ResourceInfo resource;
     public int    gold;
 
     // ── Tema visual ───────────────────────────────────────────────
@@ -31,12 +32,18 @@ public class GameViewModel {
     public String theme;
 
     // ── Progresión de campaña (pantalla héroe) ──────────────────
+    /** Nombre visible del heroe actual en HUD. */
+    public String heroName;
     /** Héroe actualmente seleccionado para campaña. */
     public String heroType;
     /** True cuando el héroe queda bloqueado para mantener continuidad de campaña. */
     public boolean heroSelectionLocked;
     /** Temas ya conquistados que no pueden volver a iniciarse en la campaña actual. */
     public List<String> completedThemes;
+    /** Siguiente tema desbloqueado segun la progresion de campana. */
+    public String nextCampaignTheme;
+    /** Orden canonico de la campana para guiar UI y validaciones. */
+    public List<String> campaignThemeOrder;
 
     // ── Pantalla Exploración ──────────────────────────────────────
     public String  roomName;
@@ -50,6 +57,7 @@ public class GameViewModel {
 
     // ── Pantalla Combate ──────────────────────────────────────────
     public EnemyInfo    enemy;
+    public CombatTacticsInfo combatTactics;
     public List<String> combatLog;
 
     // ── Pantalla Inventario ───────────────────────────────────────
@@ -86,6 +94,24 @@ public class GameViewModel {
         public int    hpPct;   // 0–100
         /** "menor" | "elite" | "jefe" */
         public String tier;
+    }
+
+    public static class ResourceInfo {
+        public String type;
+        public int current;
+        public int max;
+        public int pct;
+    }
+
+    public static class CombatTacticsInfo {
+        public String style;
+        public int offensiveBuffStacks;
+        public int guardBuffStacks;
+        public boolean defenseActive;
+        public int poisonTurns;
+        public int poisonDamage;
+        public boolean hasCheckpoint;
+        public boolean checkpointConsumed;
     }
 
     public static class InventoryInfo {

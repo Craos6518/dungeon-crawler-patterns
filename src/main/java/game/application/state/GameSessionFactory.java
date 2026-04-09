@@ -1,5 +1,8 @@
 package game.application.state;
 
+import game.balance.GameBalance;
+import game.application.observer.SessionEventCounterObserver;
+import game.application.observer.SessionEventFeedObserver;
 import game.domain.character.Player;
 import game.domain.combat.Combat;
 import game.domain.exploration.Dungeon;
@@ -23,18 +26,18 @@ import java.nio.file.Path;
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Fabrica de sesion inicial para la UI web.
  */
 public final class GameSessionFactory {
-
-    private static final String HERO_NAME_GUERRERO = "Guerrero";
-    private static final String HERO_NAME_MAGO = "Mago";
-    private static final String HERO_NAME_ARQUERO = "Arquero";
+    private static final long DEFAULT_DUNGEON_SEED = 123L;
     private static final String HERO_TYPE_GUERRERO = "guerrero";
     private static final String HERO_TYPE_MAGO = "mago";
     private static final String HERO_TYPE_ARQUERO = "arquero";
+    private static final SessionEventFeedObserver SESSION_EVENT_FEED_OBSERVER = new SessionEventFeedObserver();
+    private static final SessionEventCounterObserver SESSION_EVENT_COUNTER_OBSERVER = new SessionEventCounterObserver();
 
     private GameSessionFactory() {
     }
@@ -46,7 +49,7 @@ public final class GameSessionFactory {
     public static GameSession createInitialMenuSession() {
         GameSession session = createSessionForTheme("fire", HERO_TYPE_GUERRERO);
         session.setBootstrapMenuSession(true);
-        session.setActiveScreen("menu");
+        session.transitionTo(GameFlowState.MENU);
         session.appendEvent("Selecciona una mazmorra para iniciar tu aventura.");
         return session;
     }
@@ -56,12 +59,29 @@ public final class GameSessionFactory {
     }
 
     public static GameSession createSessionForTheme(String themeKey, String heroType) {
-        Random random = new Random();
+        String normalizedHeroType = normalizeHeroType(heroType);
+        String heroName = defaultHeroNameForType(normalizedHeroType);
+        return createSessionForTheme(themeKey, normalizedHeroType, heroName, DEFAULT_DUNGEON_SEED);
+    }
+
+    public static GameSession createSessionForTheme(String themeKey, String heroType, String heroName) {
+        return createSessionForTheme(themeKey, heroType, heroName, DEFAULT_DUNGEON_SEED);
+    }
+
+    public static GameSession createSessionForTheme(String themeKey, String heroType, long dungeonSeed) {
+        String normalizedHeroType = normalizeHeroType(heroType);
+        String heroName = defaultHeroNameForType(normalizedHeroType);
+        return createSessionForTheme(themeKey, normalizedHeroType, heroName, dungeonSeed);
+    }
+
+    public static GameSession createSessionForTheme(String themeKey, String heroType, String heroName, long dungeonSeed) {
+        Random random = new Random(dungeonSeed);
 
         String normalizedHeroType = normalizeHeroType(heroType);
-        Player player = createPlayerForHero(normalizedHeroType);
+        String normalizedHeroName = normalizeHeroName(heroName, normalizedHeroType);
+        Player player = createPlayerForHero(normalizedHeroType, normalizedHeroName);
         DungeonThemeFactory theme = resolveThemeFactory(themeKey);
-        Dungeon dungeon = Dungeon.fromTheme(random, theme);
+        Dungeon dungeon = Dungeon.fromTheme(random, theme, dungeonSeed);
         TurnManager turnManager = new TurnManager();
         Combat combat = new Combat(player, turnManager, random);
 
@@ -69,6 +89,8 @@ public final class GameSessionFactory {
         GameCaretaker caretaker = new GameCaretaker(resolveSaveDirectory());
 
         GameSession session = new GameSession(player, dungeon, combat, eventManager, caretaker);
+        registerRuntimeObservers(eventManager, session);
+        session.transitionTo(GameFlowState.EXPLORATION);
         session.setHeroType(normalizedHeroType);
         session.appendEvent("Partida UI iniciada para " + player.name() + ".");
         session.appendEvent("Mazmorra: " + dungeon.model().getNombre() + " (Tema: " + dungeon.themeName() + ").");
@@ -80,13 +102,50 @@ public final class GameSessionFactory {
         return session;
     }
 
-    private static Player createPlayerForHero(String heroType) {
-        Personaje hero = switch (heroType) {
-            case HERO_TYPE_MAGO -> new MagoFactory(55, 30).crearPersonaje(HERO_NAME_MAGO);
-            case HERO_TYPE_ARQUERO -> new ArqueroFactory(75, 24).crearPersonaje(HERO_NAME_ARQUERO);
-            default -> new GuerreroFactory(100, 18).crearPersonaje(HERO_NAME_GUERRERO);
+    public static GameSession createSessionForThemeRandomized(String themeKey, String heroType) {
+        String normalizedHeroType = normalizeHeroType(heroType);
+        String heroName = defaultHeroNameForType(normalizedHeroType);
+        return createSessionForThemeRandomized(themeKey, normalizedHeroType, heroName);
+    }
+
+    public static GameSession createSessionForThemeRandomized(String themeKey, String heroType, String heroName) {
+        long dungeonSeed = ThreadLocalRandom.current().nextLong();
+        return createSessionForTheme(themeKey, heroType, heroName, dungeonSeed);
+    }
+
+    private static void registerRuntimeObservers(EventManager eventManager, GameSession session) {
+        SESSION_EVENT_FEED_OBSERVER.bindSession(session);
+        SESSION_EVENT_COUNTER_OBSERVER.bindSession(session);
+
+        eventManager.suscribir(SESSION_EVENT_FEED_OBSERVER);
+        eventManager.suscribir(SESSION_EVENT_COUNTER_OBSERVER);
+    }
+
+    private static Player createPlayerForHero(String heroType, String heroName) {
+        GameBalance.HeroProfile profile = GameBalance.hero(heroType);
+
+        Personaje hero = switch (profile.type()) {
+            case HERO_TYPE_MAGO -> new MagoFactory(profile.hp(), profile.attack()).crearPersonaje(heroName);
+            case HERO_TYPE_ARQUERO -> new ArqueroFactory(profile.hp(), profile.attack()).crearPersonaje(heroName);
+            default -> new GuerreroFactory(profile.hp(), profile.attack()).crearPersonaje(heroName);
         };
-        return new Player(hero, Inventory.demo());
+        return new Player(hero, Inventory.demo(), profile.type());
+    }
+
+    private static String defaultHeroNameForType(String heroType) {
+        return GameBalance.hero(heroType).displayName();
+    }
+
+    private static String normalizeHeroName(String heroName, String heroType) {
+        if (heroName == null) {
+            return defaultHeroNameForType(heroType);
+        }
+
+        String normalized = heroName.trim().replaceAll("\\s+", " ");
+        if (normalized.isBlank()) {
+            return defaultHeroNameForType(heroType);
+        }
+        return normalized;
     }
 
     private static DungeonThemeFactory resolveThemeFactory(String themeKey) {

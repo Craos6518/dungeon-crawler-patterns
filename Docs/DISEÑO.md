@@ -1,3 +1,18 @@
+# ⚠️ DOCUMENTO OBSOLETO — NO USAR
+
+Este documento NO es fuente de verdad.
+
+Fuente vigente:
+👉 docs/02-architecture/ARQUITECTURA_RUNTIME.md
+
+Estado:
+- Obsoleto desde: 2026-04-04
+- Motivo: consolidación post-auditoría
+
+Este archivo se conserva únicamente por trazabilidad histórica.
+
+---
+
 # Diseño Técnico y Patrones de Diseño
 
 ## 1. Visión General de la Arquitectura

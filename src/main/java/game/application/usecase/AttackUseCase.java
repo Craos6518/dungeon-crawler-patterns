@@ -39,6 +39,7 @@ public class AttackUseCase {
             }
 
             session.appendCombat(session.player().name() + " ataca e inflige " + result.playerDamage + " de dano.");
+            CombatUseCaseSupport.appendResourceFlow(session, result);
 
             session.eventManager().notificar(new game.events.observer.GameEvent(game.events.observer.EventType.ATAQUE_REALIZADO)
                 .agregarDato("atacante", session.player().name())

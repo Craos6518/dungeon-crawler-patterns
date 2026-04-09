@@ -18,12 +18,14 @@ public class EventManager {
     private final Map<EventType, List<GameObserver>> observersPorTipo;
     private final List<GameEvent> historialEventos;
     private boolean habilitado;
+    private boolean validacionContratoHabilitada;
     
     private EventManager() {
         this.observers = new ArrayList<>();
         this.observersPorTipo = new HashMap<>();
         this.historialEventos = new ArrayList<>();
         this.habilitado = true;
+        this.validacionContratoHabilitada = true;
     }
     
     /**
@@ -93,6 +95,10 @@ public class EventManager {
         if (evento == null) {
             throw new IllegalArgumentException("El evento no puede ser null");
         }
+
+        if (validacionContratoHabilitada) {
+            EventContractValidator.validateOrThrow(evento);
+        }
         
         // Guardar en historial
         historialEventos.add(evento);
@@ -150,6 +156,14 @@ public class EventManager {
      */
     public boolean isHabilitado() {
         return habilitado;
+    }
+
+    public void setValidacionContratoHabilitada(boolean validacionContratoHabilitada) {
+        this.validacionContratoHabilitada = validacionContratoHabilitada;
+    }
+
+    public boolean isValidacionContratoHabilitada() {
+        return validacionContratoHabilitada;
     }
     
     /**

@@ -103,6 +103,8 @@
       <div class="hdr-left">
         <span class="hdr-dungeon-name" id="hdr-dungeon-name"
               data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-hero-name"
+          data-bind="state.heroName">Héroe · Aventurero</span>
         <span class="hdr-dungeon-theme" id="hdr-dungeon-theme"
               data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
       </div>
@@ -225,6 +227,8 @@
       <div class="hdr-left">
         <span class="hdr-dungeon-name" id="hdr-dungeon-name-combat"
               data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-hero-name-combat"
+          data-bind="state.heroName">Héroe · Aventurero</span>
         <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-combat"
               data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
       </div>
@@ -288,6 +292,28 @@
           <div class="status-slot" id="s2-status-slot-3" data-effect="" aria-label="Efecto 3: vacío">—</div>
           <div class="status-slot" id="s2-status-slot-4" data-effect="" aria-label="Efecto 4: vacío">—</div>
         </div>
+        <div class="zone-label" style="margin-top:var(--spacing-2);">Recurso del Héroe</div>
+        <div class="field-row">
+          <span class="field-row__key" id="s2-resource-type">Recurso</span>
+          <span class="field-row__val" id="s2-resource-value">0 / 0</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Carga</span>
+          <span class="field-row__val" id="s2-resource-pct">0%</span>
+        </div>
+        <div class="zone-label" style="margin-top:var(--spacing-2);">Táctica del Jugador</div>
+        <div class="field-row">
+          <span class="field-row__key">Estilo</span>
+          <span class="field-row__val" id="s2-style-current">Balanceado</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Buff Poder</span>
+          <span class="field-row__val" id="s2-buff-power">0</span>
+        </div>
+        <div class="field-row">
+          <span class="field-row__key">Buff Guardia</span>
+          <span class="field-row__val" id="s2-buff-guard">0</span>
+        </div>
       </aside>
 
     </main>
@@ -302,6 +328,27 @@
             data-action="openInventory" data-state="default">Usar Objeto</button>
       <button class="btn" id="btn-habilidad"
               data-action="useSkill" data-state="default">Habilidad</button>
+      <div class="combat-tactics" id="combat-tactics-shell">
+        <button class="btn" id="btn-combat-tactics"
+          data-action="toggleCombatTacticsMenu" data-state="default"
+          aria-expanded="false" aria-controls="combat-tactics-menu">Tácticas</button>
+        <div class="combat-tactics-menu" id="combat-tactics-menu" hidden>
+          <div class="combat-tactics-menu__label">Estilos</div>
+          <button class="btn combat-tactics-menu__btn" id="btn-style-balanced"
+            data-action="setCombatStyle" data-style="balanced" data-state="default">Balanceado</button>
+          <button class="btn combat-tactics-menu__btn" id="btn-style-aggressive"
+            data-action="setCombatStyle" data-style="aggressive" data-state="default">Agresivo</button>
+          <button class="btn combat-tactics-menu__btn" id="btn-style-defensive"
+            data-action="setCombatStyle" data-style="defensive" data-state="default">Defensivo</button>
+          <div class="combat-tactics-menu__label">Buffs</div>
+          <button class="btn combat-tactics-menu__btn" id="btn-buff-power"
+            data-action="applyBuff" data-buff="power" data-state="default">Buff Poder</button>
+          <button class="btn combat-tactics-menu__btn" id="btn-buff-guard"
+            data-action="applyBuff" data-buff="guard" data-state="default">Buff Guardia</button>
+        </div>
+      </div>
+      <button class="btn" id="btn-retreat"
+        data-action="retreatCombat" data-state="default">Retirada</button>
     </section>
 
     <!-- COMBAT LOG -->
@@ -324,6 +371,8 @@
       <div class="hdr-left">
         <span class="hdr-dungeon-name" id="hdr-dungeon-name-inv"
               data-bind="state.dungeonName">La Cripta de Malgrath</span>
+        <span class="hdr-dungeon-theme" id="hdr-hero-name-inv"
+          data-bind="state.heroName">Héroe · Aventurero</span>
         <span class="hdr-dungeon-theme" id="hdr-dungeon-theme-inv"
               data-bind="state.dungeonTheme">Mazmorra · Nivel de Peligro III</span>
       </div>
@@ -438,14 +487,17 @@
 
     </div>
 
-    <!-- FOOTER
-         btn-use-item-inv: siempre default mientras solo exista categoría Consumible.
-         Java dispatch: inv-use-item → buscarConsumiblePorNombre("poci") o ("antid")
-    -->
+        <!-- FOOTER
+          Acciones de inventario y tienda: usar consumible, comprar pocion, vender item y volver.
+        -->
     <footer id="s3-footer">
       <button class="btn btn--primary" id="btn-use-item-inv"
               data-action="useItem" data-state="default"
               title="Disponible solo para Consumibles (usarPocion / usarAntidoto)">Usar</button>
+          <button class="btn" id="btn-buy-potion"
+            data-action="buyHealthPotion" data-state="default">Comprar Poción (40)</button>
+          <button class="btn" id="btn-sell-item"
+            data-action="sellSelectedItem" data-state="default">Vender Seleccionado</button>
       <button class="btn" id="btn-back-inv"
               data-action="closeInventory" data-state="default">Volver</button>
     </footer>
@@ -460,45 +512,56 @@
       <div class="hero-screen-shell">
         <h1 class="menu-title">Elige tu Héroe</h1>
         <p class="menu-subtitle">selecciona tu clase para esta aventura</p>
+        <div class="field-row" style="margin-bottom:var(--spacing-2);">
+          <span class="field-row__key">Nombre del héroe</span>
+          <input
+            id="hero-name-input"
+            type="text"
+            maxlength="24"
+            placeholder="Ingresa tu nombre"
+            aria-label="Nombre del héroe"
+            style="flex:1;background:#0f0f0f;color:#f2f2f2;border:1px solid #333;padding:10px 12px;border-radius:8px;"
+          />
+        </div>
         <div class="hero-step-label">PASO 1 — CLASE DE HÉROE</div>
         <div class="hero-selection-grid" id="hero-cards-container">
           <div class="hero-card hero-card--selected" id="hero-card-guerrero" data-hero="guerrero" data-action="selectHero" role="button" tabindex="0">
             <div class="hero-card__icon">🗡️</div><div class="hero-card__name">Guerrero</div><div class="hero-card__desc">alta vida y resistencia</div>
             <div class="hero-stat-row">
-              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">100</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:60%"></div></div><span class="hero-stat__val">18</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">25</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:45%"></div></div><span class="hero-stat__val">10</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">110</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:74%"></div></div><span class="hero-stat__val">20</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">26</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:48%"></div></div><span class="hero-stat__val">11</span></div>
             </div>
             <div class="hero-selected-badge">SELECCIONADO</div>
           </div>
           <div class="hero-card" id="hero-card-mago" data-hero="mago" data-action="selectHero" role="button" tabindex="0">
             <div class="hero-card__icon">🔮</div><div class="hero-card__name">Mago</div><div class="hero-card__desc">menor vida, alto daño</div>
             <div class="hero-stat-row">
-              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:55%"></div></div><span class="hero-stat__val">55</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">30</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:32%"></div></div><span class="hero-stat__val">8</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">22</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:59%"></div></div><span class="hero-stat__val">65</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">27</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:38%"></div></div><span class="hero-stat__val">10</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:100%"></div></div><span class="hero-stat__val">23</span></div>
             </div>
             <div class="hero-selected-badge">SELECCIONADO</div>
           </div>
           <div class="hero-card" id="hero-card-arquero" data-hero="arquero" data-action="selectHero" role="button" tabindex="0">
             <div class="hero-card__icon">🏹</div><div class="hero-card__name">Arquero</div><div class="hero-card__desc">balance daño y supervivencia</div>
             <div class="hero-stat-row">
-              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:75%"></div></div><span class="hero-stat__val">75</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:80%"></div></div><span class="hero-stat__val">24</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:60%"></div></div><span class="hero-stat__val">15</span></div>
-              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:91%"></div></div><span class="hero-stat__val">20</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VIDA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:77%"></div></div><span class="hero-stat__val">85</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">ATAQUE</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:85%"></div></div><span class="hero-stat__val">23</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">DEFENSA</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:65%"></div></div><span class="hero-stat__val">17</span></div>
+              <div class="hero-stat"><span class="hero-stat__key">VELOC.</span><div class="hero-stat__bar"><div class="hero-stat__bar-fill" style="width:91%"></div></div><span class="hero-stat__val">21</span></div>
             </div>
             <div class="hero-selected-badge">SELECCIONADO</div>
           </div>
         </div>
         <div class="hero-step-label">PASO 2 — MAZMORRA</div>
         <div class="theme-picker-grid">
-          <button class="theme-card" id="theme-card-fire" data-action="heroNewGame" data-theme="fire" data-state="default"><span class="theme-card__name">Volcán de Ignareth</span><span class="theme-card__sub">🔥 Fuego · 7 salas</span></button>
-          <button class="theme-card" id="theme-card-ice" data-action="heroNewGame" data-theme="ice" data-state="default"><span class="theme-card__name">Catacumbas de Glaciurvh</span><span class="theme-card__sub">❄️ Hielo · 8 salas</span></button>
-          <button class="theme-card" id="theme-card-poison" data-action="heroNewGame" data-theme="poison" data-state="default"><span class="theme-card__name">Pantanos de Viridax</span><span class="theme-card__sub">☠️ Veneno · 8 salas</span></button>
-          <button class="theme-card" id="theme-card-dark" data-action="heroNewGame" data-theme="dark" data-state="default"><span class="theme-card__name">Ciudadela de Umbrakar</span><span class="theme-card__sub">🌑 Oscuridad · 10 salas</span></button>
+          <button class="theme-card" id="theme-card-poison" data-action="heroNewGame" data-theme="poison" data-state="default"><span class="theme-card__name">Pantanos de Viridax</span><span class="theme-card__sub">🕷️ 1 · Arachnovex · Veneno · 8 salas</span></button>
+          <button class="theme-card" id="theme-card-ice" data-action="heroNewGame" data-theme="ice" data-state="default"><span class="theme-card__name">Catacumbas de Glaciurvh</span><span class="theme-card__sub">🐲 2 · Kryovaleth · Hielo · 8 salas</span></button>
+          <button class="theme-card" id="theme-card-fire" data-action="heroNewGame" data-theme="fire" data-state="default"><span class="theme-card__name">Volcán de Ignareth</span><span class="theme-card__sub">🐉 3 · Pyraxis · Fuego · 7 salas</span></button>
+          <button class="theme-card" id="theme-card-dark" data-action="heroNewGame" data-theme="dark" data-state="default"><span class="theme-card__name">Ciudadela de Umbrakar</span><span class="theme-card__sub">👁️ 4 · Malachar · Oscuridad · 10 salas</span></button>
         </div>
         <div style="display:flex;gap:var(--spacing-2);justify-content:flex-end;margin-top:var(--spacing-1);">
           <button class="btn" data-action="backToMenu">Volver al Menú</button>
@@ -522,10 +585,10 @@
           <div>
             <div class="stats-section-title">ATRIBUTOS</div>
             <div class="stat-chip-row">
-              <div class="stat-chip"><span class="stat-chip__val" id="stats-hp">100</span><span class="stat-chip__lbl">vida</span></div>
-              <div class="stat-chip"><span class="stat-chip__val" id="stats-atk">18</span><span class="stat-chip__lbl">ataque</span></div>
-              <div class="stat-chip"><span class="stat-chip__val" id="stats-def">25</span><span class="stat-chip__lbl">defensa</span></div>
-              <div class="stat-chip"><span class="stat-chip__val" id="stats-spd">10</span><span class="stat-chip__lbl">velocidad</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-hp">110</span><span class="stat-chip__lbl">vida</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-atk">20</span><span class="stat-chip__lbl">ataque</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-def">26</span><span class="stat-chip__lbl">defensa</span></div>
+              <div class="stat-chip"><span class="stat-chip__val" id="stats-spd">11</span><span class="stat-chip__lbl">velocidad</span></div>
             </div>
           </div>
           <div>
@@ -540,7 +603,7 @@
         </div>
         <div>
           <div class="stats-section-title">ESTADO ACTUAL</div>
-          <div class="field-row"><span class="field-row__key">HP</span><div class="hp-bar-group" style="flex:1;"><div class="hp-bar-track" style="flex:1;width:auto;"><div class="hp-bar-fill" id="stats-hp-fill" style="width:100%;"></div></div><span class="hp-bar-text" id="stats-hp-text">100 / 100</span></div></div>
+          <div class="field-row"><span class="field-row__key">HP</span><div class="hp-bar-group" style="flex:1;"><div class="hp-bar-track" style="flex:1;width:auto;"><div class="hp-bar-fill" id="stats-hp-fill" style="width:100%;"></div></div><span class="hp-bar-text" id="stats-hp-text">110 / 110</span></div></div>
           <div class="field-row"><span class="field-row__key">Oro</span><span class="field-row__val" id="stats-gold-display">⦡ 0 Monedas</span></div>
           <div class="field-row"><span class="field-row__key">Mazmorra</span><span class="field-row__val" id="stats-dungeon">—</span></div>
         </div>

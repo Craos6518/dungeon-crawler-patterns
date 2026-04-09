@@ -70,7 +70,9 @@ public class BehavioralPatternsIntegrationTest {
         Personaje enemigo = enemigoFactory.crearPersonaje("Enemigo");
         
         // Notificar inicio de combate
-        eventManager.notificar(new GameEvent(EventType.COMBATE_INICIADO));
+        eventManager.notificar(new GameEvent(EventType.COMBATE_INICIADO)
+            .agregarDato("heroe", heroe.getNombre())
+            .agregarDato("enemigo", enemigo.getNombre()));
         
         // Ejecutar comando de ataque
         Command ataque = new AttackCommand(heroe, enemigo);
@@ -80,6 +82,8 @@ public class BehavioralPatternsIntegrationTest {
         
         // Notificar el ataque
         eventManager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
+            .agregarDato("atacante", heroe.getNombre())
+            .agregarDato("defensor", enemigo.getNombre())
             .agregarDato("danio", resultado.danio()));
         
         // Verificar que el observer capturó el evento
@@ -148,7 +152,9 @@ public class BehavioralPatternsIntegrationTest {
         caretaker.guardarEnMemoria(antesDelCombate);
         
         // Observer: Combate inicia
-        eventManager.notificar(new GameEvent(EventType.COMBATE_INICIADO));
+        eventManager.notificar(new GameEvent(EventType.COMBATE_INICIADO)
+            .agregarDato("heroe", heroe.getNombre())
+            .agregarDato("enemigo", enemigo.getNombre()));
         
         // Strategy: IA decide atacar
         AIController ia = new AIController(enemigo, new AggressiveStrategy());
@@ -161,6 +167,8 @@ public class BehavioralPatternsIntegrationTest {
         
         // Observer: Notificar ataque
         eventManager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
+            .agregarDato("atacante", enemigo.getNombre())
+            .agregarDato("defensor", heroe.getNombre())
             .agregarDato("danio", resultado1.danio()));
         
         // Command: Héroe contraataca
@@ -170,6 +178,8 @@ public class BehavioralPatternsIntegrationTest {
         ResultadoAtaque resultado2 = heroe.atacar(enemigo);
         
         eventManager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
+            .agregarDato("atacante", heroe.getNombre())
+            .agregarDato("defensor", enemigo.getNombre())
             .agregarDato("danio", resultado2.danio()));
         
         // Verificaciones
@@ -179,7 +189,8 @@ public class BehavioralPatternsIntegrationTest {
         assertEquals(1, caretaker.getCantidadMementos());
         
         // Observer: Combate termina
-        eventManager.notificar(new GameEvent(EventType.COMBATE_FINALIZADO));
+        eventManager.notificar(new GameEvent(EventType.COMBATE_FINALIZADO)
+            .agregarDato("ganador", heroe.getNombre()));
         assertEquals(1, stats.getCombatesRealizados());
     }
     

@@ -3,6 +3,7 @@ package game.unit.structural;
 import game.domain.personaje.Guerrero;
 import game.domain.personaje.Personaje;
 import game.effects.status.BurnEffect;
+import game.effects.status.GuardEffect;
 import game.effects.status.PoisonEffect;
 import game.effects.status.StunEffect;
 import game.effects.status.StrengthEffect;
@@ -92,6 +93,17 @@ class DecoratorPatternTest {
 
         // Confirmar que el objetivo recibió daño
         assertTrue(objetivo.getVida() < vidaInicial);
+    }
+
+    @Test
+    void guardEffectMitigaDanioSegunAcumulaciones() {
+        Personaje defensor = new Guerrero("Defensor", 100, 10);
+        GuardEffect guardia = new GuardEffect(defensor, 2);
+
+        assertEquals(6, guardia.mitigarDanio(20));
+        assertEquals(3, guardia.mitigarDanio(3));
+        assertEquals(0, guardia.mitigarDanio(-5));
+        assertTrue(guardia.getDescripcionEfecto().contains("stacks: 2"));
     }
 
     @Test

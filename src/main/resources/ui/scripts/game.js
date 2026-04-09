@@ -2,24 +2,33 @@
     var _selectedItemIndex = null;
     var _selectedItemId    = null;
     var _selectedHeroType  = 'guerrero';
+    var _heroName = 'Aventurero';
     var _heroSelectionLocked = false;
     var _completedThemes = [];
-    var _selectedSaveSlot  = 1;
+    var _nextCampaignTheme = 'poison';
+    var _campaignThemeOrder = ['poison', 'ice', 'fire', 'dark'];
     var _selectedLootIndex = null;
+    var _currentScreen = 'menu';
+    var _dispatchQueue = [];
+    var _dispatchLocked = false;
     var _loreQueue = [];
     var _loreVisible = false;
+    var _pendingRunStartLore = null;
+    var _returnToMainMenuAfterLore = false;
     var _loreState = {
       worldShown: false,
       heroStoryShown: false,
       guardianShown: {},
       endingShown: {},
+      campaignFinalShown: false,
+      creditsShown: false,
       previousFrame: null
     };
 
     var LORE_THEME_BOOK = {
       fire: {
         dungeonName: 'El Volcan de Ignareth',
-        dungeonIntroTitle: 'Primera Mazmorra',
+        dungeonIntroTitle: 'Tercera Mazmorra',
         dungeonIntroSubtitle: 'Bajo Ignareth arde un fuego que consume memorias',
         dungeonIntroLines: [
           'Bajo la montana de Ignareth arde un fuego que no consume madera sino memorias.',
@@ -28,9 +37,9 @@
           'Pasillos de obsidiana negra y rios de lava forjan un ciclo de fuego y renacimiento.'
         ],
         guardianName: 'Pyraxis',
-        guardianTitle: 'Guardiana de Ignareth · Salamandra Ancestral',
+        guardianTitle: 'Guardian de Ignareth · Salamandra Ancestral',
         guardianLines: [
-          'VIDA 150 · ATAQUE 28 · DEFENSA 20.',
+          'VIDA 225 · ATAQUE 29 · DEFENSA 36.',
           'Antes de ser guardiana, Pyraxis fue un ser libre.',
           'La maldicion de Thessanor la encadeno a la Piedra del Fuego Eterno: mientras el artefacto exista, ella no puede morir, pero tampoco puede abandonar las cavernas.',
           'Cada aventurero que derrota reaviva en ella la esperanza de que alguno sea lo suficientemente fuerte como para liberarla.'
@@ -56,7 +65,7 @@
         guardianName: 'Kryovaleth',
         guardianTitle: 'Espiritu del Invierno · Dragon de Hielo',
         guardianLines: [
-          'VIDA 140 · ATAQUE 24 · DEFENSA 30.',
+          'VIDA 190 · ATAQUE 25 · DEFENSA 32.',
           'No recuerda haber sido creado: simplemente existe, como el frio.',
           'Sus estrategias de combate son adaptativas; comienza defensivo, evaluando al rival, y solo ataca cuando la victoria esta garantizada al 97%.',
           'Es la personificacion del patron Strategy en su forma mas pura.'
@@ -71,7 +80,7 @@
       },
       poison: {
         dungeonName: 'Los Pantanos de Viridax',
-        dungeonIntroTitle: 'Tercera Mazmorra',
+        dungeonIntroTitle: 'Primera Mazmorra',
         dungeonIntroSubtitle: 'Vida retorcida, veneno y degeneracion lenta',
         dungeonIntroLines: [
           'En Viridax, la vida se pudre en patrones hermosos y peligrosos.',
@@ -80,9 +89,9 @@
           'El veneno no mata de golpe: corrompe capa por capa, como un decorador no deseado sobre una base sana.'
         ],
         guardianName: 'Arachnovex',
-        guardianTitle: 'La Reina Tejedora · Arana Primigenia',
+        guardianTitle: 'Reina Tejedora · Arana Primigenia',
         guardianLines: [
-          'VIDA 120 · ATAQUE 20 · DEFENSA 13.',
+          'VIDA 150 · ATAQUE 21 · DEFENSA 18.',
           'Arachnovex teje trampas con la misma precision con que un programador disena una trampa en el codigo.',
           'Sus ataques no son directos: aplican veneno, quemadura y entumecimiento en capas sucesivas, decoradores apilados uno sobre otro.',
           'La presa colapsa sin entender que la mato.'
@@ -108,7 +117,7 @@
         guardianName: 'Malachar',
         guardianTitle: 'El Sin-Nombre · Senor del Vacio',
         guardianLines: [
-          'VIDA 200 · ATAQUE 35 · DEFENSA 25.',
+          'VIDA 290 · ATAQUE 33 · DEFENSA 40.',
           'Malachar no ataca el cuerpo: ataca el estado.',
           'Su habilidad mas temida, Borrar Memoria, revierte al heroe a su estado anterior sin guardar, como un rollback de Memento.',
           'Derrotarlo requiere no solo fuerza, sino un sistema de persistencia impecable.'
@@ -128,7 +137,7 @@
         title: 'Kael Ferrum',
         subtitle: 'El Ultimo Guardian · Guerrero',
         lines: [
-          'Vida 100 · Ataque 18 · Defensa 25 · Veloc 10.',
+          'Vida 110 · Ataque 20 · Defensa 26 · Veloc 11.',
           'Hijo de un herrero del sur de Valdrath, Kael perdio a su familia cuando Ignareth envio sus primeras oleadas de criaturas a la superficie.',
           'No busca gloria ni riquezas: solo quiere que ninguna familia mas pague su precio.',
           'Lleva tatuado en el antebrazo izquierdo el simbolo de su aldea, un recuerdo que ninguna sombra puede borrarle.'
@@ -139,7 +148,7 @@
         title: 'Sylara Vex',
         subtitle: 'Archivista del Vacio · Maga',
         lines: [
-          'Vida 55 · Ataque 30 · Defensa 8 · Veloc 22.',
+          'Vida 65 · Ataque 27 · Defensa 10 · Veloc 23.',
           'Sylara estudio en la Academia de Valdrath hasta hallar registros prohibidos: los planos originales del Archimago Thessanor.',
           'Comprendio que las mazmorras no son caos: son sistemas disenados, como codigo que pocos pueden leer.',
           'Entrar en ellas es leer arquitectura arcana ajena, y ella domina el arte de descifrar patrones invisibles para otros.'
@@ -150,10 +159,43 @@
         title: 'Thoran Silvis',
         subtitle: 'Explorador de la Bruma · Arquero',
         lines: [
-          'Vida 75 · Ataque 24 · Defensa 15 · Veloc 20.',
+          'Vida 85 · Ataque 23 · Defensa 17 · Veloc 21.',
           'Criado entre los bosques de Mirval, Thoran aprendio que la distancia entre cazador y presa es sagrada.',
           'Cuando los pantanos de Viridax se expandieron hacia el norte, su hogar desaparecio bajo la maleza venenosa en semanas.',
           'Ahora viaja ligero, con el recuerdo del bosque vivo guardado en cada flecha.'
+        ],
+        theme: 'poison'
+      }
+    };
+
+    var HERO_WORLD_ENDING_BOOK = {
+      guerrero: {
+        title: 'Kael Ferrum, Escudo de Eranthia',
+        subtitle: 'Final del Guerrero',
+        lines: [
+          'Kael regresa a Valdrath y funda la Guardia Ferrum para proteger los cuatro sellos restaurados.',
+          'Convierte las antiguas rutas de guerra en caminos seguros para caravanas y aldeas.',
+          'Su juramento final queda grabado en piedra: ningun nino perdera su hogar por culpa de las mazmorras.'
+        ],
+        theme: 'fire'
+      },
+      mago: {
+        title: 'Sylara Vex, Cronista de los Cuatro Sellos',
+        subtitle: 'Final de la Maga',
+        lines: [
+          'Sylara recompone los fragmentos del codex de Thessanor y redacta una nueva doctrina para la magia etica.',
+          'El Consejo de Valdrath la nombra Archivista Suprema y custodio oficial de los artefactos purificados.',
+          'Su legado inaugura una era donde el conocimiento arcano sirve a la vida y no al dominio.'
+        ],
+        theme: 'ice'
+      },
+      arquero: {
+        title: 'Thoran Silvis, Centinela del Nuevo Bosque',
+        subtitle: 'Final del Arquero',
+        lines: [
+          'Thoran lidera la reforestacion de Mirval y transforma Viridax en un santuario vivo.',
+          'Las antiguas zonas de caza se convierten en corredores protegidos para viajeros y criaturas.',
+          'Desde su atalaya, vigila el equilibrio del continente con la misma precision de cada flecha.'
         ],
         theme: 'poison'
       }
@@ -171,16 +213,34 @@
       return HERO_LORE_BOOK[normalizeHeroType(heroType)] || HERO_LORE_BOOK.guerrero;
     }
 
+    function resolveHeroWorldEnding(heroType) {
+      return HERO_WORLD_ENDING_BOOK[normalizeHeroType(heroType)] || HERO_WORLD_ENDING_BOOK.guerrero;
+    }
+
     function normalizeThemeKey(themeKey) {
       var normalized = String(themeKey || '').trim().toLowerCase();
       if (normalized === 'fire' || normalized === 'ice' || normalized === 'poison' || normalized === 'dark') {
         return normalized;
       }
-      return 'fire';
+      return 'poison';
     }
 
     function resolveThemeLore(themeKey) {
-      return LORE_THEME_BOOK[normalizeThemeKey(themeKey)] || LORE_THEME_BOOK.fire;
+      return LORE_THEME_BOOK[normalizeThemeKey(themeKey)] || LORE_THEME_BOOK.poison;
+    }
+
+    function readHeroNameFromInput() {
+      var input = document.getElementById('hero-name-input');
+      var raw = input ? String(input.value || '') : String(_heroName || '');
+      return raw.trim().replace(/\s+/g, ' ');
+    }
+
+    function syncHeroNameInput(heroName) {
+      var input = document.getElementById('hero-name-input');
+      if (!input) return;
+      if (input.value !== heroName) {
+        input.value = heroName;
+      }
     }
 
     function buildHeroLoreEntry(heroType) {
@@ -243,6 +303,60 @@
       };
     }
 
+    function buildCampaignFinalLoreEntry(heroType) {
+      var ending = resolveHeroWorldEnding(heroType);
+      return {
+        chapter: 'EPILOGO DEL MUNDO',
+        title: 'Eranthia ha sido Restaurada',
+        subtitle: ending.subtitle + ' · Campana Completa',
+        lines: [
+          'Los cuatro artefactos han sido purificados y el equilibrio elemental vuelve al continente.',
+          'Fuego, hielo, vida y sombra dejan de luchar entre si: Eranthia respira en paz por primera vez en siglos.',
+          'Las mazmorras permanecen selladas bajo una nueva custodia, no por maldicion, sino por decision del heroe.',
+          'Destino final: ' + ending.title + '.',
+          ending.lines[0],
+          ending.lines[1],
+          ending.lines[2]
+        ],
+        theme: normalizeThemeKey(ending.theme)
+      };
+    }
+
+    function buildCreditsLoreEntry() {
+      return {
+        chapter: 'CREDITOS',
+        title: 'Dungeon Crawler - Patrones de Diseno',
+        subtitle: 'Gracias por completar las 4 mazmorras',
+        lines: [
+          'Desarrollador: Andres Felipe Martinez Henao - Craos6518.',
+          'Entorno de desarrollo: Visual Studio Code 1.114.0, Maven, JavaFX WebView y Git.',
+          'OS y hardware: Fedora Linux 43 KDE Plasma, ASUS VivoBook X412DA, AMD Ryzen 5 3500U, Radeon Vega 8, RAM 5.72 GiB.',
+          'Java 17 runtime: Temurin OpenJDK 17.0.18+8.',
+          'Agentes de IA: GPT-5.3-Codex - Xhigh, Claude Opus 4.6 y Claude Sonnet 4.6.',
+          'Docente: Dinora Seneth Monsalve.',
+          'Materia: Patrones de diseno.',
+          'Analytics: Telemetria de eventos de sesion con Observer, contadores y trazas de comandos UI.'
+        ],
+        theme: 'dark'
+      };
+    }
+
+    function countCompletedCampaignThemes(completedThemes) {
+      if (!Array.isArray(completedThemes) || completedThemes.length === 0) {
+        return 0;
+      }
+
+      var unique = {};
+      completedThemes.forEach(function(theme) {
+        var normalized = normalizeThemeKey(theme);
+        if (normalized) {
+          unique[normalized] = true;
+        }
+      });
+
+      return Object.keys(unique).length;
+    }
+
     function renderLoreBody(lines) {
       var body = document.getElementById('lore-window-body');
       if (!body) return;
@@ -264,7 +378,7 @@
       setNodeText('lore-window-subtitle', entry.subtitle || '');
       renderLoreBody(entry.lines || []);
 
-      overlay.dataset.theme = normalizeThemeKey(entry.theme || 'fire');
+      overlay.dataset.theme = normalizeThemeKey(entry.theme || 'poison');
       overlay.classList.add('lore-overlay--visible');
       overlay.setAttribute('aria-hidden', 'false');
       document.body.classList.add('lore-open');
@@ -290,6 +404,11 @@
       document.body.classList.remove('lore-open');
       _loreVisible = false;
       showNextLoreWindow();
+
+      if (!_loreVisible && _loreQueue.length === 0 && _returnToMainMenuAfterLore) {
+        _returnToMainMenuAfterLore = false;
+        sendCommand('openMainMenu', {});
+      }
     }
 
     function resetCampaignNarrativeState() {
@@ -297,7 +416,10 @@
       _loreState.heroStoryShown = false;
       _loreState.guardianShown = {};
       _loreState.endingShown = {};
+      _loreState.campaignFinalShown = false;
+      _loreState.creditsShown = false;
       _loreState.previousFrame = null;
+      _returnToMainMenuAfterLore = false;
     }
 
     function startNewCampaignNarrativeFlow() {
@@ -323,7 +445,9 @@
     }
 
     function evaluateLoreTriggers(state) {
-      var currentTheme = normalizeThemeKey(state.theme || 'fire');
+      var currentTheme = normalizeThemeKey(state.theme || 'poison');
+      var completedCount = countCompletedCampaignThemes(state.completedThemes);
+      var currentHeroType = normalizeHeroType(state.heroType || _selectedHeroType || 'guerrero');
 
       var currentFrame = {
         screen: String(state.screen || ''),
@@ -331,7 +455,9 @@
         room: Number(state.room || 0),
         totalRooms: Number(state.totalRooms || 0),
         roomHasEnemy: !!state.roomHasEnemy,
-        enemyTier: state.enemy && state.enemy.tier ? String(state.enemy.tier).toLowerCase() : ''
+        enemyTier: state.enemy && state.enemy.tier ? String(state.enemy.tier).toLowerCase() : '',
+        completedCount: completedCount,
+        heroType: currentHeroType
       };
 
       if (currentFrame.screen === 'combat' && currentFrame.enemyTier === 'jefe' && !_loreState.guardianShown[currentTheme]) {
@@ -348,9 +474,25 @@
         && currentFrame.room === currentFrame.totalRooms
         && !currentFrame.roomHasEnemy;
 
-      if (bossJustDefeated && !_loreState.endingShown[currentTheme]) {
+      var dungeonJustCompleted = previous
+        && previous.screen === 'treasure'
+        && currentFrame.screen === 'hero'
+        && currentFrame.completedCount > previous.completedCount;
+
+      if ((bossJustDefeated || dungeonJustCompleted) && !_loreState.endingShown[currentTheme]) {
         _loreState.endingShown[currentTheme] = true;
         enqueueLoreWindow(buildEndingLoreEntry(currentTheme));
+      }
+
+      if (dungeonJustCompleted && currentFrame.completedCount >= 4 && !_loreState.campaignFinalShown) {
+        _loreState.campaignFinalShown = true;
+        enqueueLoreWindow(buildCampaignFinalLoreEntry(currentFrame.heroType));
+      }
+
+      if (_loreState.campaignFinalShown && !_loreState.creditsShown) {
+        _loreState.creditsShown = true;
+        _returnToMainMenuAfterLore = true;
+        enqueueLoreWindow(buildCreditsLoreEntry());
       }
 
       _loreState.previousFrame = currentFrame;
@@ -361,9 +503,147 @@
       if (el) el.textContent = (val !== null && val !== undefined) ? String(val) : '';
     }
 
-    /* ── sendCommand: encapsula el alert-bridge ── */
+    function formatResourceLabel(resourceType) {
+      var normalized = String(resourceType || '').trim().toLowerCase();
+      if (normalized === 'mana') return 'Mana';
+      if (normalized === 'concentracion') return 'Concentracion';
+      return 'Stamina';
+    }
+
+    function showTransientSystemMessage(message) {
+      if (!message) return;
+
+      var targets = [
+        document.getElementById('s2-combat-log'),
+        document.getElementById('s1-event-log')
+      ];
+
+      for (var i = 0; i < targets.length; i++) {
+        var target = targets[i];
+        if (!target) continue;
+
+        var p = document.createElement('p');
+        p.className = 'log-entry';
+        p.textContent = '[SYS] ' + message;
+        target.appendChild(p);
+        return;
+      }
+
+      showUiToast(message);
+    }
+
+    function showUiToast(message) {
+      if (!message) return;
+
+      var toast = document.getElementById('ui-system-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'ui-system-toast';
+        toast.style.position = 'fixed';
+        toast.style.top = '12px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.zIndex = '12000';
+        toast.style.maxWidth = 'min(90vw, 760px)';
+        toast.style.padding = '10px 14px';
+        toast.style.border = '1px solid #8f2626';
+        toast.style.background = 'rgba(22, 8, 8, 0.95)';
+        toast.style.color = '#f8d3d3';
+        toast.style.fontFamily = "'VT323', monospace";
+        toast.style.fontSize = '24px';
+        toast.style.letterSpacing = '.03em';
+        toast.style.boxShadow = '3px 3px 0 #000';
+        toast.style.display = 'none';
+        document.body.appendChild(toast);
+      }
+
+      toast.textContent = String(message);
+      toast.style.display = 'block';
+
+      if (showUiToast._timer) {
+        clearTimeout(showUiToast._timer);
+      }
+      showUiToast._timer = setTimeout(function() {
+        toast.style.display = 'none';
+      }, 3600);
+    }
+
+    function applyBridgeResponse(rawResponse) {
+      if (!rawResponse) return;
+
+      var parsed;
+      try {
+        parsed = typeof rawResponse === 'string' ? JSON.parse(rawResponse) : rawResponse;
+      } catch (err) {
+        console.warn('Respuesta backend invalida:', rawResponse);
+        return;
+      }
+
+      if (parsed && parsed.data) {
+        window.updateGameState(parsed.data);
+      }
+
+      if (parsed && parsed.status === 'error' && parsed.message) {
+        _pendingRunStartLore = null;
+        showTransientSystemMessage(parsed.message);
+      }
+    }
+
+    function dispatchNow(command) {
+      var serialized = JSON.stringify(command);
+
+      if (window.javabridge && typeof window.javabridge.dispatch === 'function') {
+        try {
+          var response = window.javabridge.dispatch(serialized);
+          applyBridgeResponse(response);
+          return;
+        } catch (err) {
+          console.warn('Fallo dispatch directo; usando fallback alert.', err);
+        }
+      }
+
+      // Fallback de compatibilidad para puentes antiguos.
+      window.alert(serialized);
+    }
+
+    function flushDispatchQueue() {
+      if (_dispatchLocked) return;
+      _dispatchLocked = true;
+
+      while (_dispatchQueue.length > 0) {
+        var command = _dispatchQueue.shift();
+        dispatchNow(command);
+      }
+
+      _dispatchLocked = false;
+    }
+
+    /* ── sendCommand: puente robusto JS -> JavaFX ── */
     function sendCommand(action, payload) {
-      window.alert(JSON.stringify({ action: action, payload: payload || {} }));
+      _dispatchQueue.push({ action: action, payload: payload || {} });
+      flushDispatchQueue();
+    }
+
+    function setCombatTacticsMenuOpen(open) {
+      var shell = document.getElementById('combat-tactics-shell');
+      var menu = document.getElementById('combat-tactics-menu');
+      var trigger = document.getElementById('btn-combat-tactics');
+      if (!shell || !menu || !trigger) return;
+
+      var isOpen = !!open;
+      menu.hidden = !isOpen;
+      trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      shell.classList.toggle('combat-tactics--open', isOpen);
+    }
+
+    function closeCombatTacticsMenu() {
+      setCombatTacticsMenuOpen(false);
+    }
+
+    function toggleCombatTacticsMenu() {
+      var menu = document.getElementById('combat-tactics-menu');
+      if (!menu) return;
+      setCombatTacticsMenuOpen(menu.hidden);
     }
 
     /* ── Selección de héroe ── */
@@ -388,6 +668,14 @@
       return _completedThemes.indexOf(String(themeKey || '').toLowerCase()) >= 0;
     }
 
+    function isThemeLockedByOrder(themeKey) {
+      var normalizedTheme = String(themeKey || '').toLowerCase();
+      if (!_nextCampaignTheme) {
+        return true;
+      }
+      return normalizedTheme !== String(_nextCampaignTheme).toLowerCase();
+    }
+
     function applyHeroScreenRestrictions() {
       document.querySelectorAll('.hero-card').forEach(function(card) {
         var cardHero = (card.dataset.hero || '').toLowerCase();
@@ -399,21 +687,40 @@
 
       document.querySelectorAll('.theme-card').forEach(function(card) {
         var themeKey = (card.dataset.theme || '').toLowerCase();
-        var isDisabled = isThemeCompleted(themeKey);
+        var alreadyCompleted = isThemeCompleted(themeKey);
+        var lockedByOrder = isThemeLockedByOrder(themeKey);
+        var isDisabled = alreadyCompleted || lockedByOrder;
         card.classList.toggle('theme-card--disabled', isDisabled);
         card.dataset.state = isDisabled ? 'disabled' : 'default';
         card.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
-        card.title = isDisabled ? 'Mazmorra ya completada' : '';
+        if (alreadyCompleted) {
+          card.title = 'Mazmorra ya completada';
+        } else if (lockedByOrder && _nextCampaignTheme) {
+          card.title = 'Primero debes completar: ' + String(_nextCampaignTheme);
+        } else if (lockedByOrder) {
+          card.title = 'Campaña completada';
+        } else {
+          card.title = '';
+        }
       });
+
+      var heroNameInput = document.getElementById('hero-name-input');
+      if (heroNameInput) {
+        heroNameInput.readOnly = !!_heroSelectionLocked;
+        heroNameInput.setAttribute('aria-disabled', _heroSelectionLocked ? 'true' : 'false');
+        heroNameInput.title = _heroSelectionLocked
+          ? 'El nombre queda bloqueado durante la continuidad de la campaña.'
+          : '';
+        if (_heroSelectionLocked) {
+          syncHeroNameInput(_heroName);
+        }
+      }
     }
 
     /* ── Selección de slot de guardado ── */
     function selectSaveSlotRow(slot) {
-      _selectedSaveSlot = slot;
       document.querySelectorAll('.save-slot-row').forEach(function(row) {
-        if (!row.classList.contains('save-slot-row--empty')) {
-          row.classList.toggle('save-slot-row--active', Number(row.dataset.slot) === slot);
-        }
+        row.classList.toggle('save-slot-row--active', Number(row.dataset.slot) === slot);
       });
     }
 
@@ -519,10 +826,7 @@
         var row = document.getElementById('save-slot-row-' + n);
         if (!row) return;
         row.classList.toggle('save-slot-row--empty', !!slot.empty);
-        row.classList.remove('save-slot-row--active');
-        if (!slot.empty) {
-          row.classList.toggle('save-slot-row--active', n === (saveSlotsInfo.selectedSlot || 1));
-        }
+        row.classList.toggle('save-slot-row--active', n === (saveSlotsInfo.selectedSlot || 1));
         setNodeText('save-slot-icon-' + n, slot.heroIcon || '💭');
         setNodeText('save-slot-hero-' + n, slot.heroName || 'ranura vacía');
         if (slot.empty) {
@@ -553,10 +857,64 @@
       }
 
       document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && _loreVisible) {
-          e.preventDefault();
-          dismissLoreWindow();
+        if (e.key === 'Escape') {
+          if (_loreVisible) {
+            e.preventDefault();
+            dismissLoreWindow();
+            return;
+          }
+
+          closeCombatTacticsMenu();
         }
+      });
+
+      document.addEventListener('keydown', function(e) {
+        var target = e.target;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+          return;
+        }
+
+        if (e.key === 'F5') {
+          e.preventDefault();
+          sendCommand('quickSave', {});
+          return;
+        }
+
+        if (e.key === 'F9') {
+          e.preventDefault();
+          sendCommand('quickLoad', {});
+          return;
+        }
+
+        if (e.key === 'i' || e.key === 'I') {
+          e.preventDefault();
+          sendCommand('toggleInventory', {});
+          return;
+        }
+
+        if (_currentScreen === 'inventory' && e.key === 'ArrowUp') {
+          e.preventDefault();
+          sendCommand('inventoryPrevious', {});
+          return;
+        }
+
+        if (_currentScreen === 'inventory' && e.key === 'ArrowDown') {
+          e.preventDefault();
+          sendCommand('inventoryNext', {});
+          return;
+        }
+
+        if (_currentScreen === 'combat' && (e.key === 'r' || e.key === 'R')) {
+          e.preventDefault();
+          sendCommand('retreatCombat', {});
+        }
+      });
+
+      document.addEventListener('click', function(event) {
+        var shell = document.getElementById('combat-tactics-shell');
+        if (!shell) return;
+        if (shell.contains(event.target)) return;
+        closeCombatTacticsMenu();
       });
 
       /* ── Selección de héroe (local) ── */
@@ -599,8 +957,21 @@
       if (savesScreen) {
         savesScreen.addEventListener('click', function(e) {
           var row = e.target.closest('[data-action="selectSaveSlot"]');
-          if (!row || row.classList.contains('save-slot-row--empty')) return;
-          selectSaveSlotRow(Number(row.dataset.slot));
+          if (!row) return;
+          var slot = Number(row.dataset.slot);
+          if (!Number.isFinite(slot)) return;
+          sendCommand('selectSaveSlot', { slot: slot });
+        });
+      }
+
+      var heroNameInput = document.getElementById('hero-name-input');
+      if (heroNameInput) {
+        heroNameInput.addEventListener('input', function() {
+          if (_heroSelectionLocked) {
+            syncHeroNameInput(_heroName);
+            return;
+          }
+          _heroName = readHeroNameFromInput();
         });
       }
 
@@ -660,17 +1031,45 @@
             startNewCampaignNarrativeFlow();
             sendCommand('newGame', {});
             return;
+          } else if (action === 'toggleCombatTacticsMenu') {
+            toggleCombatTacticsMenu();
+            return;
           } else if (action === 'heroNewGame') {
-            queueHeroAndDungeonLoreForSelection(el.dataset.theme || 'fire');
-            sendCommand('heroNewGame', { heroType: _selectedHeroType || 'guerrero', theme: el.dataset.theme || 'fire' });
+            var heroName = readHeroNameFromInput();
+            if (!heroName) {
+              showTransientSystemMessage('Ingresa un nombre de heroe (3-24 caracteres).');
+              return;
+            }
+
+            var selectedTheme = el.dataset.theme || 'poison';
+            _pendingRunStartLore = {
+              theme: selectedTheme,
+              heroType: _selectedHeroType || 'guerrero',
+              includeHeroLore: !_heroSelectionLocked && !_loreState.heroStoryShown
+            };
+
+            sendCommand('heroNewGame', {
+              heroType: _selectedHeroType || 'guerrero',
+              heroName: heroName,
+              theme: selectedTheme
+            });
             return;
           } else if (action === 'startGame') {
+            var legacyHeroName = readHeroNameFromInput();
+            if (!legacyHeroName) {
+              showTransientSystemMessage('Ingresa un nombre de heroe (3-24 caracteres).');
+              return;
+            }
             if (!_loreState.worldShown) {
               _loreState.worldShown = true;
               enqueueLoreWindow(buildWorldLoreEntry());
             }
-            enqueueLoreWindow(buildDungeonLoreEntry(el.dataset.theme || 'fire'));
-            sendCommand('startGame', { theme: el.dataset.theme || 'fire' });
+            enqueueLoreWindow(buildDungeonLoreEntry(el.dataset.theme || 'poison'));
+            sendCommand('startGame', {
+              theme: el.dataset.theme || 'poison',
+              heroType: _selectedHeroType || 'guerrero',
+              heroName: legacyHeroName
+            });
             return;
           }
 
@@ -688,6 +1087,16 @@
             sendCommand('attack', { targetId: 'current' });
           } else if (action === 'useSkill') {
             sendCommand('useSkill', {});
+          } else if (action === 'setCombatStyle') {
+            sendCommand('setCombatStyle', { style: el.dataset.style || 'balanced' });
+            closeCombatTacticsMenu();
+          } else if (action === 'applyBuff') {
+            sendCommand('applyBuff', { type: el.dataset.buff || 'power' });
+            closeCombatTacticsMenu();
+          } else if (action === 'saveCombatCheckpoint') {
+            sendCommand('saveCombatCheckpoint', {});
+          } else if (action === 'rollbackCombatCheckpoint') {
+            sendCommand('rollbackCombatCheckpoint', {});
           } else if (action === 'showStats') {
             sendCommand('showStats', {});
           } else if (action === 'closeStats') {
@@ -695,9 +1104,9 @@
           } else if (action === 'openSaves') {
             sendCommand('openSaves', {});
           } else if (action === 'saveToSlot') {
-            sendCommand('saveToSlot', { slot: _selectedSaveSlot || 1 });
+            sendCommand('saveToSlot', {});
           } else if (action === 'loadFromSlot') {
-            sendCommand('loadFromSlot', { slot: _selectedSaveSlot || 1 });
+            sendCommand('loadFromSlot', {});
           } else if (action === 'takeLoot') {
             sendCommand('takeLoot', {});
           } else if (action === 'selectLoot') {
@@ -720,6 +1129,7 @@
     /* ── updateGameState: Java llama engine.executeScript("window.updateGameState(..)") ── */
     window.updateGameState = function(state) {
       if (!state) return;
+      var previousScreen = _currentScreen;
 
       function setText(id, val) {
         var el = document.getElementById(id);
@@ -762,6 +1172,71 @@
         });
       }
 
+      function renderCombatStatusEffects(combatTactics) {
+        var slots = document.querySelectorAll('#s2-status-effects .status-slot');
+        if (!slots || slots.length === 0) {
+          return;
+        }
+
+        var effects = [];
+        if (combatTactics) {
+          var poisonTurns = Number(combatTactics.poisonTurns || 0);
+          var poisonDamage = Number(combatTactics.poisonDamage || 0);
+          if (poisonTurns > 0) {
+            effects.push({
+              key: 'veneno',
+              label: 'VEN',
+              title: poisonDamage > 0
+                ? ('Veneno activo: ' + poisonDamage + ' daño por turno (' + poisonTurns + ' turnos).')
+                : ('Veneno activo (' + poisonTurns + ' turnos).')
+            });
+          }
+
+          var offensiveStacks = Number(combatTactics.offensiveBuffStacks || 0);
+          if (offensiveStacks > 0) {
+            effects.push({
+              key: 'poder',
+              label: 'ATK+' + offensiveStacks,
+              title: 'Buff ofensivo activo (' + offensiveStacks + ' acumulaciones).'
+            });
+          }
+
+          var guardStacks = Number(combatTactics.guardBuffStacks || 0);
+          if (guardStacks > 0) {
+            effects.push({
+              key: 'guardia',
+              label: 'DEF+' + guardStacks,
+              title: 'Buff de guardia activo (' + guardStacks + ' acumulaciones).'
+            });
+          }
+
+          if (combatTactics.defenseActive) {
+            effects.push({
+              key: 'defensa',
+              label: 'DEF',
+              title: 'Defensa activa durante este turno.'
+            });
+          }
+
+        }
+
+        for (var i = 0; i < slots.length; i++) {
+          var slot = slots[i];
+          var effect = effects[i];
+          if (effect) {
+            slot.textContent = effect.label;
+            slot.dataset.effect = effect.key;
+            slot.title = effect.title;
+            slot.setAttribute('aria-label', 'Efecto ' + (i + 1) + ': ' + effect.title);
+          } else {
+            slot.textContent = '\u2014';
+            slot.dataset.effect = '';
+            slot.title = '';
+            slot.setAttribute('aria-label', 'Efecto ' + (i + 1) + ': vacio');
+          }
+        }
+      }
+
       /* Header compartido */
       var prog   = 'Sala ' + (state.room || 0) + ' / ' + (state.totalRooms || 0);
       var gold   = '\u29a1 ' + (state.gold || 0) + ' Monedas';
@@ -769,6 +1244,7 @@
       var hpText = (state.playerHp     || 0) + ' / ' + (state.playerHpMax || 0);
       ['', '-combat', '-inv'].forEach(function(sfx) {
         setText ('hdr-dungeon-name'    + sfx, state.dungeonName  || '');
+        setText ('hdr-hero-name'       + sfx, 'Héroe · ' + (state.heroName || _heroName || 'Aventurero'));
         setText ('hdr-dungeon-theme'   + sfx, state.dungeonTheme || '');
         setText ('hdr-room-progress'   + sfx, prog);
         setText ('hdr-gold'            + sfx, gold);
@@ -784,6 +1260,7 @@
 
       /* Pantalla activa */
       if (state.screen) {
+        _currentScreen = String(state.screen);
         var screenMap = {
           menu:        'screen-menu',
           hero:        'screen-hero',
@@ -804,11 +1281,29 @@
       if (state.heroType) {
         selectHeroCard(state.heroType);
       }
+      if (state.heroName) {
+        _heroName = String(state.heroName);
+      }
+      syncHeroNameInput(_heroName);
       _heroSelectionLocked = !!state.heroSelectionLocked;
       _completedThemes = Array.isArray(state.completedThemes)
         ? state.completedThemes.map(function(theme) { return String(theme).toLowerCase(); })
         : [];
+      _nextCampaignTheme = state.nextCampaignTheme ? String(state.nextCampaignTheme).toLowerCase() : '';
+      _campaignThemeOrder = Array.isArray(state.campaignThemeOrder)
+        ? state.campaignThemeOrder.map(function(theme) { return String(theme).toLowerCase(); })
+        : _campaignThemeOrder;
       applyHeroScreenRestrictions();
+
+      if (_pendingRunStartLore && previousScreen === 'hero' && _currentScreen === 'exploration') {
+        if (_pendingRunStartLore.includeHeroLore && !_loreState.heroStoryShown) {
+          _loreState.heroStoryShown = true;
+          enqueueLoreWindow(buildHeroLoreEntry(_pendingRunStartLore.heroType));
+        }
+
+        enqueueLoreWindow(buildDungeonLoreEntry(_pendingRunStartLore.theme));
+        _pendingRunStartLore = null;
+      }
 
       /* Exploración */
       setText('s1-room-name',    state.roomName        || '');
@@ -845,6 +1340,25 @@
         var tierEl = document.getElementById('s2-enemy-tier');
         if (tierEl) { tierEl.textContent = en.tier || ''; tierEl.dataset.tier = (en.tier||'').toLowerCase(); }
       }
+
+      if (state.resource) {
+        var rs = state.resource;
+        var label = formatResourceLabel(rs.type);
+        var cur = Number(rs.current || 0);
+        var max = Number(rs.max || 0);
+        var pct = Number(rs.pct || 0);
+        setText('s2-resource-type', label);
+        setText('s2-resource-value', cur + ' / ' + max);
+        setText('s2-resource-pct', pct + '%');
+      }
+
+      if (state.combatTactics) {
+        var ct = state.combatTactics;
+        setText('s2-style-current', ct.style || 'Balanceado');
+        setText('s2-buff-power', ct.offensiveBuffStacks != null ? ct.offensiveBuffStacks : 0);
+        setText('s2-buff-guard', ct.guardBuffStacks != null ? ct.guardBuffStacks : 0);
+      }
+      renderCombatStatusEffects(state.combatTactics || null);
 
       if (Array.isArray(state.combatLog)) {
         var clog = document.getElementById('s2-combat-log');
@@ -945,6 +1459,11 @@
           var el = document.getElementById(id);
           if (el) el.dataset.state = state.buttons[id];
         });
+      }
+
+      var tacticsBtn = document.getElementById('btn-combat-tactics');
+      if (tacticsBtn && tacticsBtn.dataset.state === 'disabled') {
+        closeCombatTacticsMenu();
       }
 
       evaluateLoreTriggers(state);

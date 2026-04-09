@@ -1,6 +1,10 @@
 package game.domain.exploration;
 
+import game.balance.GameBalance;
 import game.domain.character.Enemy;
+import game.domain.personaje.Dragon;
+import game.domain.personaje.EnemigoBasico;
+import game.domain.personaje.Orco;
 import game.dungeon.builder.ConcreteDungeonBuilder;
 import game.dungeon.builder.DungeonBuilder;
 import game.dungeon.builder.ProceduralDungeonGenerator;
@@ -26,15 +30,17 @@ public class Dungeon {
     private final Random random;
     private final DungeonThemeFactory theme;
     private final game.dungeon.model.Dungeon model;
+    private final Long generationSeed;
     private final Set<Integer> treasureResolved;
     private final Set<Integer> enemyResolved;
 
     private int currentRoomIndex;
 
-    public Dungeon(Random random, DungeonThemeFactory theme, game.dungeon.model.Dungeon model) {
+    public Dungeon(Random random, DungeonThemeFactory theme, game.dungeon.model.Dungeon model, Long generationSeed) {
         this.random = random;
         this.theme = theme;
         this.model = model;
+        this.generationSeed = generationSeed;
         this.treasureResolved = new HashSet<>();
         this.enemyResolved = new HashSet<>();
         this.currentRoomIndex = 0;
@@ -45,9 +51,13 @@ public class Dungeon {
     }
 
     public static Dungeon fromTheme(Random random, DungeonThemeFactory theme) {
+        return fromTheme(random, theme, null);
+    }
+
+    public static Dungeon fromTheme(Random random, DungeonThemeFactory theme, Long generationSeed) {
         DungeonBuilder builder = new ConcreteDungeonBuilder();
         game.dungeon.model.Dungeon generated = ProceduralDungeonGenerator.generar(builder, theme, random);
-        return new Dungeon(random, theme, generated);
+        return new Dungeon(random, theme, generated, generationSeed);
     }
 
     public game.dungeon.model.Dungeon model() {
@@ -64,6 +74,10 @@ public class Dungeon {
 
     public String themeKey() {
         return themeNameToKey(themeName());
+    }
+
+    public Long generationSeed() {
+        return generationSeed;
     }
 
     public int currentRoomIndex() {
@@ -185,7 +199,7 @@ public class Dungeon {
             return Optional.empty();
         }
 
-        Enemy enemy = new Enemy(character);
+        Enemy enemy = buildEnemy(character, boss);
         enemy.setExperienceReward(Math.max(20, enemy.hp() * 2));
         return Optional.of(enemy);
     }
@@ -213,6 +227,36 @@ public class Dungeon {
             }
         }
         return symbols;
+    }
+
+    private Enemy buildEnemy(game.domain.personaje.Personaje character, boolean boss) {
+        if (boss) {
+            GameBalance.BossProfile profile = GameBalance.boss(themeKey());
+            return new Enemy(character, profile.attack(), profile.defense(), profile.speed());
+        }
+
+        if (character instanceof EnemigoBasico basic) {
+            int attack = basic.getAtaqueBase();
+            int defense = Math.max(6, attack + 3);
+            int speed = 18;
+            return new Enemy(character, attack, defense, speed);
+        }
+
+        if (character instanceof Orco orc) {
+            int attack = orc.getFuerza();
+            int defense = Math.max(10, attack + 6);
+            int speed = 12;
+            return new Enemy(character, attack, defense, speed);
+        }
+
+        if (character instanceof Dragon dragon) {
+            int attack = dragon.getFuegoDragon();
+            int defense = Math.max(12, attack + 8);
+            int speed = 16;
+            return new Enemy(character, attack, defense, speed);
+        }
+
+        return new Enemy(character);
     }
 
     private static String themeNameToKey(String themeName) {
