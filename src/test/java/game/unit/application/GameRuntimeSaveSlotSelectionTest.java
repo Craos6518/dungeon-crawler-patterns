@@ -40,7 +40,7 @@ class GameRuntimeSaveSlotSelectionTest {
         send(runtime, "loadFromSlot", new JsonObject());
 
         GameViewModel restored = runtime.presentViewModel();
-        assertEquals("saves", restored.screen);
+        assertEquals("exploration", restored.screen);
         assertEquals("Alaric", restored.heroName);
     }
 

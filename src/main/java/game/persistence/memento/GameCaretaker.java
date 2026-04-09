@@ -84,6 +84,20 @@ public class GameCaretaker {
      * Carga un memento desde disco
      */
     public GameMemento cargarDesdeDisco(String nombreArchivo) {
+        return cargarDesdeDisco(nombreArchivo, true);
+    }
+
+    /**
+     * Carga un memento desde disco sin imprimir mensaje de exito.
+     *
+     * Uso principal: lectura de metadatos para UI (ranuras/estadisticas)
+     * sin confundir los logs con "cargas" de partida reales.
+     */
+    public GameMemento cargarDesdeDiscoSilencioso(String nombreArchivo) {
+        return cargarDesdeDisco(nombreArchivo, false);
+    }
+
+    private GameMemento cargarDesdeDisco(String nombreArchivo, boolean logSuccess) {
         File archivo = resolveSaveFile(nombreArchivo);
 
         if (!archivo.exists() || !archivo.isFile()) {
@@ -99,7 +113,9 @@ public class GameCaretaker {
             if (!(loaded instanceof GameMemento memento)) {
                 throw new SaveDataCorruptionException("Guardado corrupto: formato de datos incompatible.");
             }
-            System.out.println("Partida cargada exitosamente desde: " + archivo.getPath());
+            if (logSuccess) {
+                System.out.println("Partida cargada exitosamente desde: " + archivo.getPath());
+            }
             return memento;
         } catch (SaveDataCorruptionException ex) {
             throw ex;

@@ -149,6 +149,18 @@ public class Inventory {
         return selected;
     }
 
+    public Item removeItemAtIndex(Integer requestedIndex) {
+        int index = requestedIndex == null ? selectedItemIndex : requestedIndex;
+        Item selected = getByIndex(index)
+            .orElseThrow(() -> new IllegalStateException("Selecciona un objeto valido para vender."));
+
+        if (!removeSimpleItem(selected.getRaw())) {
+            throw new IllegalStateException("No se pudo remover el item seleccionado del inventario.");
+        }
+        clampSelection();
+        return selected;
+    }
+
     public boolean hasConsumable() {
         return items().stream().anyMatch(Item::isConsumable);
     }

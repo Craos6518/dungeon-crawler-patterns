@@ -107,6 +107,9 @@ public class GameViewModel {
         public String style;
         public int offensiveBuffStacks;
         public int guardBuffStacks;
+        public boolean defenseActive;
+        public int poisonTurns;
+        public int poisonDamage;
         public boolean hasCheckpoint;
         public boolean checkpointConsumed;
     }

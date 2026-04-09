@@ -2,17 +2,23 @@
     var _selectedItemIndex = null;
     var _selectedItemId    = null;
     var _selectedHeroType  = 'guerrero';
+    var _heroName = 'Aventurero';
     var _heroSelectionLocked = false;
     var _completedThemes = [];
     var _selectedSaveSlot  = 1;
     var _selectedLootIndex = null;
+    var _currentScreen = 'menu';
     var _loreQueue = [];
     var _loreVisible = false;
+    var _pendingRunStartLore = null;
+    var _returnToMainMenuAfterLore = false;
     var _loreState = {
       worldShown: false,
       heroStoryShown: false,
       guardianShown: {},
       endingShown: {},
+      campaignFinalShown: false,
+      creditsShown: false,
       previousFrame: null
     };
 
@@ -159,6 +165,39 @@
       }
     };
 
+    var HERO_WORLD_ENDING_BOOK = {
+      guerrero: {
+        title: 'Kael Ferrum, Escudo de Eranthia',
+        subtitle: 'Final del Guerrero',
+        lines: [
+          'Kael regresa a Valdrath y funda la Guardia Ferrum para proteger los cuatro sellos restaurados.',
+          'Convierte las antiguas rutas de guerra en caminos seguros para caravanas y aldeas.',
+          'Su juramento final queda grabado en piedra: ningun nino perdera su hogar por culpa de las mazmorras.'
+        ],
+        theme: 'fire'
+      },
+      mago: {
+        title: 'Sylara Vex, Cronista de los Cuatro Sellos',
+        subtitle: 'Final de la Maga',
+        lines: [
+          'Sylara recompone los fragmentos del codex de Thessanor y redacta una nueva doctrina para la magia etica.',
+          'El Consejo de Valdrath la nombra Archivista Suprema y custodio oficial de los artefactos purificados.',
+          'Su legado inaugura una era donde el conocimiento arcano sirve a la vida y no al dominio.'
+        ],
+        theme: 'ice'
+      },
+      arquero: {
+        title: 'Thoran Silvis, Centinela del Nuevo Bosque',
+        subtitle: 'Final del Arquero',
+        lines: [
+          'Thoran lidera la reforestacion de Mirval y transforma Viridax en un santuario vivo.',
+          'Las antiguas zonas de caza se convierten en corredores protegidos para viajeros y criaturas.',
+          'Desde su atalaya, vigila el equilibrio del continente con la misma precision de cada flecha.'
+        ],
+        theme: 'poison'
+      }
+    };
+
     function normalizeHeroType(heroType) {
       var normalized = String(heroType || '').trim().toLowerCase();
       if (normalized === 'guerrero' || normalized === 'mago' || normalized === 'arquero') {
@@ -171,6 +210,10 @@
       return HERO_LORE_BOOK[normalizeHeroType(heroType)] || HERO_LORE_BOOK.guerrero;
     }
 
+    function resolveHeroWorldEnding(heroType) {
+      return HERO_WORLD_ENDING_BOOK[normalizeHeroType(heroType)] || HERO_WORLD_ENDING_BOOK.guerrero;
+    }
+
     function normalizeThemeKey(themeKey) {
       var normalized = String(themeKey || '').trim().toLowerCase();
       if (normalized === 'fire' || normalized === 'ice' || normalized === 'poison' || normalized === 'dark') {
@@ -181,6 +224,12 @@
 
     function resolveThemeLore(themeKey) {
       return LORE_THEME_BOOK[normalizeThemeKey(themeKey)] || LORE_THEME_BOOK.fire;
+    }
+
+    function readHeroNameFromInput() {
+      var input = document.getElementById('hero-name-input');
+      var raw = input ? String(input.value || '') : String(_heroName || '');
+      return raw.trim().replace(/\s+/g, ' ');
     }
 
     function buildHeroLoreEntry(heroType) {
@@ -243,6 +292,60 @@
       };
     }
 
+    function buildCampaignFinalLoreEntry(heroType) {
+      var ending = resolveHeroWorldEnding(heroType);
+      return {
+        chapter: 'EPILOGO DEL MUNDO',
+        title: 'Eranthia ha sido Restaurada',
+        subtitle: ending.subtitle + ' · Campana Completa',
+        lines: [
+          'Los cuatro artefactos han sido purificados y el equilibrio elemental vuelve al continente.',
+          'Fuego, hielo, vida y sombra dejan de luchar entre si: Eranthia respira en paz por primera vez en siglos.',
+          'Las mazmorras permanecen selladas bajo una nueva custodia, no por maldicion, sino por decision del heroe.',
+          'Destino final: ' + ending.title + '.',
+          ending.lines[0],
+          ending.lines[1],
+          ending.lines[2]
+        ],
+        theme: normalizeThemeKey(ending.theme)
+      };
+    }
+
+    function buildCreditsLoreEntry() {
+      return {
+        chapter: 'CREDITOS',
+        title: 'Dungeon Crawler - Patrones de Diseno',
+        subtitle: 'Gracias por completar las 4 mazmorras',
+        lines: [
+          'Desarrollador: Andres Felipe Martinez Henao - Craos6518.',
+          'Entorno de desarrollo: Visual Studio Code 1.114.0, Maven, JavaFX WebView y Git.',
+          'OS y hardware: Fedora Linux 43 KDE Plasma, ASUS VivoBook X412DA, AMD Ryzen 5 3500U, Radeon Vega 8, RAM 5.72 GiB.',
+          'Java 17 runtime: Temurin OpenJDK 17.0.18+8.',
+          'Agentes de IA: GPT-5.3-Codex - Xhigh, Claude Opus 4.6 y Claude Sonnet 4.6.',
+          'Docente: Dinora Seneth Monsalve.',
+          'Materia: Patrones de diseno.',
+          'Analytics: Telemetria de eventos de sesion con Observer, contadores y trazas de comandos UI.'
+        ],
+        theme: 'dark'
+      };
+    }
+
+    function countCompletedCampaignThemes(completedThemes) {
+      if (!Array.isArray(completedThemes) || completedThemes.length === 0) {
+        return 0;
+      }
+
+      var unique = {};
+      completedThemes.forEach(function(theme) {
+        var normalized = normalizeThemeKey(theme);
+        if (normalized) {
+          unique[normalized] = true;
+        }
+      });
+
+      return Object.keys(unique).length;
+    }
+
     function renderLoreBody(lines) {
       var body = document.getElementById('lore-window-body');
       if (!body) return;
@@ -290,6 +393,11 @@
       document.body.classList.remove('lore-open');
       _loreVisible = false;
       showNextLoreWindow();
+
+      if (!_loreVisible && _loreQueue.length === 0 && _returnToMainMenuAfterLore) {
+        _returnToMainMenuAfterLore = false;
+        sendCommand('openMainMenu', {});
+      }
     }
 
     function resetCampaignNarrativeState() {
@@ -297,7 +405,10 @@
       _loreState.heroStoryShown = false;
       _loreState.guardianShown = {};
       _loreState.endingShown = {};
+      _loreState.campaignFinalShown = false;
+      _loreState.creditsShown = false;
       _loreState.previousFrame = null;
+      _returnToMainMenuAfterLore = false;
     }
 
     function startNewCampaignNarrativeFlow() {
@@ -324,6 +435,8 @@
 
     function evaluateLoreTriggers(state) {
       var currentTheme = normalizeThemeKey(state.theme || 'fire');
+      var completedCount = countCompletedCampaignThemes(state.completedThemes);
+      var currentHeroType = normalizeHeroType(state.heroType || _selectedHeroType || 'guerrero');
 
       var currentFrame = {
         screen: String(state.screen || ''),
@@ -331,7 +444,9 @@
         room: Number(state.room || 0),
         totalRooms: Number(state.totalRooms || 0),
         roomHasEnemy: !!state.roomHasEnemy,
-        enemyTier: state.enemy && state.enemy.tier ? String(state.enemy.tier).toLowerCase() : ''
+        enemyTier: state.enemy && state.enemy.tier ? String(state.enemy.tier).toLowerCase() : '',
+        completedCount: completedCount,
+        heroType: currentHeroType
       };
 
       if (currentFrame.screen === 'combat' && currentFrame.enemyTier === 'jefe' && !_loreState.guardianShown[currentTheme]) {
@@ -348,9 +463,25 @@
         && currentFrame.room === currentFrame.totalRooms
         && !currentFrame.roomHasEnemy;
 
-      if (bossJustDefeated && !_loreState.endingShown[currentTheme]) {
+      var dungeonJustCompleted = previous
+        && previous.screen === 'treasure'
+        && currentFrame.screen === 'hero'
+        && currentFrame.completedCount > previous.completedCount;
+
+      if ((bossJustDefeated || dungeonJustCompleted) && !_loreState.endingShown[currentTheme]) {
         _loreState.endingShown[currentTheme] = true;
         enqueueLoreWindow(buildEndingLoreEntry(currentTheme));
+      }
+
+      if (dungeonJustCompleted && currentFrame.completedCount >= 4 && !_loreState.campaignFinalShown) {
+        _loreState.campaignFinalShown = true;
+        enqueueLoreWindow(buildCampaignFinalLoreEntry(currentFrame.heroType));
+      }
+
+      if (_loreState.campaignFinalShown && !_loreState.creditsShown) {
+        _loreState.creditsShown = true;
+        _returnToMainMenuAfterLore = true;
+        enqueueLoreWindow(buildCreditsLoreEntry());
       }
 
       _loreState.previousFrame = currentFrame;
@@ -661,8 +792,20 @@
             sendCommand('newGame', {});
             return;
           } else if (action === 'heroNewGame') {
-            queueHeroAndDungeonLoreForSelection(el.dataset.theme || 'fire');
-            sendCommand('heroNewGame', { heroType: _selectedHeroType || 'guerrero', theme: el.dataset.theme || 'fire' });
+            var heroName = readHeroNameFromInput() || _heroName || 'Aventurero';
+            var selectedTheme = el.dataset.theme || 'fire';
+
+            _pendingRunStartLore = {
+              theme: selectedTheme,
+              heroType: _selectedHeroType || 'guerrero',
+              includeHeroLore: !_heroSelectionLocked && !_loreState.heroStoryShown
+            };
+
+            sendCommand('heroNewGame', {
+              heroType: _selectedHeroType || 'guerrero',
+              heroName: heroName,
+              theme: selectedTheme
+            });
             return;
           } else if (action === 'startGame') {
             if (!_loreState.worldShown) {
@@ -670,7 +813,11 @@
               enqueueLoreWindow(buildWorldLoreEntry());
             }
             enqueueLoreWindow(buildDungeonLoreEntry(el.dataset.theme || 'fire'));
-            sendCommand('startGame', { theme: el.dataset.theme || 'fire' });
+            sendCommand('startGame', {
+              theme: el.dataset.theme || 'fire',
+              heroType: _selectedHeroType || 'guerrero',
+              heroName: readHeroNameFromInput() || _heroName || 'Aventurero'
+            });
             return;
           }
 
@@ -720,6 +867,7 @@
     /* ── updateGameState: Java llama engine.executeScript("window.updateGameState(..)") ── */
     window.updateGameState = function(state) {
       if (!state) return;
+      var previousScreen = _currentScreen;
 
       function setText(id, val) {
         var el = document.getElementById(id);
@@ -784,6 +932,7 @@
 
       /* Pantalla activa */
       if (state.screen) {
+        _currentScreen = String(state.screen);
         var screenMap = {
           menu:        'screen-menu',
           hero:        'screen-hero',
@@ -804,11 +953,24 @@
       if (state.heroType) {
         selectHeroCard(state.heroType);
       }
+      if (state.heroName) {
+        _heroName = String(state.heroName);
+      }
       _heroSelectionLocked = !!state.heroSelectionLocked;
       _completedThemes = Array.isArray(state.completedThemes)
         ? state.completedThemes.map(function(theme) { return String(theme).toLowerCase(); })
         : [];
       applyHeroScreenRestrictions();
+
+      if (_pendingRunStartLore && previousScreen === 'hero' && _currentScreen === 'exploration') {
+        if (_pendingRunStartLore.includeHeroLore && !_loreState.heroStoryShown) {
+          _loreState.heroStoryShown = true;
+          enqueueLoreWindow(buildHeroLoreEntry(_pendingRunStartLore.heroType));
+        }
+
+        enqueueLoreWindow(buildDungeonLoreEntry(_pendingRunStartLore.theme));
+        _pendingRunStartLore = null;
+      }
 
       /* Exploración */
       setText('s1-room-name',    state.roomName        || '');

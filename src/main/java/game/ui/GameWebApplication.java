@@ -31,7 +31,7 @@ public class GameWebApplication extends Application {
     public void start(Stage stage) {
         WebView webView = new WebView();
         engine = webView.getEngine();
-        webAdapter = new WebGameAdapter(runtime, this::pushStateToUi);
+        webAdapter = new WebGameAdapter(runtime, this::pushStateToUi, this::requestApplicationExit);
 
         engine.setOnAlert(event -> webAdapter.dispatchAlertMessage(event.getData()));
 
@@ -47,6 +47,15 @@ public class GameWebApplication extends Application {
         stage.setTitle("Dungeon Crawler - UI JavaFX");
         stage.setScene(new Scene(webView, 1366, 768));
         stage.show();
+    }
+
+    private void requestApplicationExit() {
+        Runnable exitTask = Platform::exit;
+        if (Platform.isFxApplicationThread()) {
+            exitTask.run();
+        } else {
+            Platform.runLater(exitTask);
+        }
     }
 
     private void registerBridge() {

@@ -3,15 +3,53 @@ package game.unit.application;
 import com.google.gson.JsonObject;
 import game.application.dto.UiCommand;
 import game.application.runtime.GameRuntime;
+import game.application.state.GameSession;
 import game.application.state.GameSessionFactory;
 import game.ui.GameViewModel;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GameRuntimeExtendedCommandsTest {
+
+    @Test
+    void buyHealthPotionFromInventoryConsumesGoldAndAddsItem() {
+        GameSession session = GameSessionFactory.createSessionForTheme("fire", "guerrero");
+        session.player().addGold(120);
+        GameRuntime runtime = new GameRuntime(session);
+
+        send(runtime, "openInventory", new JsonObject());
+        GameViewModel before = runtime.presentViewModel();
+
+        send(runtime, "buyHealthPotion", new JsonObject());
+        GameViewModel after = runtime.presentViewModel();
+
+        assertEquals("inventory", after.screen);
+        assertEquals(before.inventory.itemCount + 1, after.inventory.itemCount);
+        assertEquals(before.gold - 40, after.gold);
+        assertNotNull(after.selectedItem);
+        assertTrue(after.selectedItem.name.toLowerCase().contains("poc"));
+    }
+
+    @Test
+    void sellSelectedItemInInventoryRemovesItemAndAddsGold() {
+        GameRuntime runtime = new GameRuntime(GameSessionFactory.createSessionForTheme("ice", "guerrero"));
+
+        send(runtime, "openInventory", new JsonObject());
+        GameViewModel before = runtime.presentViewModel();
+        int selectedValue = before.selectedItem != null ? before.selectedItem.valor : 0;
+        int expectedGoldGain = Math.max(1, (Math.max(0, selectedValue) * 60) / 100);
+
+        send(runtime, "sellSelectedItem", new JsonObject());
+        GameViewModel after = runtime.presentViewModel();
+
+        assertEquals("inventory", after.screen);
+        assertEquals(before.inventory.itemCount - 1, after.inventory.itemCount);
+        assertEquals(before.gold + expectedGoldGain, after.gold);
+    }
 
     @Test
     void quickSaveAndQuickLoadRestorePreferredSlotState() {
@@ -45,6 +83,23 @@ class GameRuntimeExtendedCommandsTest {
 
         assertEquals("inventory", vm.screen);
         assertEquals(countBefore - 1, vm.inventory.itemCount);
+    }
+
+    @Test
+    void healthPotionScalesHealingWithMaxHp() {
+        GameSession session = GameSessionFactory.createSessionForTheme("dark", "guerrero");
+        session.player().restoreProgress(6, 0, 10, 0, 0);
+        GameRuntime runtime = new GameRuntime(session);
+
+        send(runtime, "openInventory", new JsonObject());
+        send(runtime, "useItem", payload("itemIndex", 0));
+
+        GameViewModel vm = runtime.presentViewModel();
+        int expectedHeal = Math.max(50, (int) Math.round(vm.playerHpMax * 0.45));
+        int expectedHp = Math.min(vm.playerHpMax, 10 + expectedHeal);
+
+        assertEquals(expectedHp, vm.playerHp);
+        assertTrue(vm.eventLog.stream().anyMatch(line -> line.contains("recuperaste") && line.contains("HP")));
     }
 
     @Test
@@ -91,6 +146,9 @@ class GameRuntimeExtendedCommandsTest {
         assertNotNull(vm.combatTactics);
         assertEquals("Agresivo", vm.combatTactics.style);
         assertTrue(vm.combatTactics.offensiveBuffStacks >= 0);
+        assertFalse(vm.combatTactics.defenseActive);
+        assertTrue(vm.combatTactics.poisonTurns >= 0);
+        assertTrue(vm.combatTactics.poisonDamage >= 0);
         assertTrue(vm.resource.current < beforeResource);
         assertTrue(vm.combatLog.stream().anyMatch(line -> line.toLowerCase().contains("buff")));
     }

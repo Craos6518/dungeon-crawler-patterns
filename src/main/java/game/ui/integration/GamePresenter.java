@@ -86,6 +86,9 @@ public class GamePresenter {
         vm.combatTactics.style = session.combat().playerStyle().displayName();
         vm.combatTactics.offensiveBuffStacks = session.combat().offensiveBuffStacks();
         vm.combatTactics.guardBuffStacks = session.combat().guardBuffStacks();
+        vm.combatTactics.defenseActive = session.combat().isDefenseActive();
+        vm.combatTactics.poisonTurns = session.combat().poisonTurns();
+        vm.combatTactics.poisonDamage = session.combat().poisonDamage();
         vm.combatTactics.hasCheckpoint = session.combat().hasTacticalCheckpoint();
         vm.combatTactics.checkpointConsumed = session.combat().tacticalCheckpointConsumed();
 
@@ -219,7 +222,7 @@ public class GamePresenter {
             }
 
             try {
-                GameMemento candidate = session.caretaker().cargarDesdeDisco(fileName);
+                GameMemento candidate = session.caretaker().cargarDesdeDiscoSilencioso(fileName);
                 if (latestMemento == null
                     || (candidate.getFechaGuardado() != null
                     && (latestMemento.getFechaGuardado() == null
@@ -361,7 +364,7 @@ public class GamePresenter {
             }
 
             try {
-                GameMemento memento = session.caretaker().cargarDesdeDisco(fileName);
+                GameMemento memento = session.caretaker().cargarDesdeDiscoSilencioso(fileName);
                 fillSlotFromMemento(memento, slot);
             } catch (RuntimeException ex) {
                 applyEmptySlot(slot);
@@ -431,7 +434,7 @@ public class GamePresenter {
             return false;
         }
         try {
-            session.caretaker().cargarDesdeDisco(fileName);
+            session.caretaker().cargarDesdeDiscoSilencioso(fileName);
             return true;
         } catch (RuntimeException ex) {
             return false;

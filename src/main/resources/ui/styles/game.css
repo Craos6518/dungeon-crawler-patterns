@@ -874,7 +874,7 @@
       background: var(--theme-bg-panel);
       border-top: 2px solid var(--theme-border-dim);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       grid-auto-rows: minmax(34px, 1fr);
       gap: var(--spacing-2);
       padding: var(--spacing-2) var(--spacing-3);
@@ -884,6 +884,71 @@
     #s2-action-panel .btn {
       height: 100%;
       font-size: 10px;
+    }
+
+    .combat-tactics {
+      position: relative;
+      min-width: 0;
+    }
+
+    #btn-combat-tactics[aria-expanded="true"] {
+      border-color: var(--theme-accent);
+      color: var(--theme-accent);
+    }
+
+    .combat-tactics-menu {
+      position: absolute;
+      right: 0;
+      bottom: calc(100% + var(--spacing-1));
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: var(--spacing-1);
+      background: var(--theme-bg-panel);
+      border: 1px solid var(--theme-border);
+      box-shadow: 4px 4px 0 #000;
+      z-index: 25;
+    }
+
+    .combat-tactics-menu[hidden] {
+      display: none;
+    }
+
+    .combat-tactics-menu__label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--theme-text-dim);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+
+    .combat-tactics-menu__btn {
+      height: var(--btn-h-sm) !important;
+      font-size: 9px !important;
+    }
+
+    @media (max-width: 1200px) {
+      #s2-action-panel {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .combat-tactics-menu {
+        right: auto;
+        left: 0;
+      }
+    }
+
+    @media (max-width: 760px) {
+      #s2-action-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .combat-tactics-menu {
+        width: min(92vw, 260px);
+      }
     }
 
     /* Combat Log */
@@ -1098,6 +1163,30 @@
       padding: 0 var(--spacing-3);
       gap: var(--spacing-2);
       flex-shrink: 0;
+    }
+
+    #s3-footer .btn {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    #btn-back-inv {
+      flex: 0 0 auto;
+      min-width: 120px;
+    }
+
+    @media (max-width: 760px) {
+      #s3-footer {
+        height: auto;
+        flex-wrap: wrap;
+        padding: var(--spacing-2);
+      }
+
+      #s3-footer .btn,
+      #btn-back-inv {
+        flex: 1 1 calc(50% - var(--spacing-2));
+        min-width: 0;
+      }
     }
 
     /* ============================================================

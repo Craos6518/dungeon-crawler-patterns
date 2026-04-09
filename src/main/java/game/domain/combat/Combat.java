@@ -316,10 +316,16 @@ public class Combat {
         }
 
         if (item.isPotion()) {
-            player.heal(50);
+            int hpBefore = player.hp();
+            int scaledHeal = Math.max(50, (int) Math.round(player.maxHp() * 0.45));
+            player.heal(scaledHeal);
+            result.healedHp = Math.max(0, player.hp() - hpBefore);
             player.recoverResource(Math.max(4, player.attackResourceRecovery() / 2));
             result.potionUsed = true;
             result.actionExecuted = true;
+            if (result.healedHp == 0) {
+                result.warning = "La pocion no tuvo efecto: ya estabas con la vida al maximo.";
+            }
         } else if (item.isAntidote()) {
             if (turnManager.hasPoison()) {
                 turnManager.clearPoison();

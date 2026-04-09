@@ -19,6 +19,7 @@ import game.application.usecase.ApplyCombatBuffUseCase;
 import game.application.usecase.AttackUseCase;
 import game.application.usecase.DefendUseCase;
 import game.application.usecase.ForceCombatUseCase;
+import game.application.usecase.InventoryShopUseCase;
 import game.application.usecase.MoveInventorySelectionUseCase;
 import game.application.usecase.RetreatCombatUseCase;
 import game.application.usecase.RollbackCombatCheckpointUseCase;
@@ -72,6 +73,7 @@ public class GameRuntime implements GameCommandHandler {
     private RollbackCombatCheckpointUseCase rollbackCombatCheckpointUseCase;
     private UseItemUseCase useItemUseCase;
     private UseSkillUseCase useSkillUseCase;
+    private InventoryShopUseCase inventoryShopUseCase;
     private SelectInventoryItemUseCase selectInventoryItemUseCase;
     private MoveInventorySelectionUseCase moveInventorySelectionUseCase;
 
@@ -159,6 +161,7 @@ public class GameRuntime implements GameCommandHandler {
         this.rollbackCombatCheckpointUseCase = new RollbackCombatCheckpointUseCase(session);
         this.useItemUseCase = new UseItemUseCase(session);
         this.useSkillUseCase = new UseSkillUseCase(session);
+        this.inventoryShopUseCase = new InventoryShopUseCase(session);
         this.selectInventoryItemUseCase = new SelectInventoryItemUseCase(session);
         this.moveInventorySelectionUseCase = new MoveInventorySelectionUseCase(session);
     }
@@ -216,12 +219,20 @@ public class GameRuntime implements GameCommandHandler {
             session.transitionTo(session.hasActiveEnemy() ? GameFlowState.COMBAT : GameFlowState.EXPLORATION);
         }, payloadValidator::validateEmptyPayload));
 
+        map.put("buyHealthPotion", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            inventoryShopUseCase.buyHealthPotion();
+        }, payloadValidator::validateEmptyPayload));
+
+        map.put("sellSelectedItem", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
+            inventoryShopUseCase.sellSelectedItem();
+        }, payloadValidator::validateEmptyPayload));
+
         map.put("saveGame", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
             saveSlotManager.saveToSlot(payload.slot);
         }, payloadValidator::validateSavePayload));
 
         map.put("loadGame", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
-            bindSession(saveSlotManager.loadFromSlot(payload.slot));
+            bindLoadedSession(saveSlotManager.loadFromSlot(payload.slot));
         }, payloadValidator::validateLoadPayload));
 
         map.put("quickSave", TypedCommandHandler.of(SaveGameCommandRequest.class, Set.of(), payload -> {
@@ -229,7 +240,7 @@ public class GameRuntime implements GameCommandHandler {
         }, payloadValidator::validateSavePayload));
 
         map.put("quickLoad", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
-            bindSession(saveSlotManager.loadFromSlot(payload.slot));
+            bindLoadedSession(saveSlotManager.loadFromSlot(payload.slot));
         }, payloadValidator::validateLoadPayload));
 
         map.put("forceCombat", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
@@ -310,7 +321,7 @@ public class GameRuntime implements GameCommandHandler {
         // ── Nuevas pantallas ────────────────────────────────────────
 
         map.put("goToHeroSelect", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.transitionTo(GameFlowState.HERO);
+            startFreshCampaignSetup();
         }, payloadValidator::validateEmptyPayload));
 
         map.put("selectHero", TypedCommandHandler.of(StartGameCommandRequest.class, Set.of(), payload -> {
@@ -370,16 +381,16 @@ public class GameRuntime implements GameCommandHandler {
         }, payloadValidator::validateSavePayload));
 
         map.put("loadFromSlot", TypedCommandHandler.of(LoadGameCommandRequest.class, Set.of(), payload -> {
-            bindSession(saveSlotManager.loadFromSlot(payload.slot));
+            bindLoadedSession(saveSlotManager.loadFromSlot(payload.slot));
         }, payloadValidator::validateLoadPayload));
 
         map.put("restoreGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
             // Carga el slot preferido (ultimo usado) al restaurar tras game over.
-            bindSession(saveSlotManager.loadFromSlot(saveSlotManager.preferredSaveSlot()));
+            bindLoadedSession(saveSlotManager.loadFromSlot(saveSlotManager.preferredSaveSlot()));
         }, payloadValidator::validateEmptyPayload));
 
         map.put("newGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
-            session.transitionTo(GameFlowState.HERO);
+            startFreshCampaignSetup();
         }, payloadValidator::validateEmptyPayload));
 
         map.put("exitGame", TypedCommandHandler.of(JsonObject.class, Set.of(), payload -> {
@@ -420,6 +431,22 @@ public class GameRuntime implements GameCommandHandler {
         UseItemCommandRequest request = new UseItemCommandRequest();
         request.itemIndex = consumableIndex;
         useItemUseCase.execute(request);
+    }
+
+    private void startFreshCampaignSetup() {
+        GameSession freshSession = GameSessionFactory.createInitialMenuSession();
+        freshSession.transitionTo(GameFlowState.HERO);
+        bindSession(freshSession);
+        saveSlotManager.resetPreferredSaveSlot();
+    }
+
+    private void bindLoadedSession(GameSession loadedSession) {
+        bindSession(loadedSession);
+
+        // Evita quedar atrapado en la pantalla de ranuras tras cargar una partida.
+        if (session.activeState() == GameFlowState.SAVES) {
+            session.transitionTo(GameFlowState.EXPLORATION);
+        }
     }
 
     /**

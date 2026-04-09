@@ -40,8 +40,8 @@ public class UseItemUseCase {
             }
 
             if (result.potionUsed) {
-                session.appendEvent("Usaste " + item.getName() + " y recuperaste vida.");
-                session.appendCombat("Consumiste una pocion y recuperaste vida.");
+                session.appendEvent("Usaste " + item.getName() + " y recuperaste " + result.healedHp + " HP.");
+                session.appendCombat("Consumiste una pocion y recuperaste " + result.healedHp + " HP.");
             }
 
             if (result.antidoteUsed) {

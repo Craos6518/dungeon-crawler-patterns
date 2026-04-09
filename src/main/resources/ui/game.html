@@ -314,10 +314,6 @@
           <span class="field-row__key">Buff Guardia</span>
           <span class="field-row__val" id="s2-buff-guard">0</span>
         </div>
-        <div class="field-row">
-          <span class="field-row__key">Checkpoint</span>
-          <span class="field-row__val" id="s2-checkpoint-state">Sin guardar</span>
-        </div>
       </aside>
 
     </main>
@@ -332,24 +328,27 @@
             data-action="openInventory" data-state="default">Usar Objeto</button>
       <button class="btn" id="btn-habilidad"
               data-action="useSkill" data-state="default">Habilidad</button>
-          <button class="btn" id="btn-style-balanced"
-            data-action="setCombatStyle" data-style="balanced" data-state="default">Estilo Balanceado</button>
-          <button class="btn" id="btn-style-aggressive"
-            data-action="setCombatStyle" data-style="aggressive" data-state="default">Estilo Agresivo</button>
-          <button class="btn" id="btn-style-defensive"
-            data-action="setCombatStyle" data-style="defensive" data-state="default">Estilo Defensivo</button>
-          <button class="btn" id="btn-buff-power"
+      <div class="combat-tactics" id="combat-tactics-shell">
+        <button class="btn" id="btn-combat-tactics"
+          data-action="toggleCombatTacticsMenu" data-state="default"
+          aria-expanded="false" aria-controls="combat-tactics-menu">Tácticas</button>
+        <div class="combat-tactics-menu" id="combat-tactics-menu" hidden>
+          <div class="combat-tactics-menu__label">Estilos</div>
+          <button class="btn combat-tactics-menu__btn" id="btn-style-balanced"
+            data-action="setCombatStyle" data-style="balanced" data-state="default">Balanceado</button>
+          <button class="btn combat-tactics-menu__btn" id="btn-style-aggressive"
+            data-action="setCombatStyle" data-style="aggressive" data-state="default">Agresivo</button>
+          <button class="btn combat-tactics-menu__btn" id="btn-style-defensive"
+            data-action="setCombatStyle" data-style="defensive" data-state="default">Defensivo</button>
+          <div class="combat-tactics-menu__label">Buffs</div>
+          <button class="btn combat-tactics-menu__btn" id="btn-buff-power"
             data-action="applyBuff" data-buff="power" data-state="default">Buff Poder</button>
-          <button class="btn" id="btn-buff-guard"
+          <button class="btn combat-tactics-menu__btn" id="btn-buff-guard"
             data-action="applyBuff" data-buff="guard" data-state="default">Buff Guardia</button>
-          <button class="btn" id="btn-save-checkpoint"
-            data-action="saveCombatCheckpoint" data-state="default">Guardar Checkpoint</button>
-          <button class="btn" id="btn-rollback-checkpoint"
-            data-action="rollbackCombatCheckpoint" data-state="default">Restaurar Checkpoint</button>
-          <button class="btn" id="btn-quick-item"
-            data-action="consumeSelectedItem" data-state="default">Consumible Rápido</button>
-          <button class="btn" id="btn-retreat"
-            data-action="retreatCombat" data-state="default">Retirada</button>
+        </div>
+      </div>
+      <button class="btn" id="btn-retreat"
+        data-action="retreatCombat" data-state="default">Retirada</button>
     </section>
 
     <!-- COMBAT LOG -->
@@ -488,14 +487,17 @@
 
     </div>
 
-    <!-- FOOTER
-         btn-use-item-inv: siempre default mientras solo exista categoría Consumible.
-         Java dispatch: inv-use-item → buscarConsumiblePorNombre("poci") o ("antid")
-    -->
+        <!-- FOOTER
+          Acciones de inventario y tienda: usar consumible, comprar pocion, vender item y volver.
+        -->
     <footer id="s3-footer">
       <button class="btn btn--primary" id="btn-use-item-inv"
               data-action="useItem" data-state="default"
               title="Disponible solo para Consumibles (usarPocion / usarAntidoto)">Usar</button>
+          <button class="btn" id="btn-buy-potion"
+            data-action="buyHealthPotion" data-state="default">Comprar Poción (40)</button>
+          <button class="btn" id="btn-sell-item"
+            data-action="sellSelectedItem" data-state="default">Vender Seleccionado</button>
       <button class="btn" id="btn-back-inv"
               data-action="closeInventory" data-state="default">Volver</button>
     </footer>

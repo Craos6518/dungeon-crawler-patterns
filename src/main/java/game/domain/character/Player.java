@@ -109,6 +109,10 @@ public class Player {
         return defeatedEnemies;
     }
 
+    public boolean hasGold(int amount) {
+        return gold >= Math.max(0, amount);
+    }
+
     public String heroType() {
         return heroType;
     }
@@ -225,6 +229,15 @@ public class Player {
 
     public void addGold(int amount) {
         gold += Math.max(0, amount);
+    }
+
+    public boolean spendGold(int amount) {
+        int cost = Math.max(0, amount);
+        if (gold < cost) {
+            return false;
+        }
+        gold -= cost;
+        return true;
     }
 
     public void registerDefeatedEnemy() {

@@ -36,6 +36,7 @@ public class GameSession {
 
     private static final int EVENT_LOG_LIMIT = 12;
     private static final int COMBAT_LOG_LIMIT = 16;
+    private static final int SHOP_HEALTH_POTION_COST = 40;
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final List<String> CAMPAIGN_THEME_ORDER = List.of("poison", "ice", "fire", "dark");
 
@@ -505,6 +506,8 @@ public class GameSession {
         boolean treasureScreen = screen == GameFlowState.TREASURE;
         boolean hasConsumable = inventory().hasConsumable();
         boolean selectedConsumable = inventory().isSelectedConsumable();
+        boolean inventoryHasSpace = inventory().size() < inventory().capacity();
+        boolean hasSelectedItem = inventory().selectedItem().isPresent();
         boolean dungeonCompleted = dungeon.isCurrentRoomBoss()
             && !combatActive
             && !isEnemyPendingInCurrentRoom();
@@ -532,6 +535,9 @@ public class GameSession {
             ? "default" : "disabled");
 
         states.put("btn-habilidad", (heroAlive && combatScreen && combatActive)
+            ? "default" : "disabled");
+
+        states.put("btn-combat-tactics", (heroAlive && combatScreen && combatActive)
             ? "default" : "disabled");
 
         states.put("btn-style-balanced", (heroAlive && combatScreen && combatActive)
@@ -563,6 +569,12 @@ public class GameSession {
             ? "default" : "disabled");
 
         states.put("btn-use-item-inv", (heroAlive && inventoryScreen && selectedConsumable)
+            ? "default" : "disabled");
+
+        states.put("btn-buy-potion", (heroAlive && inventoryScreen && inventoryHasSpace
+            && player.gold() >= SHOP_HEALTH_POTION_COST) ? "default" : "disabled");
+
+        states.put("btn-sell-item", (heroAlive && inventoryScreen && hasSelectedItem)
             ? "default" : "disabled");
 
         states.put("btn-back-inv", inventoryScreen ? "default" : "disabled");

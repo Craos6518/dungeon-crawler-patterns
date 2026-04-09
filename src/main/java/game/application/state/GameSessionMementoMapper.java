@@ -501,8 +501,19 @@ public final class GameSessionMementoMapper {
             int value = readInt(map.get("valor"), 0);
             int weight = readInt(map.get("peso"), 1);
 
-            if (strict && (name.isBlank() || weight <= 0)) {
-                throw corrupt("item con datos invalidos");
+            if (name.isBlank() || weight <= 0) {
+                if (strict) {
+                    // Compatibilidad con guardados legacy/corruptos parciales:
+                    // ignorar solo la entrada invalida en lugar de abortar toda la carga.
+                    continue;
+                }
+
+                if (name.isBlank()) {
+                    name = "Item";
+                }
+                if (weight <= 0) {
+                    weight = 1;
+                }
             }
 
             restored.add(new SimpleItem(name, description, type, Math.max(0, value), Math.max(1, weight)));

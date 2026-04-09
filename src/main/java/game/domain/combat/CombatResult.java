@@ -20,6 +20,7 @@ public class CombatResult {
     public boolean poisonApplied;
     public boolean antidoteUsed;
     public boolean potionUsed;
+    public int healedHp;
 
     public boolean styleChanged;
     public String styleName;

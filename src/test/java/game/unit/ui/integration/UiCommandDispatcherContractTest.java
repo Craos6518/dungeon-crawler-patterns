@@ -5,6 +5,8 @@ import game.ui.integration.UiCommandDispatcher;
 import game.ui.integration.UiGameController;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -93,6 +95,36 @@ class UiCommandDispatcherContractTest {
 
         assertEquals("error", response.status);
         assertTrue(response.message.contains("itemIndex fuera de rango"));
+    }
+
+    @Test
+    void buyHealthPotionWithoutGoldReturnsControlledError() {
+        UiCommandDispatcher dispatcher = newDispatcher();
+        dispatcher.dispatchCommandJson("{\"action\":\"openInventory\",\"payload\":{}}"
+        );
+
+        UiCommandResponse response = dispatcher.dispatchCommandJson(
+            "{\"action\":\"buyHealthPotion\",\"payload\":{}}"
+        );
+
+        assertEquals("error", response.status);
+        assertTrue(response.message.toLowerCase().contains("oro"));
+    }
+
+    @Test
+    void sellSelectedItemReturnsOkAndUpdatesInventoryState() {
+        UiCommandDispatcher dispatcher = newDispatcher();
+        dispatcher.dispatchCommandJson("{\"action\":\"openInventory\",\"payload\":{}}"
+        );
+
+        UiCommandResponse response = dispatcher.dispatchCommandJson(
+            "{\"action\":\"sellSelectedItem\",\"payload\":{}}"
+        );
+
+        assertEquals("ok", response.status);
+        assertNotNull(response.data);
+        assertEquals("inventory", response.data.screen);
+        assertTrue(response.data.gold > 0);
     }
 
     @Test
@@ -201,6 +233,23 @@ class UiCommandDispatcherContractTest {
 
         assertEquals("error", response.status);
         assertTrue(response.message.contains("slot fuera de rango permitido [1, 3]"));
+    }
+
+    @Test
+    void exitGameTriggersExitCallback() {
+        AtomicBoolean exitRequested = new AtomicBoolean(false);
+        UiCommandDispatcher dispatcher = new UiCommandDispatcher(
+            new UiGameController(),
+            () -> {
+                // No-op en tests de contrato.
+            },
+            () -> exitRequested.set(true)
+        );
+
+        UiCommandResponse response = dispatcher.dispatchCommandJson("{\"action\":\"exitGame\",\"payload\":{}}");
+
+        assertEquals("ok", response.status);
+        assertTrue(exitRequested.get());
     }
 
     private static UiCommandDispatcher newDispatcher() {
