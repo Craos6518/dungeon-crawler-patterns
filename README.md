@@ -124,9 +124,8 @@ mvn test
 ```
 
 ### Interpretacion de resultados esperados
-- Baseline academico: 241 tests en verde, 0 fallos, 2 omitidos.
-- 241/241 indica consistencia funcional y arquitectonica en la suite activa.
-- Los 2 omitidos no equivalen a fallo funcional.
+- Baseline academico: 205 tests en verde, 0 fallos, 0 omitidos.
+- 205/205 indica consistencia funcional y arquitectonica en la suite activa.
 - `target/surefire-reports/*` se trata como evidencia generada, no como fuente canonica de documentacion.
 
 ## Deuda tecnica conocida

@@ -77,7 +77,7 @@ Regla aplicada: codigo de demo, legado o pruebas aisladas no se considera eviden
 6. ~~EventContract sin validadores~~ → `EventContractValidator` implementado y conectado. El contrato gobierna todos los emisores productivos.
 7. ~~Builder procedural con perfiles fijos~~ → Perfiles usan rangos (min/max). Semilla propagada a todas las decisiones aleatorias y persistida en memento para reproducibilidad al cargar.
 8. ~~Composite aplanado~~ → `simpleItems` recorre jerarquia completa. `useItem`/`useItemAtIndex` operan por remocion recursiva. API por indices planos intacta para `GameRuntime`.
-9. Metricas de pruebas al cierre: **241 tests, 0 failures, 0 errors, 2 skipped**.
+9. Metricas de pruebas al cierre: **205 tests, 0 failures, 0 errors, 0 skipped**.
 
 ---
 
