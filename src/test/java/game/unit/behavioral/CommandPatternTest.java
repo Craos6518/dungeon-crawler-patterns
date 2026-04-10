@@ -1,6 +1,6 @@
 package game.unit.behavioral;
 
-import game.command.actions.*;
+import game.patterns.command.actions.*;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Guerrero;
 import game.domain.personaje.Personaje;

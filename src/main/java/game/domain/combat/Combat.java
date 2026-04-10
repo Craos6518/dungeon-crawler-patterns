@@ -1,7 +1,7 @@
 package game.domain.combat;
 
 import game.ai.strategy.AIController;
-import game.command.actions.CommandInvoker;
+import game.patterns.command.actions.CommandInvoker;
 import game.domain.DomainRuleViolationException;
 import game.domain.character.Enemy;
 import game.domain.character.Player;

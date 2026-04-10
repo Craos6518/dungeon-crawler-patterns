@@ -5,7 +5,7 @@ import game.application.usecase.ForceCombatUseCase;
 import game.application.usecase.LoadGameUseCase;
 import game.application.usecase.SaveGameUseCase;
 import game.domain.DomainRuleViolationException;
-import game.persistence.memento.GameMemento;
+import game.application.state.GameMemento;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

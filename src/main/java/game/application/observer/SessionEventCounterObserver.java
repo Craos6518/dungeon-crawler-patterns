@@ -1,8 +1,8 @@
 package game.application.observer;
 
 import game.application.state.GameSession;
-import game.events.observer.GameEvent;
-import game.events.observer.GameObserver;
+import game.application.ports.events.GameEvent;
+import game.application.ports.events.GameObserver;
 
 /**
  * Observer productivo que mantiene contadores de eventos en la sesión activa.

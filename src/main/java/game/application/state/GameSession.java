@@ -5,12 +5,11 @@ import game.domain.combat.Combat;
 import game.domain.DomainRuleViolationException;
 import game.domain.exploration.Dungeon;
 import game.domain.inventory.Inventory;
-import game.events.observer.EventManager;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.application.ports.events.EventPublisher;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
+import game.application.ports.persistence.SessionSnapshotStore;
 import game.items.model.SimpleItem;
-import game.persistence.memento.GameCaretaker;
-import game.persistence.memento.GameMemento;
 import game.state.game.GameState;
 import game.state.game.GameStateContext;
 
@@ -43,8 +42,8 @@ public class GameSession {
     private final Player player;
     private final Dungeon dungeon;
     private final Combat combat;
-    private final EventManager eventManager;
-    private final GameCaretaker caretaker;
+    private final EventPublisher eventManager;
+    private final SessionSnapshotStore caretaker;
     private final GameStateContext flowContext;
 
     private final List<String> eventLog;
@@ -76,8 +75,8 @@ public class GameSession {
         Player player,
         Dungeon dungeon,
         Combat combat,
-        EventManager eventManager,
-        GameCaretaker caretaker
+        EventPublisher eventManager,
+        SessionSnapshotStore caretaker
     ) {
         this.player = player;
         this.dungeon = dungeon;
@@ -120,11 +119,11 @@ public class GameSession {
         return combat;
     }
 
-    public EventManager eventManager() {
+    public EventPublisher eventManager() {
         return eventManager;
     }
 
-    public GameCaretaker caretaker() {
+    public SessionSnapshotStore caretaker() {
         return caretaker;
     }
 

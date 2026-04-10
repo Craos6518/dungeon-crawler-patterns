@@ -1,9 +1,9 @@
 package game.state.domain;
 
-import game.persistence.memento.GameCaretaker;
-import game.persistence.memento.GameOriginator;
-import game.command.actions.CommandInvoker;
-import game.events.observer.EventManager;
+import game.infrastructure.persistence.memento.GameCaretaker;
+import game.infrastructure.persistence.memento.GameOriginator;
+import game.patterns.command.actions.CommandInvoker;
+import game.infrastructure.events.observer.EventManager;
 
 import java.util.Scanner;
 

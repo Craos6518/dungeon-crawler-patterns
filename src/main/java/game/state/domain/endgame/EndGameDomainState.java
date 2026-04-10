@@ -1,8 +1,8 @@
 package game.state.domain.endgame;
 
-import game.persistence.memento.GameCaretaker;
-import game.persistence.memento.GameMemento;
-import game.persistence.memento.GameOriginator;
+import game.infrastructure.persistence.memento.GameCaretaker;
+import game.application.state.GameMemento;
+import game.infrastructure.persistence.memento.GameOriginator;
 import game.state.domain.AbstractDomainGameState;
 
 /**

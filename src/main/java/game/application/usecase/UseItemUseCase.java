@@ -51,7 +51,7 @@ public class UseItemUseCase {
 
             CombatUseCaseSupport.appendResourceFlow(session, result);
 
-            session.eventManager().notificar(new game.events.observer.GameEvent(game.events.observer.EventType.ITEM_USADO)
+            session.eventManager().notificar(new game.application.ports.events.GameEvent(game.application.ports.events.EventType.ITEM_USADO)
                 .agregarDato("usuario", session.player().name())
                 .agregarDato("item", item.getName()));
 

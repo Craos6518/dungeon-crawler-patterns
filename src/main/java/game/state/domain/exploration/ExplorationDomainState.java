@@ -3,10 +3,10 @@ package game.state.domain.exploration;
 import game.domain.personaje.Personaje;
 import game.dungeon.model.Room;
 import game.effects.status.PoisonEffect;
-import game.events.observer.GameEvent;
-import game.events.observer.EventType;
+import game.application.ports.events.GameEvent;
+import game.application.ports.events.EventType;
 import game.items.model.SimpleItem;
-import game.persistence.memento.GameMemento;
+import game.application.state.GameMemento;
 import game.state.domain.AbstractDomainGameState;
 import game.state.domain.GameSessionData;
 

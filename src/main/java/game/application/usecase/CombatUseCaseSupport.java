@@ -4,8 +4,8 @@ import game.application.state.GameSession;
 import game.domain.DomainRuleViolationException;
 import game.domain.character.Enemy;
 import game.domain.combat.CombatResult;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 import game.items.model.SimpleItem;
 
 import java.util.ArrayList;

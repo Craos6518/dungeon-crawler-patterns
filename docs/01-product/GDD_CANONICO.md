@@ -9,13 +9,13 @@ Estado documental:
 - Rama auditada: Flujo-de-mazmorra
 
 Versiones anteriores (legacy):
-- Docs/GDD.md
-- Docs/Extracto_Proyecto_DungeonCrawler.md
-- Docs/GDD_Fichas_Primera_Persona.md
+- GDD fragmentado previo a la consolidacion documental del 2026-04-10.
+- Los derivados legacy fueron retirados del arbol canonico para evitar duplicacion activa.
 
 Auditoria relacionada:
-- Docs/AUDITORIA_TECNICA_FORMAL_2026-04-04.md
+- docs/05-audit/REPORTE_FINAL_DOCUMENTACION_2026-04-04.md
 - docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md
+- docs/01-product/Especificacion_Requerimientos_Sistema_ISO29148.md
 
 ## Navegacion documental
 

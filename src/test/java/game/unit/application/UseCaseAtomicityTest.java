@@ -8,8 +8,8 @@ import game.domain.character.Player;
 import game.domain.combat.Combat;
 import game.domain.exploration.Dungeon;
 import game.domain.turn.TurnManager;
-import game.events.observer.EventManager;
-import game.persistence.memento.GameCaretaker;
+import game.infrastructure.events.observer.EventManager;
+import game.infrastructure.persistence.memento.GameCaretaker;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;

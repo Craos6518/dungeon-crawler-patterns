@@ -2,10 +2,10 @@ package game.application.usecase;
 
 import game.application.state.GameSession;
 import game.application.state.GameSessionMementoMapper;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
-import game.persistence.memento.GameMemento;
-import game.persistence.memento.SaveSlotNotFoundException;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
+import game.application.state.GameMemento;
+import game.application.ports.persistence.SaveSlotNotFoundException;
 
 /**
  * Caso de uso: restaurar estado completo de partida desde disco.

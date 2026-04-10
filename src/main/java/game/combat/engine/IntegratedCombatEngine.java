@@ -2,15 +2,15 @@ package game.combat.engine;
 
 import game.ai.strategy.AIController;
 import game.ai.strategy.AIStrategy;
-import game.command.actions.AttackCommand;
-import game.command.actions.Command;
-import game.command.actions.CommandInvoker;
-import game.command.actions.DefendCommand;
+import game.patterns.command.actions.AttackCommand;
+import game.patterns.command.actions.Command;
+import game.patterns.command.actions.CommandInvoker;
+import game.patterns.command.actions.DefendCommand;
 import game.domain.personaje.Personaje;
 import game.effects.status.CharacterDecorator;
-import game.events.observer.EventManager;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.infrastructure.events.observer.EventManager;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 
 import java.util.ArrayList;
 import java.util.List;

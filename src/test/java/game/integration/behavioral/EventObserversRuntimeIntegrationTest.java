@@ -2,7 +2,7 @@ package game.integration.behavioral;
 
 import game.application.state.GameSessionFactory;
 import game.application.usecase.ForceCombatUseCase;
-import game.events.observer.EventType;
+import game.application.ports.events.EventType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -1,9 +1,9 @@
 package game.unit.behavioral;
 
 import game.domain.DomainRuleViolationException;
-import game.persistence.memento.GameCaretaker;
-import game.persistence.memento.GameMemento;
-import game.persistence.memento.GameOriginator;
+import game.infrastructure.persistence.memento.GameCaretaker;
+import game.application.state.GameMemento;
+import game.infrastructure.persistence.memento.GameOriginator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

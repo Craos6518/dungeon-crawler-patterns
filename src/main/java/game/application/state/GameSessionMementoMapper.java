@@ -10,7 +10,7 @@ import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Orco;
 import game.domain.personaje.Personaje;
 import game.items.model.SimpleItem;
-import game.persistence.memento.GameMemento;
+import game.application.state.GameMemento;
 
 import java.util.ArrayList;
 import java.util.HashMap;

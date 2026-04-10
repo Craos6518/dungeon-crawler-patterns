@@ -1,8 +1,8 @@
 package game.integration.behavioral;
 
-import game.persistence.memento.GameCaretaker;
-import game.persistence.memento.GameMemento;
-import game.persistence.memento.GameOriginator;
+import game.infrastructure.persistence.memento.GameCaretaker;
+import game.application.state.GameMemento;
+import game.infrastructure.persistence.memento.GameOriginator;
 import game.state.game.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

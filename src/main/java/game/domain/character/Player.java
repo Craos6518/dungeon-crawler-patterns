@@ -1,7 +1,7 @@
 package game.domain.character;
 
 import game.balance.GameBalance;
-import game.command.actions.LevelUpCommand;
+import game.patterns.command.actions.LevelUpCommand;
 import game.domain.personaje.Personaje;
 import game.domain.personaje.factory.GuerreroFactory;
 import game.domain.inventory.Inventory;

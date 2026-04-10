@@ -1,6 +1,6 @@
 package game.unit.structural;
 
-import game.combat.facade.CombatFacade;
+import game.patterns.combat.facade.CombatFacade;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Guerrero;
 import game.domain.personaje.Personaje;

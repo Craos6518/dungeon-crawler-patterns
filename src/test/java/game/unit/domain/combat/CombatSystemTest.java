@@ -2,7 +2,7 @@ package game.unit.domain.combat;
 
 import game.ai.strategy.AIController;
 import game.ai.strategy.AggressiveStrategy;
-import game.command.actions.CommandInvoker;
+import game.patterns.command.actions.CommandInvoker;
 import game.domain.character.Enemy;
 import game.domain.character.Player;
 import game.domain.combat.CombatSystem;

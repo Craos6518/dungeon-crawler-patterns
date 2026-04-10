@@ -1,9 +1,9 @@
 package game.unit.behavioral;
 
 import game.ai.strategy.*;
-import game.command.actions.AttackCommand;
-import game.command.actions.Command;
-import game.command.actions.DefendCommand;
+import game.patterns.command.actions.AttackCommand;
+import game.patterns.command.actions.Command;
+import game.patterns.command.actions.DefendCommand;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Guerrero;
 import game.domain.personaje.Personaje;

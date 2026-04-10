@@ -1,7 +1,7 @@
 package game.application.usecase;
 
 import game.application.state.GameSession;
-import game.persistence.memento.GameMemento;
+import game.application.state.GameMemento;
 
 /**
  * Ejecuta mutaciones de use case con rollback ante excepcion.

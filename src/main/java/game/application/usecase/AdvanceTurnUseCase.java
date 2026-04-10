@@ -2,8 +2,8 @@ package game.application.usecase;
 
 import game.application.state.GameSession;
 import game.domain.DomainRuleViolationException;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 
 /**
  * Caso de uso: avanzar la progresion de turno/sala en exploracion.
@@ -54,7 +54,7 @@ public class AdvanceTurnUseCase {
             var room = session.dungeon().currentRoom();
             session.appendEvent("Avanzas a la sala " + (session.dungeon().currentRoomIndex() + 1) + ": " + room.name());
 
-            session.eventManager().notificar(new game.events.observer.GameEvent(game.events.observer.EventType.SALA_ENTRAR)
+            session.eventManager().notificar(new game.application.ports.events.GameEvent(game.application.ports.events.EventType.SALA_ENTRAR)
                 .agregarDato("sala", session.dungeon().currentRoomIndex() + 1)
                 .agregarDato("nombre", room.name()));
 

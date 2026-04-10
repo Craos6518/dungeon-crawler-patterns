@@ -1,6 +1,6 @@
 package game.ai.strategy;
 
-import game.command.actions.Command;
+import game.patterns.command.actions.Command;
 import game.domain.personaje.Personaje;
 
 import java.util.List;

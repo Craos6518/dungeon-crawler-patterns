@@ -4,8 +4,8 @@ import game.application.state.GameSession;
 import game.application.state.GameSessionFactory;
 import game.application.usecase.LoadGameUseCase;
 import game.application.usecase.SaveGameUseCase;
-import game.persistence.memento.GameMemento;
-import game.persistence.memento.SaveSlotNotFoundException;
+import game.application.state.GameMemento;
+import game.application.ports.persistence.SaveSlotNotFoundException;
 
 import java.util.Locale;
 import java.util.Set;

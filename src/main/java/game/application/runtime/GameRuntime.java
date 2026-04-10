@@ -469,7 +469,7 @@ public class GameRuntime implements GameCommandHandler {
      * - fuera de alcance de la auditoria actual para backend de comandos.
      *
      * Referencia:
-     * - HU-03 en Docs/GDD.md (filtros avanzados de inventario pendientes de cierre).
+     * - HU-03 en docs/01-product/GDD_CANONICO.md (filtros avanzados de inventario pendientes de cierre).
      */
     private void handleFilterCategoryStub() {
         // No-op intencional.

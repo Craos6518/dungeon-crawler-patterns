@@ -10,7 +10,7 @@ import game.items.model.SimpleItem;
 import game.domain.personaje.Arquero;
 import game.domain.personaje.Mago;
 import game.domain.personaje.Personaje;
-import game.persistence.memento.GameMemento;
+import game.application.state.GameMemento;
 import game.ui.GameViewModel;
 
 import java.time.LocalDateTime;
