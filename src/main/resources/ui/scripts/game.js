@@ -200,6 +200,26 @@
       }
     };
 
+    var ART_ASSETS = {
+      heroes: {
+        guerrero: 'assets/images/heroes/kael-ferrum.webp',
+        mago: 'assets/images/heroes/sylara-vex.webp',
+        arquero: 'assets/images/heroes/thoran-silvis.webp'
+      },
+      corridors: {
+        fire: 'assets/images/corridors/fire.webp',
+        ice: 'assets/images/corridors/ice.webp',
+        poison: 'assets/images/corridors/poison.webp',
+        dark: 'assets/images/corridors/dark.webp'
+      },
+      bossesByTheme: {
+        fire: 'assets/images/bosses/pyraxis.webp',
+        ice: 'assets/images/bosses/kryovaleth.webp',
+        poison: 'assets/images/bosses/arachnovex.webp',
+        dark: 'assets/images/bosses/malachar.webp'
+      }
+    };
+
     function normalizeHeroType(heroType) {
       var normalized = String(heroType || '').trim().toLowerCase();
       if (normalized === 'guerrero' || normalized === 'mago' || normalized === 'arquero') {
@@ -226,6 +246,69 @@
 
     function resolveThemeLore(themeKey) {
       return LORE_THEME_BOOK[normalizeThemeKey(themeKey)] || LORE_THEME_BOOK.poison;
+    }
+
+    function normalizeSearchToken(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function applyIllustrationAsset(elementId, assetPath) {
+      var el = document.getElementById(elementId);
+      if (!el) return;
+
+      if (assetPath) {
+        el.style.backgroundImage = 'url("' + assetPath + '")';
+        el.classList.add('placeholder-img--has-art');
+      } else {
+        el.style.backgroundImage = '';
+        el.classList.remove('placeholder-img--has-art');
+      }
+    }
+
+    function applyHeroPortraitAsset(heroType, assetPath) {
+      var portrait = document.getElementById('hero-portrait-' + normalizeHeroType(heroType));
+      if (!portrait) return;
+
+      if (assetPath) {
+        portrait.style.backgroundImage = 'url("' + assetPath + '")';
+        portrait.classList.add('hero-card__portrait--has-art');
+      } else {
+        portrait.style.backgroundImage = '';
+        portrait.classList.remove('hero-card__portrait--has-art');
+      }
+    }
+
+    function resolveBossAsset(enemyName, themeKey) {
+      var name = normalizeSearchToken(enemyName);
+      if (name.indexOf('pyraxis') >= 0) return ART_ASSETS.bossesByTheme.fire;
+      if (name.indexOf('kryovaleth') >= 0) return ART_ASSETS.bossesByTheme.ice;
+      if (name.indexOf('arachnovex') >= 0) return ART_ASSETS.bossesByTheme.poison;
+      if (name.indexOf('malachar') >= 0) return ART_ASSETS.bossesByTheme.dark;
+      return ART_ASSETS.bossesByTheme[normalizeThemeKey(themeKey)] || '';
+    }
+
+    function renderHeroPortraitAssets() {
+      applyHeroPortraitAsset('guerrero', ART_ASSETS.heroes.guerrero);
+      applyHeroPortraitAsset('mago', ART_ASSETS.heroes.mago);
+      applyHeroPortraitAsset('arquero', ART_ASSETS.heroes.arquero);
+    }
+
+    function renderSceneAssets(state) {
+      var theme = normalizeThemeKey(state && state.theme ? state.theme : 'poison');
+      var corridorAsset = ART_ASSETS.corridors[theme] || ART_ASSETS.corridors.poison;
+      applyIllustrationAsset('s1-room-illustration', corridorAsset);
+
+      var duelAsset = corridorAsset;
+      var enemy = state && state.enemy ? state.enemy : null;
+      var enemyTier = enemy && enemy.tier ? String(enemy.tier).toLowerCase() : '';
+      if (enemyTier === 'jefe') {
+        duelAsset = resolveBossAsset(enemy.name, theme) || duelAsset;
+      }
+      applyIllustrationAsset('s2-duel-illustration', duelAsset);
     }
 
     function formatHeroTypeLabel(heroType) {
@@ -827,6 +910,8 @@
 
     document.addEventListener('DOMContentLoaded', function () {
 
+      renderHeroPortraitAssets();
+
       var loreOverlay = document.getElementById('lore-window-overlay');
       if (loreOverlay) {
         loreOverlay.addEventListener('click', function(e) {
@@ -1213,6 +1298,9 @@
         document.body.classList.remove('theme-fire','theme-ice','theme-poison','theme-dark');
         document.body.classList.add('theme-' + state.theme);
       }
+
+      renderHeroPortraitAssets();
+      renderSceneAssets(state);
 
       /* Pantalla activa */
       if (state.screen) {
