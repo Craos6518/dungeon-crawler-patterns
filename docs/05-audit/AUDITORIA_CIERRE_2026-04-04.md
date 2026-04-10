@@ -13,13 +13,19 @@
 - Auditoria: docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md
 
 ## Dictamen
-La arquitectura es defendible academicamente para los patrones activos en runtime productivo:
-State, Observer, Decorator, Composite, Builder (procedural), Memento y Strategy.
+La arquitectura es defendible academicamente para 11 patrones implementados y
+evidenciados en codigo y pruebas:
+State, Observer, Decorator, Composite, Builder (procedural), Memento, Strategy,
+Factory Method, Abstract Factory, Facade y Command.
 
 ## Hallazgos cerrados
 - Flujo de pantallas controlado por `GameStateContext`.
 - Observers registrados en arranque productivo (`GameSessionFactory`).
 - Contrato de eventos validado en emision (`EventContractValidator`).
+- Creacion de heroes por `PersonajeFactory` (Factory Method) en flujo de sesion.
+- Seleccion de temas por `DungeonThemeFactory` (Abstract Factory) en setup/runtime.
+- API simplificada de combate via `CombatFacade`.
+- Acciones de combate encapsuladas por `Command` + `CommandInvoker`.
 - Loop combate -> tesoro -> progresion integrado en runtime.
 - Persistencia por slots con restauracion de sesion y semilla de mazmorra.
 

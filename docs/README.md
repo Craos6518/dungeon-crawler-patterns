@@ -22,6 +22,11 @@
 - Testing: docs/04-testing/ESTRATEGIA_TESTING.md
 - Auditoria: docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md
 
+## Nota de consistencia
+
+- Conteo oficial vigente de patrones implementados: 11.
+- Evidencia canonica por patron: docs/03-patterns/*.md + README.md raiz + tests dedicados.
+
 ## Bloque obligatorio para archivos legacy
 
 ```markdown

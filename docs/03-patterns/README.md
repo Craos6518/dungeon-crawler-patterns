@@ -1,4 +1,4 @@
-# Patrones en Runtime (Indice)
+# Patrones de Diseno (Indice)
 
 - Fecha de creacion: 2026-04-04
 - Rama auditada: Flujo-de-mazmorra
@@ -20,3 +20,12 @@
 - `builder.md`
 - `memento.md`
 - `strategy.md`
+- `factory-method.md`
+- `abstract-factory.md`
+- `facade.md`
+- `command.md`
+
+## Cobertura vigente
+La documentacion de esta carpeta evidencia 11 patrones implementados en el proyecto:
+State, Observer, Decorator, Composite, Builder, Memento, Strategy, Factory Method,
+Abstract Factory, Facade y Command.

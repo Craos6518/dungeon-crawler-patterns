@@ -22,7 +22,7 @@ Este archivo se conserva únicamente por trazabilidad histórica.
 # Estado del Proyecto y Backlog
 
 ## 1. Resumen de Completitud
-El proyecto ha implementado exitosamente **11 patrones de diseño** (10 base + State).
+El proyecto ha implementado exitosamente **11 patrones de diseño**.
 
 | Categoría | Patrón | Estado |
 |-----------|--------|--------|
