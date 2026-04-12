@@ -9,6 +9,7 @@ import game.application.state.GameSessionFactory;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -79,6 +80,35 @@ class GameRuntimeStateFlowIntegrationTest {
         assertEquals(GameFlowState.HERO, session.activeState());
         assertTrue(session.isThemeCompleted("dark"));
         assertTrue(session.isHeroSelectionLocked());
+    }
+
+    @Test
+    void bossTreasureTransitionsToMenuWhenCampaignIsFullyCompleted() throws Exception {
+        GameRuntime runtime = new GameRuntime(GameSessionFactory.createSessionForTheme("dark", "guerrero"));
+        GameSession session = extractSession(runtime);
+
+        session.replaceCompletedThemes(Set.of("poison", "ice", "fire"));
+        session.setHeroSelectionLocked(true);
+
+        int bossRoom = session.dungeon().totalRooms() - 1;
+        session.dungeon().restoreProgress(bossRoom, Set.of(), Set.of());
+
+        send(runtime, "forceCombat", new JsonObject());
+        assertTrue(session.combat().isBossFight());
+
+        session.player().heal(9_999);
+        int enemyHp = session.combat().currentEnemy().hp();
+        session.combat().currentEnemy().receiveDamage(Math.max(0, enemyHp - 1));
+
+        send(runtime, "attack", payload("targetId", "current"));
+        assertEquals(GameFlowState.TREASURE.screenKey(), runtime.presentViewModel().screen);
+
+        send(runtime, "takeLoot", new JsonObject());
+
+        assertEquals(GameFlowState.MENU.screenKey(), runtime.presentViewModel().screen);
+        assertEquals(GameFlowState.MENU, session.activeState());
+        assertTrue(session.isThemeCompleted("dark"));
+        assertEquals("", session.nextCampaignTheme());
     }
 
     private static void send(GameRuntime runtime, String action, JsonObject payload) {

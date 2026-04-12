@@ -50,4 +50,4 @@
  * @see game.infrastructure.persistence.memento.GameOriginator
  * @see game.infrastructure.persistence.memento.GameCaretaker
  */
-package game.application.ports.persistence;
+package game.infrastructure.persistence.memento;

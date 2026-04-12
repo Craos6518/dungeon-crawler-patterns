@@ -45,6 +45,7 @@ Cuando abras el proyecto, VSCode te sugerirá instalar las extensiones recomenda
 Alternativamente, ve a la pestaña de extensiones y busca:
 - **Java Extension Pack** (vscjava.vscode-java-pack)
 - **Maven for Java** (vscjava.vscode-maven)
+- **PlantUML** (jebbs.plantuml) para visualizar/editar fuentes de diagramas
 
 ### 2. Recargar VSCode
 

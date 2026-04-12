@@ -21,6 +21,7 @@
 - Requerimientos: docs/01-product/Especificacion_Requerimientos_Sistema_ISO29148.md
 - Arquitectura: docs/02-architecture/ARQUITECTURA_RUNTIME.md
 - Diagramas de arquitectura: docs/02-architecture/diagramas/
+- Galeria visual de diagramas (PNG + fuente): docs/02-architecture/diagramas/README.md
 - Patrones: docs/03-patterns/README.md
 - Testing: docs/04-testing/ESTRATEGIA_TESTING.md
 - Auditoria: docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md

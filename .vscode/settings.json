@@ -55,5 +55,11 @@
     
     // Debug
     "java.debug.settings.console": "integratedTerminal",
-    "java.debug.settings.forceBuildBeforeLaunch": true
+    "java.debug.settings.forceBuildBeforeLaunch": true,
+
+    // Documentacion y diagramas
+    "markdown.preview.mermaid": true,
+    "files.associations": {
+        "docs/02-architecture/diagramas/*.txt": "plantuml"
+    }
 }

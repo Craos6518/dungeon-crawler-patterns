@@ -1,5 +1,7 @@
 package game.unit.behavioral;
 
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 import game.infrastructure.events.observer.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

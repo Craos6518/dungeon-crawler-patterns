@@ -42,4 +42,4 @@
  * @see game.application.ports.events.GameObserver
  * @see game.infrastructure.events.observer.EventManager
  */
-package game.application.ports.events;
+package game.infrastructure.events.observer;

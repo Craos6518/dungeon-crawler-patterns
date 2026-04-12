@@ -628,15 +628,22 @@ public class GameSession {
             String dungeonName = dungeon.model().getNombre();
             markThemeCompleted(dungeon.themeKey());
             setHeroSelectionLocked(true);
+            boolean campaignCompleted = nextCampaignTheme().isBlank();
+
             clearTreasureState();
-            transitionTo(GameFlowState.HERO);
-            appendEvent("Conquistaste " + dungeonName + ". Elige tu siguiente mazmorra.");
+            transitionTo(campaignCompleted ? GameFlowState.MENU : GameFlowState.HERO);
+            if (campaignCompleted) {
+                appendEvent("Conquistaste " + dungeonName + ". Has completado la campana de Eranthia.");
+            } else {
+                appendEvent("Conquistaste " + dungeonName + ". Elige tu siguiente mazmorra.");
+            }
 
             eventManager.notificar(new GameEvent(EventType.SALA_COMPLETADA)
                 .agregarDato("resultado", "mazmorra_completada")
                 .agregarDato("mazmorra", dungeonName)
                 .agregarDato("tema", dungeon.themeKey())
-                .agregarDato("salas", dungeon.totalRooms()));
+                .agregarDato("salas", dungeon.totalRooms())
+                .agregarDato("campanaCompleta", campaignCompleted));
             return;
         }
 

@@ -202,21 +202,21 @@
 
     var ART_ASSETS = {
       heroes: {
-        guerrero: 'assets/images/heroes/kael-ferrum.webp',
-        mago: 'assets/images/heroes/sylara-vex.webp',
-        arquero: 'assets/images/heroes/thoran-silvis.webp'
+        guerrero: 'assets/images/heroes/kael-ferrum.png',
+        mago: 'assets/images/heroes/sylara-vex.png',
+        arquero: 'assets/images/heroes/thoran-silvis.png'
       },
       corridors: {
-        fire: 'assets/images/corridors/fire.webp',
-        ice: 'assets/images/corridors/ice.webp',
-        poison: 'assets/images/corridors/poison.webp',
-        dark: 'assets/images/corridors/dark.webp'
+        fire: 'assets/images/corridors/fire.png',
+        ice: 'assets/images/corridors/ice.png',
+        poison: 'assets/images/corridors/poison.png',
+        dark: 'assets/images/corridors/dark.png'
       },
       bossesByTheme: {
-        fire: 'assets/images/bosses/pyraxis.webp',
-        ice: 'assets/images/bosses/kryovaleth.webp',
-        poison: 'assets/images/bosses/arachnovex.webp',
-        dark: 'assets/images/bosses/malachar.webp'
+        fire: 'assets/images/bosses/pyraxis.png',
+        ice: 'assets/images/bosses/kryovaleth.png',
+        poison: 'assets/images/bosses/arachnovex.png',
+        dark: 'assets/images/bosses/malachar.png'
       }
     };
 
@@ -256,30 +256,40 @@
         .replace(/[\u0300-\u036f]/g, '');
     }
 
-    function applyIllustrationAsset(elementId, assetPath) {
-      var el = document.getElementById(elementId);
+    function applyBackgroundAsset(el, assetPath, loadedClassName) {
       if (!el) return;
 
-      if (assetPath) {
-        el.style.backgroundImage = 'url("' + assetPath + '")';
-        el.classList.add('placeholder-img--has-art');
-      } else {
+      var normalizedPath = String(assetPath || '').trim();
+      el.dataset.pendingAsset = normalizedPath;
+
+      if (!normalizedPath) {
         el.style.backgroundImage = '';
-        el.classList.remove('placeholder-img--has-art');
+        el.classList.remove(loadedClassName);
+        return;
       }
+
+      var probe = new Image();
+      probe.onload = function() {
+        if (el.dataset.pendingAsset !== normalizedPath) return;
+        el.style.backgroundImage = 'url("' + normalizedPath + '")';
+        el.classList.add(loadedClassName);
+      };
+      probe.onerror = function() {
+        if (el.dataset.pendingAsset !== normalizedPath) return;
+        el.style.backgroundImage = '';
+        el.classList.remove(loadedClassName);
+      };
+      probe.src = normalizedPath;
+    }
+
+    function applyIllustrationAsset(elementId, assetPath) {
+      var el = document.getElementById(elementId);
+      applyBackgroundAsset(el, assetPath, 'placeholder-img--has-art');
     }
 
     function applyHeroPortraitAsset(heroType, assetPath) {
       var portrait = document.getElementById('hero-portrait-' + normalizeHeroType(heroType));
-      if (!portrait) return;
-
-      if (assetPath) {
-        portrait.style.backgroundImage = 'url("' + assetPath + '")';
-        portrait.classList.add('hero-card__portrait--has-art');
-      } else {
-        portrait.style.backgroundImage = '';
-        portrait.classList.remove('hero-card__portrait--has-art');
-      }
+      applyBackgroundAsset(portrait, assetPath, 'hero-card__portrait--has-art');
     }
 
     function resolveBossAsset(enemyName, themeKey) {
@@ -482,7 +492,9 @@
 
       if (!_loreVisible && _loreQueue.length === 0 && _returnToMainMenuAfterLore) {
         _returnToMainMenuAfterLore = false;
-        sendCommand('openMainMenu', {});
+        if (_currentScreen !== 'menu') {
+          sendCommand('openMainMenu', {});
+        }
       }
     }
 
@@ -551,7 +563,7 @@
 
       var dungeonJustCompleted = previous
         && previous.screen === 'treasure'
-        && currentFrame.screen === 'hero'
+        && (currentFrame.screen === 'hero' || currentFrame.screen === 'menu')
         && currentFrame.completedCount > previous.completedCount;
 
       if ((bossJustDefeated || dungeonJustCompleted) && !_loreState.endingShown[currentTheme]) {

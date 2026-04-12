@@ -1,6 +1,5 @@
 package game.infrastructure.events.observer;
 
-import game.application.ports.events.EventType;
 import game.application.ports.events.GameEvent;
 import game.application.ports.events.GameObserver;
 

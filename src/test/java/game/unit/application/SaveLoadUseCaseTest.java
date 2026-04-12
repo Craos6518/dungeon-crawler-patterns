@@ -6,6 +6,7 @@ import game.application.usecase.LoadGameUseCase;
 import game.application.usecase.SaveGameUseCase;
 import game.domain.DomainRuleViolationException;
 import game.application.state.GameMemento;
+import game.infrastructure.persistence.memento.GameCaretaker;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ class SaveLoadUseCaseTest {
         SaveGameUseCase save = new SaveGameUseCase(session);
         save.execute(3);
 
-        GameMemento memento = session.caretaker().obtenerUltimoMemento();
+        GameMemento memento = session.caretaker().cargarDesdeDisco("Slot_3");
         Map<String, Object> characterState = memento.getEstadoPersonaje();
         Map<String, Object> inventoryState = memento.getEstadoInventario();
         Map<String, Object> dungeonState = memento.getEstadoMazmorra();
@@ -59,7 +60,7 @@ class SaveLoadUseCaseTest {
         SaveGameUseCase save = new SaveGameUseCase(session);
 
         assertThrows(DomainRuleViolationException.class, () -> save.execute(1));
-        assertEquals(0, session.caretaker().getCantidadMementos());
+        assertEquals(0, ((GameCaretaker) session.caretaker()).getCantidadMementos());
     }
 
     @Test
@@ -71,7 +72,7 @@ class SaveLoadUseCaseTest {
 
         DomainRuleViolationException ex = assertThrows(DomainRuleViolationException.class, () -> save.execute(1));
         assertTrue(ex.getMessage().contains("antes de iniciar o cargar"));
-        assertEquals(0, session.caretaker().getCantidadMementos());
+        assertEquals(0, ((GameCaretaker) session.caretaker()).getCantidadMementos());
     }
 
     @Test
@@ -112,7 +113,7 @@ class SaveLoadUseCaseTest {
     @Test
     void loadRejectsMissingSlotAndKeepsSessionUntouched() {
         var session = GameSessionFactory.createDemoSession();
-        session.caretaker().eliminarGuardado("Slot_3");
+        ((GameCaretaker) session.caretaker()).eliminarGuardado("Slot_3");
 
         int roomBefore = session.dungeon().currentRoomIndex();
         int goldBefore = session.player().gold();
@@ -162,7 +163,7 @@ class SaveLoadUseCaseTest {
         var source = GameSessionFactory.createSessionForTheme("poison", "guerrero");
         new SaveGameUseCase(source).execute(1);
 
-        GameMemento valid = source.caretaker().obtenerUltimoMemento();
+        GameMemento valid = source.caretaker().cargarDesdeDisco("Slot_1");
         Map<String, Object> characterState = new HashMap<>(valid.getEstadoPersonaje());
         Map<String, Object> inventoryState = new HashMap<>(valid.getEstadoInventario());
         Map<String, Object> dungeonState = new HashMap<>(valid.getEstadoMazmorra());

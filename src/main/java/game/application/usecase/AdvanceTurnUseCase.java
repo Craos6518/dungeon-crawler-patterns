@@ -30,16 +30,22 @@ public class AdvanceTurnUseCase {
                 UseCaseTransactionSupport.runAtomically(session, () -> {
                     session.markThemeCompleted(session.dungeon().themeKey());
                     session.setHeroSelectionLocked(true);
-                    session.setActiveScreen("hero");
-
                     String dungeonName = session.dungeon().model().getNombre();
-                    session.appendEvent("Conquistaste " + dungeonName + ". Elige tu siguiente mazmorra.");
+                    boolean campaignCompleted = session.nextCampaignTheme().isBlank();
+
+                    session.setActiveScreen(campaignCompleted ? "menu" : "hero");
+                    if (campaignCompleted) {
+                        session.appendEvent("Conquistaste " + dungeonName + ". Has completado la campana de Eranthia.");
+                    } else {
+                        session.appendEvent("Conquistaste " + dungeonName + ". Elige tu siguiente mazmorra.");
+                    }
 
                     session.eventManager().notificar(new GameEvent(EventType.SALA_COMPLETADA)
                         .agregarDato("resultado", "mazmorra_completada")
                         .agregarDato("mazmorra", dungeonName)
                         .agregarDato("tema", session.dungeon().themeKey())
-                        .agregarDato("salas", session.dungeon().totalRooms()));
+                        .agregarDato("salas", session.dungeon().totalRooms())
+                        .agregarDato("campanaCompleta", campaignCompleted));
                 });
                 return;
             }
