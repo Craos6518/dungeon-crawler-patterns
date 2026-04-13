@@ -5,6 +5,7 @@ import game.domain.combat.Combat;
 import game.domain.DomainRuleViolationException;
 import game.domain.exploration.Dungeon;
 import game.domain.inventory.Inventory;
+import game.patterns.combat.facade.CombatFacade;
 import game.application.ports.events.EventPublisher;
 import game.application.ports.events.EventType;
 import game.application.ports.events.GameEvent;
@@ -41,7 +42,7 @@ public class GameSession {
 
     private final Player player;
     private final Dungeon dungeon;
-    private final Combat combat;
+    private final CombatFacade combat;
     private final EventPublisher eventManager;
     private final SessionSnapshotStore caretaker;
     private final GameStateContext flowContext;
@@ -74,7 +75,7 @@ public class GameSession {
     public GameSession(
         Player player,
         Dungeon dungeon,
-        Combat combat,
+        CombatFacade combat,
         EventPublisher eventManager,
         SessionSnapshotStore caretaker
     ) {
@@ -103,6 +104,16 @@ public class GameSession {
         syncActiveScreenFromContext();
     }
 
+    public GameSession(
+        Player player,
+        Dungeon dungeon,
+        Combat combat,
+        EventPublisher eventManager,
+        SessionSnapshotStore caretaker
+    ) {
+        this(player, dungeon, new CombatFacade(combat), eventManager, caretaker);
+    }
+
     public Player player() {
         return player;
     }
@@ -115,7 +126,7 @@ public class GameSession {
         return dungeon;
     }
 
-    public Combat combat() {
+    public CombatFacade combat() {
         return combat;
     }
 

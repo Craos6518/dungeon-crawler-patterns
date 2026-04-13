@@ -32,3 +32,19 @@
   - validación contra código
   - validación contra tests
   - validación contra documentación
+
+## Estado de remediación
+
+| Patrón           | Calificación Auditoría | Estado           | Nueva Calificación |
+|------------------|------------------------|------------------|--------------------|
+| Facade           | 4                      | ✅ Remediado      | 10                 |
+| State            | 5                      | ⏳ Pendiente      | —                  |
+| Command          | 6                      | ⏳ Pendiente      | —                  |
+| Factory Method   | 6                      | ⏳ Pendiente      | —                  |
+| Decorator        | 6                      | ⏳ Pendiente      | —                  |
+| Composite        | 7                      | ⏳ Pendiente      | —                  |
+| Observer         | 7                      | ⏳ Pendiente      | —                  |
+| Strategy         | 7                      | ⏳ Pendiente      | —                  |
+| Builder          | 8                      | ⏳ Pendiente      | —                  |
+| Abstract Factory | 8                      | ⏳ Pendiente      | —                  |
+| Memento          | 8                      | ⏳ Pendiente      | —                  |

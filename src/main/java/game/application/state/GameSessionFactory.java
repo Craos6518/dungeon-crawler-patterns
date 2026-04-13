@@ -5,7 +5,6 @@ import game.application.observer.SessionEventCounterObserver;
 import game.application.observer.SessionEventFeedObserver;
 import game.application.ports.events.EventPublisher;
 import game.domain.character.Player;
-import game.domain.combat.Combat;
 import game.domain.exploration.Dungeon;
 import game.domain.inventory.Inventory;
 import game.domain.personaje.Personaje;
@@ -13,6 +12,7 @@ import game.domain.personaje.factory.ArqueroFactory;
 import game.domain.personaje.factory.GuerreroFactory;
 import game.domain.personaje.factory.MagoFactory;
 import game.domain.turn.TurnManager;
+import game.patterns.combat.facade.CombatFacade;
 import game.dungeon.theme.DarkThemeFactory;
 import game.dungeon.theme.DungeonThemeFactory;
 import game.dungeon.theme.FireThemeFactory;
@@ -72,7 +72,7 @@ public final class GameSessionFactory {
         DungeonThemeFactory theme = resolveThemeFactory(themeKey);
         Dungeon dungeon = Dungeon.fromTheme(random, theme, dungeonSeed);
         TurnManager turnManager = new TurnManager();
-        Combat combat = new Combat(player, turnManager, random);
+        CombatFacade combat = new CombatFacade(player, turnManager, random);
 
         EventPublisher eventManager = EventManager.getInstance();
         SessionSnapshotStore caretaker = new GameCaretaker(resolveSaveDirectory());
