@@ -12,15 +12,21 @@ public class MenuState implements GameState {
     
     @Override
     public void manejarEntrada(String entrada) {
-        switch (entrada.toLowerCase()) {
+        String accion = entrada == null ? "" : entrada.trim().toLowerCase();
+        if (!permiteAccion(accion)) {
+            System.out.println("Accion no valida en Menu.");
+            return;
+        }
+
+        switch (accion) {
             case "1", "jugar" -> {
                 System.out.println("Iniciando nueva partida...");
-                contexto.cambiarEstado(new ExplorationState(contexto));
+                contexto.transitionTo(new ExplorationState(contexto));
             }
             case "2", "cargar" -> {
                 System.out.println("Cargando partida...");
                 // En un sistema real, cargaría el estado guardado
-                contexto.cambiarEstado(new ExplorationState(contexto));
+                contexto.transitionTo(new ExplorationState(contexto));
             }
             case "3", "salir" -> {
                 System.out.println("Saliendo del juego...");
@@ -60,5 +66,29 @@ public class MenuState implements GameState {
     @Override
     public String getNombre() {
         return "Menu";
+    }
+
+    @Override
+    public boolean permiteAccion(String accion) {
+        if (accion == null || accion.isBlank()) {
+            return false;
+        }
+        return "1".equals(accion)
+            || "2".equals(accion)
+            || "3".equals(accion)
+            || "jugar".equals(accion)
+            || "cargar".equals(accion)
+            || "salir".equals(accion);
+    }
+
+    @Override
+    public boolean permiteTransicionA(String nombreEstadoDestino) {
+        if (nombreEstadoDestino == null || nombreEstadoDestino.isBlank()) {
+            return false;
+        }
+        return "Menu".equals(nombreEstadoDestino)
+            || "Exploration".equals(nombreEstadoDestino)
+            || "RuntimeSetup".equals(nombreEstadoDestino)
+            || "RuntimeMenu".equals(nombreEstadoDestino);
     }
 }

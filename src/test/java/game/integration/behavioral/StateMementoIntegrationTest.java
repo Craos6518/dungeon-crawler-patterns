@@ -1,5 +1,9 @@
 package game.integration.behavioral;
 
+import game.application.state.GameFlowState;
+import game.application.state.GameSessionFactory;
+import game.application.usecase.LoadGameUseCase;
+import game.application.usecase.SaveGameUseCase;
 import game.infrastructure.persistence.memento.GameCaretaker;
 import game.application.state.GameMemento;
 import game.infrastructure.persistence.memento.GameOriginator;
@@ -257,6 +261,22 @@ public class StateMementoIntegrationTest {
         assertEquals("Exploration", originator.getEstadoActual(),
             "Estado debe persistir entre sesiones");
         assertEquals(80, originator.getVidaJugador());
+    }
+
+    @Test
+    public void testLoadRestauraExplorationYNoMenuEnFlujoProductivo() {
+        var source = GameSessionFactory.createSessionForTheme("poison", "guerrero");
+        source.transitionTo(GameFlowState.EXPLORATION);
+        new SaveGameUseCase(source).execute(2);
+
+        var target = GameSessionFactory.createSessionForTheme("poison", "guerrero");
+        target.transitionTo(GameFlowState.MENU);
+        assertEquals(GameFlowState.MENU.screenKey(), target.activeScreen());
+
+        new LoadGameUseCase(target).execute(2);
+
+        assertEquals(GameFlowState.EXPLORATION.screenKey(), target.activeScreen());
+        assertNotEquals(GameFlowState.MENU.screenKey(), target.activeScreen());
     }
     
     @Test

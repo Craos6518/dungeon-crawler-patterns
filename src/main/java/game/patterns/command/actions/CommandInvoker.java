@@ -36,6 +36,13 @@ public class CommandInvoker {
         historial.add(comando);
         comandosEjecutados.push(comando);
     }
+
+    /**
+     * Alias en ingles para flujos que consumen API uniforme execute(...).
+     */
+    public void execute(Command comando) {
+        ejecutarComando(comando);
+    }
     
     /**
      * Deshace el último comando ejecutado
@@ -44,9 +51,18 @@ public class CommandInvoker {
         if (comandosEjecutados.isEmpty()) {
             throw new IllegalStateException("No hay comandos para deshacer");
         }
-        
+
         Command comando = comandosEjecutados.pop();
-        comando.undo();
+        try {
+            comando.undo();
+            if (!historial.isEmpty()) {
+                historial.remove(historial.size() - 1);
+            }
+        } catch (RuntimeException ex) {
+            // Revertimos el pop para mantener el invoker consistente ante un undo fallido.
+            comandosEjecutados.push(comando);
+            throw ex;
+        }
     }
     
     /**
@@ -70,6 +86,13 @@ public class CommandInvoker {
      */
     public List<Command> getHistorial() {
         return Collections.unmodifiableList(historial);
+    }
+
+    /**
+     * Alias en ingles para integración con tests/contratos que esperan getHistory().
+     */
+    public List<Command> getHistory() {
+        return getHistorial();
     }
     
     /**

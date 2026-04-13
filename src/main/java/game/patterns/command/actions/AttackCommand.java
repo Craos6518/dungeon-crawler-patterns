@@ -2,17 +2,30 @@ package game.patterns.command.actions;
 
 import game.domain.personaje.Personaje;
 
+import java.util.Objects;
+
 /**
  * Command concreto para realizar un ataque entre personajes
  */
 public class AttackCommand implements Command {
+    @FunctionalInterface
+    public interface AttackExecutor {
+        int apply(Personaje atacante, Personaje defensor);
+    }
+
     private final Personaje atacante;
     private final Personaje defensor;
+    private final AttackExecutor attackExecutor;
     private int danioAplicado;
     
     public AttackCommand(Personaje atacante, Personaje defensor) {
+        this(atacante, defensor, (source, target) -> source.atacar(target).danio());
+    }
+
+    public AttackCommand(Personaje atacante, Personaje defensor, AttackExecutor attackExecutor) {
         this.atacante = atacante;
         this.defensor = defensor;
+        this.attackExecutor = Objects.requireNonNull(attackExecutor, "attackExecutor no puede ser null");
         this.danioAplicado = 0;
     }
     
@@ -21,18 +34,14 @@ public class AttackCommand implements Command {
         if (!canExecute()) {
             throw new IllegalStateException("No se puede ejecutar el ataque");
         }
-        
-        var resultado = atacante.atacar(defensor);
-        danioAplicado = resultado.danio();
+
+        danioAplicado = Math.max(0, attackExecutor.apply(atacante, defensor));
     }
     
     @Override
     public void undo() {
-        // Restaurar la vida del defensor
-        // Nota: Esta es una implementación simplificada
-        // En un sistema real, necesitarías guardar más estado
         throw new UnsupportedOperationException(
-            "Deshacer ataques no está implementado en esta versión"
+            "AttackCommand no es reversible por diseño: el daño aplicado no conserva estado suficiente para undo seguro"
         );
     }
     

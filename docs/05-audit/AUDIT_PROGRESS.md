@@ -2,7 +2,7 @@
 
 ## Estado general
 - Proyecto: Dungeon Crawler Patterns
-- Última actualización: 2026-04-13 (Memento auditado)
+- Última actualización: 2026-04-13 (Command remediado)
 
 ---
 
@@ -38,8 +38,8 @@
 | Patrón           | Calificación Auditoría | Estado           | Nueva Calificación |
 |------------------|------------------------|------------------|--------------------|
 | Facade           | 4                      | ✅ Remediado      | 10                 |
-| State            | 5                      | ⏳ Pendiente      | —                  |
-| Command          | 6                      | ⏳ Pendiente      | —                  |
+| State            | 5                      | ✅ Remediado      | 10                 |
+| Command          | 6                      | ✅ Remediado      | 10                 |
 | Factory Method   | 6                      | ⏳ Pendiente      | —                  |
 | Decorator        | 6                      | ⏳ Pendiente      | —                  |
 | Composite        | 7                      | ⏳ Pendiente      | —                  |

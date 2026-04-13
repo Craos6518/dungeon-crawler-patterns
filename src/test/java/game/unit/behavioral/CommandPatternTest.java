@@ -1,12 +1,19 @@
 package game.unit.behavioral;
 
 import game.patterns.command.actions.*;
+import game.domain.character.Player;
+import game.domain.combat.Combat;
+import game.domain.inventory.Inventory;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Guerrero;
 import game.domain.personaje.Personaje;
+import game.domain.turn.TurnManager;
+import game.items.model.ContainerItem;
 import game.items.model.SimpleItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,14 +24,12 @@ public class CommandPatternTest {
     
     private Personaje guerrero;
     private Personaje enemigo;
-    private SimpleItem pocion;
     private CommandInvoker invoker;
     
     @BeforeEach
     public void setUp() {
         guerrero = new Guerrero("Arthas", 100, 20);
         enemigo = new EnemigoBasico("Orco", 50, 10);
-        pocion = new SimpleItem("Poción", "Cura 50 HP", "Consumible", 50, 1);
         invoker = new CommandInvoker();
     }
     
@@ -101,15 +106,60 @@ public class CommandPatternTest {
     
     @Test
     public void testUseItemCommand() {
-        Command usarItem = new UseItemCommand(guerrero, pocion, guerrero);
-        
+        ContainerItem mochila = new ContainerItem("Mochila", "Inventario de pruebas", 5, 1);
+        mochila.agregar(new SimpleItem("Pocion de Vida", "Restaura 50 HP", "Consumible", 50, 1));
+
+        Inventory inventory = new Inventory(mochila);
+        Player player = new Player(new Guerrero("Arthas", 100, 20), inventory, "guerrero");
+        player.receiveDamage(45);
+
+        Combat combat = new Combat(player, new TurnManager(), new Random(7));
+        String itemId = inventory.getByIndex(0).orElseThrow().getId();
+
+        UseItemCommand usarItem = new UseItemCommand(inventory, itemId, combat, "fire");
+        int hpAntes = player.hp();
+
         assertTrue(usarItem.canExecute(), "El comando debería poder ejecutarse");
-        assertEquals("Arthas usa Poción en Arthas", usarItem.getDescription());
-        
-        usarItem.execute();
-        
-        assertFalse(usarItem.canExecute(), 
-            "No debería poder ejecutarse de nuevo (item ya usado)");
+        invoker.execute(usarItem);
+
+        assertTrue(player.hp() > hpAntes, "El HP del jugador debería aumentar al usar una pocion");
+        assertNotNull(usarItem.getConsumedItem(), "El comando debería exponer el item consumido");
+        assertEquals(0, inventory.size(), "El item usado debe salir del inventario");
+        assertFalse(usarItem.canExecute(), "No debería poder ejecutarse dos veces");
+    }
+
+    @Test
+    public void testUndoLastCommandConAttackLanzaMensajeClaroDeNoReversibilidad() {
+        Command ataque = new AttackCommand(guerrero, enemigo);
+        invoker.execute(ataque);
+
+        UnsupportedOperationException exception = assertThrows(
+            UnsupportedOperationException.class,
+            () -> invoker.undoLastCommand(),
+            "AttackCommand debe reportar de forma explícita que no soporta undo"
+        );
+
+        assertTrue(
+            exception.getMessage().toLowerCase().contains("no es reversible por diseño"),
+            "El mensaje debe explicar claramente por qué el ataque no es reversible"
+        );
+    }
+
+    @Test
+    public void testUndoLastNReduceHistorialALaCantidadEsperada() {
+        Command defensa1 = new DefendCommand(guerrero);
+        Command habilidad = new SkillCommand(guerrero, "Corte", enemigo);
+        Command defensa2 = new DefendCommand(guerrero);
+
+        invoker.execute(defensa1);
+        invoker.execute(habilidad);
+        invoker.execute(defensa2);
+
+        assertEquals(3, invoker.getHistory().size(), "Deben existir tres comandos ejecutados");
+
+        invoker.undoLastN(2);
+
+        assertEquals(1, invoker.getHistory().size(), "Después de undoLastN(2) debe quedar un comando");
     }
     
     @Test

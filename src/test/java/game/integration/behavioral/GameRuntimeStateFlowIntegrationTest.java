@@ -6,6 +6,9 @@ import game.application.runtime.GameRuntime;
 import game.application.state.GameFlowState;
 import game.application.state.GameSession;
 import game.application.state.GameSessionFactory;
+import game.domain.character.Enemy;
+import game.domain.DomainRuleViolationException;
+import game.domain.personaje.EnemigoBasico;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
@@ -14,6 +17,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GameRuntimeStateFlowIntegrationTest {
@@ -109,6 +113,54 @@ class GameRuntimeStateFlowIntegrationTest {
         assertEquals(GameFlowState.MENU, session.activeState());
         assertTrue(session.isThemeCompleted("dark"));
         assertEquals("", session.nextCampaignTheme());
+    }
+
+    @Test
+    void runtimeFullStateFlowMenuSetupExplorationCombatVictoryExplorationGameOver() throws Exception {
+        GameRuntime runtime = new GameRuntime();
+        GameSession session = extractSession(runtime);
+
+        assertEquals(GameFlowState.MENU.screenKey(), runtime.presentViewModel().screen);
+        assertEquals("disabled", runtime.presentViewModel().buttons.get("btn-atacar"));
+        assertThrows(DomainRuleViolationException.class, () -> send(runtime, "attack", payload("targetId", "current")));
+
+        send(runtime, "goToHeroSelect", new JsonObject());
+        assertEquals(GameFlowState.HERO.screenKey(), runtime.presentViewModel().screen);
+
+        send(runtime, "selectHero", payload("heroType", "guerrero"));
+        JsonObject heroNewGamePayload = new JsonObject();
+        heroNewGamePayload.addProperty("heroType", "guerrero");
+        heroNewGamePayload.addProperty("theme", "poison");
+        send(runtime, "heroNewGame", heroNewGamePayload);
+        session = extractSession(runtime);
+
+        assertEquals(GameFlowState.EXPLORATION.screenKey(), runtime.presentViewModel().screen);
+        assertEquals("disabled", runtime.presentViewModel().buttons.get("btn-atacar"));
+
+        send(runtime, "forceCombat", new JsonObject());
+        assertEquals(GameFlowState.COMBAT.screenKey(), runtime.presentViewModel().screen);
+        assertEquals("default", runtime.presentViewModel().buttons.get("btn-atacar"));
+
+        if (!session.combat().isActive() || session.combat().currentEnemy() == null) {
+            Enemy fallbackEnemy = new Enemy(new EnemigoBasico("Fallback", 120, 12), 12, 0, 10);
+            session.combat().restoreActiveEnemy(fallbackEnemy, false);
+            session.transitionTo(GameFlowState.COMBAT);
+        }
+
+        session.player().heal(9_999);
+        int enemyHp = session.combat().currentEnemy().hp();
+        session.combat().currentEnemy().receiveDamage(Math.max(0, enemyHp - 1));
+        send(runtime, "attack", payload("targetId", "current"));
+        assertEquals(GameFlowState.TREASURE.screenKey(), runtime.presentViewModel().screen);
+
+        send(runtime, "skipLoot", new JsonObject());
+        assertEquals(GameFlowState.EXPLORATION.screenKey(), runtime.presentViewModel().screen);
+
+        session.transitionTo(GameFlowState.GAME_OVER);
+
+        assertEquals(GameFlowState.GAME_OVER.screenKey(), runtime.presentViewModel().screen);
+        assertEquals("disabled", runtime.presentViewModel().buttons.get("btn-atacar"));
+        assertThrows(DomainRuleViolationException.class, () -> send(runtime, "attack", payload("targetId", "current")));
     }
 
     private static void send(GameRuntime runtime, String action, JsonObject payload) {

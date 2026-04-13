@@ -31,11 +31,24 @@ public class CombatSystem {
             throw new IllegalStateException("No se puede ejecutar el ataque ahora.");
         }
 
-        int attackPower = computePlayerAttackPower(player, enemy, false);
-        int targetDefense = effectiveEnemyDefense(player, enemy, false);
-        int damage = applyDefenseFormula(attackPower, targetDefense);
-        enemy.receiveDamage(damage);
-        return damage;
+        AttackCommand attackCommand = new AttackCommand(
+            player.character(),
+            enemy.character(),
+            (attacker, defender) -> {
+                int attackPower = computePlayerAttackPower(player, enemy, false);
+                int targetDefense = effectiveEnemyDefense(player, enemy, false);
+                int damage = applyDefenseFormula(attackPower, targetDefense);
+                defender.recibirDanio(damage);
+                return damage;
+            }
+        );
+
+        if (!attackCommand.canExecute()) {
+            throw new IllegalStateException("No se puede ejecutar el ataque ahora.");
+        }
+
+        invoker.execute(attackCommand);
+        return attackCommand.getDanioAplicado();
     }
 
     public void playerDefend(Player player, TurnManager turnManager, CommandInvoker invoker) {
@@ -103,12 +116,25 @@ public class CombatSystem {
                 return outcome;
             }
 
-            outcome.rawDamage = applyDefenseFormula(
-                computeEnemyAttackPower(enemy),
-                player.defenseStat()
+            AttackCommand executedEnemyAttack = new AttackCommand(
+                enemy.character(),
+                player.character(),
+                (attacker, defender) -> {
+                    int damage = applyDefenseFormula(
+                        computeEnemyAttackPower(enemy),
+                        player.defenseStat()
+                    );
+                    defender.recibirDanio(damage);
+                    return damage;
+                }
             );
 
-            player.receiveDamage(outcome.rawDamage);
+            if (!executedEnemyAttack.canExecute()) {
+                throw new IllegalStateException("No se puede ejecutar el ataque enemigo en este momento.");
+            }
+
+            invoker.execute(executedEnemyAttack);
+            outcome.rawDamage = executedEnemyAttack.getDanioAplicado();
             outcome.mitigatedDamage = turnManager.mitigateIncomingDamage(outcome.rawDamage);
             boolean defeatedByRawHit = !player.isAlive();
 
@@ -128,7 +154,7 @@ public class CombatSystem {
                 outcome.poisonApplied = true;
             }
         } else if (enemyAction instanceof DefendCommand) {
-            invoker.ejecutarComando(enemyAction);
+            invoker.execute(enemyAction);
             outcome.enemyDefended = true;
         }
 

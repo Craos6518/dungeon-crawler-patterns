@@ -1,6 +1,7 @@
 package game.domain.combat;
 
 import game.ai.strategy.AIController;
+import game.patterns.command.actions.Command;
 import game.patterns.command.actions.CommandInvoker;
 import game.domain.DomainRuleViolationException;
 import game.domain.character.Enemy;
@@ -8,6 +9,7 @@ import game.domain.character.Player;
 import game.domain.inventory.Item;
 import game.domain.turn.TurnManager;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
@@ -108,6 +110,21 @@ public class Combat {
 
     public TacticalCheckpoint tacticalCheckpoint() {
         return tacticalCheckpoint;
+    }
+
+    public void executeCommand(Command command) {
+        if (command == null) {
+            throw new IllegalArgumentException("El comando no puede ser null");
+        }
+        invoker.execute(command);
+    }
+
+    public int commandHistorySize() {
+        return invoker.getCantidadComandos();
+    }
+
+    public List<Command> commandHistory() {
+        return invoker.getHistory();
     }
 
     public boolean isDefenseActive() {

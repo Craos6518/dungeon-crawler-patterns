@@ -20,11 +20,17 @@ public class CombatState implements GameState {
     public void manejarEntrada(String entrada) {
         if (!combateActivo) {
             System.out.println("Presiona cualquier tecla para continuar...");
-            contexto.cambiarEstado(estadoAnterior);
+            contexto.transitionTo(estadoAnterior);
+            return;
+        }
+
+        String accion = entrada == null ? "" : entrada.trim().toLowerCase();
+        if (!permiteAccion(accion)) {
+            System.out.println("Accion no valida en Combat.");
             return;
         }
         
-        switch (entrada.toLowerCase()) {
+        switch (accion) {
             case "a", "atacar" -> {
                 System.out.println("¡Atacas al enemigo!");
                 turnos++;
@@ -43,7 +49,7 @@ public class CombatState implements GameState {
             }
             case "h", "huir" -> {
                 System.out.println("¡Huyes del combate!");
-                contexto.cambiarEstado(estadoAnterior);
+                contexto.transitionTo(estadoAnterior);
             }
             default -> System.out.println("Acción no válida en combate.");
         }
@@ -96,5 +102,30 @@ public class CombatState implements GameState {
     
     public int getTurnos() {
         return turnos;
+    }
+
+    @Override
+    public boolean permiteAccion(String accion) {
+        if (accion == null || accion.isBlank()) {
+            return false;
+        }
+        return "a".equals(accion)
+            || "atacar".equals(accion)
+            || "d".equals(accion)
+            || "defender".equals(accion)
+            || "h".equals(accion)
+            || "huir".equals(accion);
+    }
+
+    @Override
+    public boolean permiteTransicionA(String nombreEstadoDestino) {
+        if (nombreEstadoDestino == null || nombreEstadoDestino.isBlank()) {
+            return false;
+        }
+        return "Combat".equals(nombreEstadoDestino)
+            || "Exploration".equals(nombreEstadoDestino)
+            || "GameOver".equals(nombreEstadoDestino)
+            || "Victory".equals(nombreEstadoDestino)
+            || "Inventory".equals(nombreEstadoDestino);
     }
 }

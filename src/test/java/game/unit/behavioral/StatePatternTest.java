@@ -164,6 +164,29 @@ public class StatePatternTest {
         assertFalse(contexto.isEjecutando(), 
             "El contexto debe detenerse al elegir 'salir'");
     }
+
+    @Test
+    public void testMenuStateRechazaAccionDeCombateSinCrash() {
+        contexto = new GameStateContext(new MenuState(contexto));
+
+        assertThrows(IllegalStateException.class,
+            () -> contexto.assertAccionPermitida("atacar"),
+            "MenuState debe bloquear acciones de combate");
+
+        assertEquals("Menu", contexto.getEstadoActual().getNombre(),
+            "La sesión debe mantenerse en Menu tras intento inválido");
+    }
+
+    @Test
+    public void testTransicionInvalidaMenuAGameOverNoEsPosible() {
+        contexto = new GameStateContext(new MenuState(contexto));
+
+        assertThrows(IllegalStateException.class,
+            () -> contexto.cambiarEstado(new GameOverState(contexto, false)),
+            "No debe permitirse transición directa de Menu a GameOver");
+
+        assertEquals("Menu", contexto.getEstadoActual().getNombre());
+    }
     
     @Test
     public void testInventoryStateVuelveAEstadoAnterior() {

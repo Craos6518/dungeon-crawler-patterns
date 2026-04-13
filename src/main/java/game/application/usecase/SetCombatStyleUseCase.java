@@ -1,6 +1,7 @@
 package game.application.usecase;
 
 import game.application.state.GameSession;
+import game.application.state.GameFlowState;
 import game.domain.DomainRuleViolationException;
 import game.application.ports.events.EventType;
 import game.application.ports.events.GameEvent;
@@ -58,7 +59,7 @@ public class SetCombatStyleUseCase {
                 .agregarDato("estilo", result.styleName));
 
             session.combat().resolveTurn();
-            session.setActiveScreen("combat");
+            session.transitionTo(GameFlowState.COMBAT);
         });
     }
 }

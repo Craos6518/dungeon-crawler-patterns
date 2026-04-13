@@ -8,7 +8,6 @@ import game.patterns.command.actions.AttackCommand;
 import game.patterns.command.actions.Command;
 import game.patterns.command.actions.CommandInvoker;
 import game.patterns.command.actions.DefendCommand;
-import game.combat.model.ResultadoAtaque;
 import game.domain.personaje.Personaje;
 import game.domain.personaje.factory.EnemigoBasicoFactory;
 import game.domain.personaje.factory.GuerreroFactory;
@@ -77,14 +76,13 @@ public class BehavioralPatternsIntegrationTest {
         // Ejecutar comando de ataque
         Command ataque = new AttackCommand(heroe, enemigo);
         invoker.ejecutarComando(ataque);
-        
-        ResultadoAtaque resultado = heroe.atacar(enemigo);
+        int damage = ((AttackCommand) ataque).getDanioAplicado();
         
         // Notificar el ataque
         eventManager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
             .agregarDato("atacante", heroe.getNombre())
             .agregarDato("defensor", enemigo.getNombre())
-            .agregarDato("danio", resultado.danio()));
+            .agregarDato("danio", damage));
         
         // Verificar que el observer capturó el evento
         assertEquals(1, stats.getAtaquesTotales());
@@ -162,25 +160,23 @@ public class BehavioralPatternsIntegrationTest {
         
         // Command: Ejecutar ataque
         invoker.ejecutarComando(comandoIA);
-        
-        ResultadoAtaque resultado1 = enemigo.atacar(heroe);
+        int damageIA = ((AttackCommand) comandoIA).getDanioAplicado();
         
         // Observer: Notificar ataque
         eventManager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
             .agregarDato("atacante", enemigo.getNombre())
             .agregarDato("defensor", heroe.getNombre())
-            .agregarDato("danio", resultado1.danio()));
+            .agregarDato("danio", damageIA));
         
         // Command: Héroe contraataca
         Command contraataque = new AttackCommand(heroe, enemigo);
         invoker.ejecutarComando(contraataque);
-        
-        ResultadoAtaque resultado2 = heroe.atacar(enemigo);
+        int damageHeroe = ((AttackCommand) contraataque).getDanioAplicado();
         
         eventManager.notificar(new GameEvent(EventType.ATAQUE_REALIZADO)
             .agregarDato("atacante", heroe.getNombre())
             .agregarDato("defensor", enemigo.getNombre())
-            .agregarDato("danio", resultado2.danio()));
+            .agregarDato("danio", damageHeroe));
         
         // Verificaciones
         assertEquals(2, invoker.getCantidadComandos());

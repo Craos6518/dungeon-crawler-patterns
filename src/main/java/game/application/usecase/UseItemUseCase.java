@@ -3,6 +3,9 @@ package game.application.usecase;
 import game.application.dto.UseItemCommandRequest;
 import game.application.state.GameSession;
 import game.domain.DomainRuleViolationException;
+import game.domain.combat.CombatResult;
+import game.domain.inventory.Item;
+import game.patterns.command.actions.UseItemCommand;
 
 /**
  * Caso de uso: usar un item del inventario sobre el heroe.
@@ -24,9 +27,29 @@ public class UseItemUseCase {
         String itemId = request == null ? null : request.itemId;
 
         UseCaseTransactionSupport.runAtomically(session, () -> {
-            var item = consumeItem(itemIndex, itemId);
+            String resolvedItemId = resolveItemId(itemIndex, itemId);
             var enemy = session.combat().currentEnemy();
-            var result = session.combat().useItem(item, session.dungeon().themeKey());
+
+            Item item;
+            CombatResult result;
+            try {
+                UseItemCommand useItemCommand = new UseItemCommand(
+                    session.inventory(),
+                    resolvedItemId,
+                    session.combat(),
+                    session.dungeon().themeKey()
+                );
+                session.combat().executeCommand(useItemCommand);
+
+                item = useItemCommand.getConsumedItem();
+                result = useItemCommand.getCombatResult();
+            } catch (IllegalStateException ex) {
+                throw new DomainRuleViolationException(ex.getMessage(), ex);
+            }
+
+            if (item == null || result == null) {
+                throw new DomainRuleViolationException("No se pudo ejecutar el uso de item en combate.");
+            }
 
             if (result.warning != null && !result.warning.isBlank()) {
                 session.appendSystemMessage(result.warning);
@@ -67,13 +90,13 @@ public class UseItemUseCase {
         });
     }
 
-    private game.domain.inventory.Item consumeItem(Integer itemIndex, String itemId) {
-        try {
-            return itemIndex != null
-                ? session.inventory().useItemAtIndex(itemIndex)
-                : session.inventory().useItem(itemId);
-        } catch (IllegalStateException ex) {
-            throw new DomainRuleViolationException(ex.getMessage(), ex);
+    private String resolveItemId(Integer itemIndex, String itemId) {
+        if (itemIndex == null) {
+            return itemId;
         }
+
+        return session.inventory().getByIndex(itemIndex)
+            .map(Item::getId)
+            .orElseThrow(() -> new DomainRuleViolationException("Selecciona un objeto valido para usar."));
     }
 }

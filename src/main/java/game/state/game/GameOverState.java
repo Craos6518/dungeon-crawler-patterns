@@ -14,12 +14,18 @@ public class GameOverState implements GameState {
     
     @Override
     public void manejarEntrada(String entrada) {
-        switch (entrada.toLowerCase()) {
+        String accion = entrada == null ? "" : entrada.trim().toLowerCase();
+        if (!permiteAccion(accion)) {
+            System.out.println("Accion no valida en GameOver.");
+            return;
+        }
+
+        switch (accion) {
             case "1", "reintentar" -> {
                 System.out.println("Reiniciando...");
-                contexto.cambiarEstado(new MenuState(contexto));
+                contexto.transitionTo(new MenuState(contexto));
             }
-            case "2", "menu" -> contexto.cambiarEstado(new MenuState(contexto));
+            case "2", "menu" -> contexto.transitionTo(new MenuState(contexto));
             case "3", "salir" -> contexto.detener();
             default -> System.out.println("Opción no válida.");
         }
@@ -73,5 +79,28 @@ public class GameOverState implements GameState {
     
     public boolean isVictoria() {
         return victoria;
+    }
+
+    @Override
+    public boolean permiteAccion(String accion) {
+        if (accion == null || accion.isBlank()) {
+            return false;
+        }
+        return "1".equals(accion)
+            || "2".equals(accion)
+            || "3".equals(accion)
+            || "reintentar".equals(accion)
+            || "menu".equals(accion)
+            || "salir".equals(accion);
+    }
+
+    @Override
+    public boolean permiteTransicionA(String nombreEstadoDestino) {
+        if (nombreEstadoDestino == null || nombreEstadoDestino.isBlank()) {
+            return false;
+        }
+        return "Menu".equals(nombreEstadoDestino)
+            || "GameOver".equals(nombreEstadoDestino)
+            || "Victory".equals(nombreEstadoDestino);
     }
 }

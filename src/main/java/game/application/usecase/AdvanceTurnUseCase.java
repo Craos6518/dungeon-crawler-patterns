@@ -1,6 +1,7 @@
 package game.application.usecase;
 
 import game.application.state.GameSession;
+import game.application.state.GameFlowState;
 import game.domain.DomainRuleViolationException;
 import game.application.ports.events.EventType;
 import game.application.ports.events.GameEvent;
@@ -33,7 +34,7 @@ public class AdvanceTurnUseCase {
                     String dungeonName = session.dungeon().model().getNombre();
                     boolean campaignCompleted = session.nextCampaignTheme().isBlank();
 
-                    session.setActiveScreen(campaignCompleted ? "menu" : "hero");
+                    session.transitionTo(campaignCompleted ? GameFlowState.MENU : GameFlowState.HERO);
                     if (campaignCompleted) {
                         session.appendEvent("Conquistaste " + dungeonName + ". Has completado la campana de Eranthia.");
                     } else {
@@ -55,7 +56,7 @@ public class AdvanceTurnUseCase {
 
         UseCaseTransactionSupport.runAtomically(session, () -> {
             session.dungeon().advanceRoom();
-            session.setActiveScreen("exploration");
+            session.transitionTo(GameFlowState.EXPLORATION);
 
             var room = session.dungeon().currentRoom();
             session.appendEvent("Avanzas a la sala " + (session.dungeon().currentRoomIndex() + 1) + ": " + room.name());

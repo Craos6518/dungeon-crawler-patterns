@@ -27,6 +27,12 @@ public class GameStateContext {
         if (nuevoEstado == null) {
             throw new IllegalArgumentException("El estado no puede ser null");
         }
+
+        if (estadoActual != null && !estadoActual.permiteTransicionA(nuevoEstado.getNombre())) {
+            throw new IllegalStateException(
+                "Transicion invalida: " + estadoActual.getNombre() + " -> " + nuevoEstado.getNombre()
+            );
+        }
         
         // Salir del estado actual
         if (estadoActual != null) {
@@ -37,6 +43,13 @@ public class GameStateContext {
         estadoActual = nuevoEstado;
         estadoActual.onEnter();
     }
+
+    /**
+     * Alias semantico para transiciones tipadas.
+     */
+    public void transitionTo(GameState nuevoEstado) {
+        cambiarEstado(nuevoEstado);
+    }
     
     /**
      * Procesa la entrada del usuario
@@ -44,6 +57,27 @@ public class GameStateContext {
     public void procesarEntrada(String entrada) {
         if (estadoActual != null) {
             estadoActual.manejarEntrada(entrada);
+        }
+    }
+
+    /**
+     * Verifica si la accion se permite en el estado actual.
+     */
+    public boolean permiteAccion(String accion) {
+        if (estadoActual == null) {
+            return true;
+        }
+        return estadoActual.permiteAccion(accion);
+    }
+
+    /**
+     * Valida accion runtime y lanza error tipado si el estado activo la bloquea.
+     */
+    public void assertAccionPermitida(String accion) {
+        if (!permiteAccion(accion)) {
+            throw new IllegalStateException(
+                "Accion no permitida en estado " + estadoActual.getNombre() + ": " + accion
+            );
         }
     }
     

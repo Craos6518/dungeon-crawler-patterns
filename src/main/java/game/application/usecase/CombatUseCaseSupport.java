@@ -1,6 +1,7 @@
 package game.application.usecase;
 
 import game.application.state.GameSession;
+import game.application.state.GameFlowState;
 import game.domain.DomainRuleViolationException;
 import game.domain.character.Enemy;
 import game.domain.combat.CombatResult;
@@ -22,7 +23,7 @@ final class CombatUseCaseSupport {
 
     static void requireActiveCombat(GameSession session) {
         if (session.combat().isActive()) {
-            session.setActiveScreen("combat");
+            session.transitionTo(GameFlowState.COMBAT);
             return;
         }
 
@@ -31,7 +32,7 @@ final class CombatUseCaseSupport {
 
     static boolean ensureCombatStarted(GameSession session, boolean forced, boolean reportIfMissing) {
         if (session.combat().isActive()) {
-            session.setActiveScreen("combat");
+            session.transitionTo(GameFlowState.COMBAT);
             return true;
         }
 
@@ -47,7 +48,7 @@ final class CombatUseCaseSupport {
 
         Enemy enemy = spawn.get();
         session.combat().start(enemy, session.dungeon().isCurrentRoomBoss());
-        session.setActiveScreen("combat");
+        session.transitionTo(GameFlowState.COMBAT);
 
         LOGGER.log(Level.INFO, "Combate iniciado en sala {0} contra {1}",
             new Object[]{session.dungeon().currentRoomIndex() + 1, enemy.name()});
@@ -124,7 +125,7 @@ final class CombatUseCaseSupport {
 
     static void handleDefeat(GameSession session) {
         session.combat().finish();
-        session.setActiveScreen("gameover");
+        session.transitionTo(GameFlowState.GAME_OVER);
         session.appendCombat("Has sido derrotado. El combate ha terminado.");
         session.appendEvent("Game Over en sala " + (session.dungeon().currentRoomIndex() + 1) + ".");
 

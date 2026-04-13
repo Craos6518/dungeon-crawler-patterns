@@ -9,6 +9,7 @@ import game.domain.combat.CombatResult;
 import game.domain.combat.PlayerCombatStyle;
 import game.domain.inventory.Item;
 import game.domain.personaje.Personaje;
+import game.patterns.command.actions.Command;
 import game.domain.turn.TurnManager;
 import game.effects.status.CharacterDecorator;
 
@@ -177,6 +178,18 @@ public class CombatFacade {
 
     public void resolveTurn() {
         requireRuntimeCombat().resolveTurn();
+    }
+
+    public void executeCommand(Command command) {
+        requireRuntimeCombat().executeCommand(command);
+    }
+
+    public int commandHistorySize() {
+        return requireRuntimeCombat().commandHistorySize();
+    }
+
+    public List<Command> commandHistory() {
+        return requireRuntimeCombat().commandHistory();
     }
 
     public boolean isCombatOver() {

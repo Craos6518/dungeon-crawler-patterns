@@ -151,6 +151,10 @@ public class GameSession {
         return flowContext;
     }
 
+    public void assertActionAllowed(String action) {
+        flowContext.assertAccionPermitida(action);
+    }
+
     public void transitionTo(GameFlowState nextState) {
         GameFlowState target = nextState == null ? GameFlowState.EXPLORATION : nextState;
 
@@ -162,7 +166,7 @@ public class GameSession {
         }
 
         LOGGER.log(Level.INFO, "Cambio de pantalla: {0} -> {1}", new Object[]{previous, next});
-        flowContext.cambiarEstado(new SessionScreenState(target));
+        flowContext.transitionTo(new SessionScreenState(target));
         syncActiveScreenFromContext();
     }
 
@@ -737,6 +741,16 @@ public class GameSession {
         @Override
         public String getNombre() {
             return flowState.screenKey();
+        }
+
+        @Override
+        public boolean permiteAccion(String accionRaw) {
+            return accionRaw != null && !accionRaw.trim().isBlank();
+        }
+
+        @Override
+        public boolean permiteTransicionA(String nombreEstadoDestino) {
+            return nombreEstadoDestino != null && !nombreEstadoDestino.isBlank();
         }
     }
 

@@ -28,6 +28,14 @@ public class SkillCommand implements Command {
         // En un sistema completo, cada clase de personaje tendría sus propias habilidades
         ejecutado = true;
     }
+
+    @Override
+    public void undo() {
+        if (!ejecutado) {
+            throw new IllegalStateException("El comando no ha sido ejecutado");
+        }
+        ejecutado = false;
+    }
     
     @Override
     public boolean canExecute() {
