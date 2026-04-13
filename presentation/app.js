@@ -146,27 +146,36 @@ const PATTERNS = [
     name: "Facade",
     category: "Estructural",
     problem:
-      "Entrega una API unica para combate ocultando motor, resultados y manejo de efectos.",
+      "Proporciona punto de entrada unico para combate, ocultando subsistemas internos (Combat, CombatSystem, TurnManager).",
     classes: [
       "game.patterns.combat.facade.CombatFacade",
-      "game.combat.engine.MotorCombate",
-      "game.combat.model.ResultadoAtaque",
-      "game.effects.status.CharacterDecorator",
+      "game.domain.combat.Combat",
+      "game.domain.combat.CombatSystem",
+      "game.domain.turn.TurnManager",
+      "game.domain.combat.CombatStatusDecoratorPipeline",
+      "game.application.state.GameSession",
     ],
     miniDiagram:
-      "Cliente -> CombatFacade -> MotorCombate + ResultadoAtaque + CharacterDecorator",
-    tests: ["src/test/java/game/unit/structural/FacadePatternTest.java"],
-    mermaid: `classDiagram
-      class CombatFacade {
-        +iniciarCombate(heroe, enemigo)
-        +ejecutarRonda() ResultadoAtaque
-        +ejecutarCombateCompleto() Personaje
-        +obtenerLogCombate() List~String~
-        +obtenerEstadisticas() EstadisticasCombate
-      }
-      CombatFacade --> MotorCombate
-      CombatFacade --> ResultadoAtaque
-      CombatFacade --> CharacterDecorator`,
+      "GameRuntime -> GameSession.combat() -> CombatFacade -> [Combat|CombatSystem|TurnManager|DecoratorPipeline]",
+    tests: [
+      "src/test/java/game/unit/structural/FacadePatternTest.java",
+      "src/test/java/game/integration/structural/FacadeIntegrationTest.java",
+    ],
+    mermaid: `flowchart LR
+      Runtime[GameRuntime]
+      Session[GameSession]
+      Facade[CombatFacade]
+      Combat[Combat]
+      System[CombatSystem]
+      Turn[TurnManager]
+      Pipeline[CombatStatusDecoratorPipeline]
+      
+      Runtime --> Session
+      Session --> Facade
+      Facade --> Combat
+      Combat --> System
+      Combat --> Turn
+      Combat --> Pipeline`,
   },
   {
     id: "command",
@@ -205,47 +214,48 @@ const PATTERNS = [
     name: "Observer",
     category: "Comportamiento",
     problem:
-      "Desacopla emisores de eventos de consumidores para reaccionar en tiempo real a cambios de sesion y combate.",
+      "Reacciona a eventos de juego desacoplados de emisores, con aislamiento garantizado por sesion (multi-sesion safe).",
     classes: [
       "game.infrastructure.events.observer.EventManager",
       "game.infrastructure.events.observer.EventContractValidator",
       "game.infrastructure.events.observer.CombatLogger",
       "game.infrastructure.events.observer.StatisticsTracker",
       "game.infrastructure.events.observer.UINotifier",
-      "game.application.ports.events.GameObserver",
-      "game.application.ports.events.EventPublisher",
+      "game.application.observer.SessionEventFeedObserver",
+      "game.application.observer.SessionEventCounterObserver",
+      "game.application.state.GameSessionFactory",
     ],
     miniDiagram:
-      "EventManager (subject) -> notify -> [CombatLogger|StatisticsTracker|UINotifier]",
+      "GameSessionFactory -> EventManager (local) + Observers (con referencia a sesion) -> Eventos desacoplados",
     tests: [
       "src/test/java/game/unit/behavioral/ObserverPatternTest.java",
       "src/test/java/game/integration/behavioral/EventObserversRuntimeIntegrationTest.java",
     ],
-    mermaid: `classDiagram
-      class GameObserver {
-        <<interface>>
-        +onEvent(GameEvent)
-      }
-      class EventPublisher {
-        <<interface>>
-        +suscribir(GameObserver)
-        +notificar(GameEvent)
-      }
-      EventPublisher <|.. EventManager
-      GameObserver <|.. CombatLogger
-      GameObserver <|.. StatisticsTracker
-      GameObserver <|.. UINotifier
-      EventManager --> EventContractValidator`,
+    mermaid: `sequenceDiagram
+      participant Factory as GameSessionFactory
+      participant Manager as EventManager (Local)
+      participant Session as GameSession
+      participant Observer as SessionEventFeedObserver
+      
+      Factory->>Manager: new EventManager()
+      Factory->>Session: new GameSession(manager)
+      Factory->>Observer: new SessionEventFeedObserver(session)
+      Factory->>Manager: suscribir(observer)
+      
+      Note over Session, Manager: Durante el juego
+      Session->>Manager: notificar(GameEvent)
+      Manager->>Observer: onEvent(event)`,
   },
   {
     id: "strategy",
     name: "Strategy",
     category: "Comportamiento",
     problem:
-      "Permite intercambiar comportamiento tactico (IA y estilo del jugador) sin cambiar clientes.",
+      "IA enemiga adaptativa (selecciona estrategia segun vida) y estilo tactico del jugador intercambiables en runtime.",
     classes: [
       "game.ai.strategy.AIStrategy",
       "game.ai.strategy.AggressiveStrategy",
+      "game.ai.strategy.IntelligentStrategy",
       "game.ai.strategy.DefensiveStrategy",
       "game.ai.strategy.RandomStrategy",
       "game.domain.combat.CombatSystem",
@@ -253,18 +263,20 @@ const PATTERNS = [
       "game.application.usecase.SetCombatStyleUseCase",
     ],
     miniDiagram:
-      "CombatSystem -> AIStrategy -> [Aggressive|Defensive|Random] + PlayerCombatStyle",
+      "CombatSystem -> selectEnemyStrategy(hp%) -> [Aggressive|Intelligent|Defensive] + PlayerCombatStyle cambiable",
     tests: [
       "src/test/java/game/unit/behavioral/StrategyPatternTest.java",
-      "src/test/java/game/unit/application/GameRuntimeExtendedCommandsTest.java",
+      "src/test/java/game/unit/domain/combat/CombatSystemTest.java",
     ],
     mermaid: `classDiagram
-      CombatSystem --> AIStrategy
+      Combat --> CombatSystem : selectEnemyStrategy()
+      CombatSystem --> AIStrategy : uses
       AIStrategy <|.. AggressiveStrategy
       AIStrategy <|.. DefensiveStrategy
+      AIStrategy <|.. IntelligentStrategy
       AIStrategy <|.. RandomStrategy
-      Combat --> PlayerCombatStyle
-      GameRuntime --> SetCombatStyleUseCase`,
+      Combat --> PlayerCombatStyle : activeStyle
+      SetCombatStyleUseCase --> Combat : setCombatStyle(key)`,
   },
   {
     id: "state",
@@ -310,29 +322,30 @@ const PATTERNS = [
     name: "Memento",
     category: "Comportamiento",
     problem:
-      "Guarda y restaura snapshots de sesion sin exponer internals mutables del runtime.",
+      "Persiste y restaura sesiones completas (progresion, inventario, combate activo) con validacion de versiones.",
     classes: [
       "game.application.state.GameMemento",
-      "game.infrastructure.persistence.memento.GameOriginator",
+      "game.application.state.GameSessionMementoMapper",
       "game.infrastructure.persistence.memento.GameCaretaker",
       "game.application.usecase.SaveGameUseCase",
       "game.application.usecase.LoadGameUseCase",
-      "game.application.runtime.RuntimeSaveSlotManager",
+      "game.application.usecase.UseCaseTransactionSupport",
     ],
     miniDiagram:
-      "Originator <-> GameMemento <- Caretaker | RuntimeSaveSlotManager -> Save/Load usecases",
+      "GameSessionMementoMapper (Originator) <-> GameMemento <- GameCaretaker | Transaccion rollback",
     tests: [
       "src/test/java/game/unit/behavioral/MementoPatternTest.java",
       "src/test/java/game/integration/behavioral/StateMementoIntegrationTest.java",
-      "src/test/java/game/unit/application/SaveLoadUseCaseTest.java",
     ],
-    mermaid: `classDiagram
-      GameOriginator --> GameMemento : guardar()/restaurar()
-      GameCaretaker --> GameMemento : guardarEnDisco()/cargarDesdeDisco()
-      RuntimeSaveSlotManager --> SaveGameUseCase
-      RuntimeSaveSlotManager --> LoadGameUseCase
-      SaveGameUseCase --> GameCaretaker
-      LoadGameUseCase --> GameCaretaker`,
+    mermaid: `graph TD
+      A[GameRuntime] --> B(Save/Load UseCase)
+      B --> C[GameSession]
+      C -->|createSnapshot| D(GameSessionMementoMapper)
+      D -->|builds| E[GameMemento v1.0]
+      E -.->|persisted by| F[GameCaretaker]
+      F -->|disk/memory| G[(Save Slots)]
+      H[UseCaseTransactionSupport] -->|snapshot| C
+      H -->|restore on error| C`,
   },
 ];
 

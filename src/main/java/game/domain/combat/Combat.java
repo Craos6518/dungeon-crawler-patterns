@@ -434,6 +434,13 @@ public class Combat {
             return result;
         }
 
+        int cost = adjustedCost(player.styleChangeCost());
+        if (!player.spendResource(cost)) {
+            result.warning = "No tienes suficiente " + player.resourceType() + " para cambiar de estilo.";
+            captureResourceAfter(result);
+            return result;
+        }
+
         playerStyle = requested;
         result.actionExecuted = true;
         result.styleChanged = true;

@@ -1,32 +1,36 @@
-# Patron Builder (Procedural) en Runtime
+# Patrón Builder (Procedural) en Runtime
 
-- Fecha de creacion: 2026-04-04
-- Rama auditada: Flujo-de-mazmorra
-- Estado: vigente
+- Fecha de actualización: 2026-04-13
+- Estado: ✅ Remediado
 
 ## Problema real que resuelve
-El juego requiere construir mazmorras reproducibles por semilla y variables por tema sin acoplar la construccion a una sola configuracion fija.
+El juego requiere construir mazmorras reproducibles por semilla y variables por tema sin acoplar la construcción a una sola configuración fija. La remediación ha centralizado la orquestación en el `DungeonDirector`, desacoplando el agregado `Dungeon` de la implementación concreta del builder.
 
-## Clases principales (rutas reales)
-- `src/main/java/game/dungeon/builder/ProceduralDungeonGenerator.java`
-- `src/main/java/game/dungeon/builder/DungeonBuilder.java`
-- `src/main/java/game/dungeon/builder/ConcreteDungeonBuilder.java`
-- `src/main/java/game/domain/exploration/Dungeon.java` (`fromTheme`)
-- `src/main/java/game/application/state/GameSessionFactory.java`
+## Clases Principales (Rutas Reales)
+- `game.dungeon.builder.DungeonDirector`: Orquestador de la construcción. Define métodos para mazmorras predefinidas y el método productivo `buildForTheme`.
+- `game.dungeon.builder.DungeonBuilder`: Interfaz que define los pasos de construcción (nombre, tema, salas, jefe).
+- `game.dungeon.builder.ConcreteDungeonBuilder`: Implementación que maneja el estado interno y construye el modelo de datos.
+- `game.dungeon.builder.ProceduralDungeonGenerator`: Algoritmo de generación que consume un `DungeonBuilder`.
+- `game.domain.exploration.Dungeon`: Agregado de dominio que ahora utiliza el Director para su instanciación factory.
+- `game.application.state.GameSessionFactory`: Punto de entrada que utiliza el Director para iniciar nuevas partidas.
 
-## Conexion con runtime productivo
-- `GameSessionFactory` crea sesiones usando `Dungeon.fromTheme(...)`.
-- `Dungeon.fromTheme` invoca `ProceduralDungeonGenerator.generar(...)` con builder y semilla.
-- La semilla persiste para restaurar estructura al cargar.
+## Conexión con Runtime Productivo
+- `GameSessionFactory` utiliza `DungeonDirector` con un `ConcreteDungeonBuilder` para generar la mazmorra inicial.
+- El método `buildForTheme(theme, seed)` en `DungeonDirector` encapsula la lógica de generación procedural, asegurando que el proceso sea reproducible y mantenible.
+- Se ha eliminado la dependencia directa entre el dominio y la clase concreta del builder, cumpliendo con el principio de inversión de dependencias.
 
-## Test de validacion en runtime real
-- `src/test/java/game/unit/creational/ProceduralDungeonSeedDeterminismTest.java`
-
-## Diagrama minimo
+## Diagrama de Secuencia Productivo
 ```mermaid
-classDiagram
-    GameSessionFactory --> Dungeon : fromTheme()
-    Dungeon --> ProceduralDungeonGenerator : generar()
-    ProceduralDungeonGenerator --> DungeonBuilder
-    DungeonBuilder <|.. ConcreteDungeonBuilder
+graph TD
+    A[GameSessionFactory] -->|new| B[ConcreteDungeonBuilder]
+    A -->|new| C[DungeonDirector]
+    C -->|buildForTheme| D[ProceduralDungeonGenerator]
+    D -->|setSteps| B
+    B -->|build| E[Dungeon Model]
+    C -->|new| F[Dungeon Aggregate]
 ```
+
+## Validación de Integración
+- **Tests de Equivalencia**: Se ha validado que construir vía `DungeonDirector` o `Dungeon.fromTheme` produce resultados idénticos bajo la misma semilla.
+- **Tests de Determinismo**: `BuilderPatternTest.testDeterminismoSemilla` confirma que la estructura de salas y dificultad es constante para una semilla dada.
+- **Tests de Perfil**: Se valida que los métodos del Director (`construirMazmorraBasica` vs `construirMazmorraOscura`) aplican gradientes de dificultad correctos en el modelo.

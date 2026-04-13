@@ -26,6 +26,7 @@ public class Player {
     private final int skillCost;
     private final int buffCost;
     private final int checkpointCost;
+    private final int styleChangeCost;
 
     private int resource;
     private int gold;
@@ -54,6 +55,7 @@ public class Player {
         this.skillCost = resourceProfile.skillCost();
         this.buffCost = resourceProfile.buffCost();
         this.checkpointCost = resourceProfile.checkpointCost();
+        this.styleChangeCost = resourceProfile.styleChangeCost();
 
         this.gold = 0;
         this.defeatedEnemies = 0;
@@ -147,6 +149,10 @@ public class Player {
 
     public int checkpointCost() {
         return checkpointCost;
+    }
+
+    public int styleChangeCost() {
+        return styleChangeCost;
     }
 
     public int attackStat() {
@@ -245,30 +251,27 @@ public class Player {
     }
 
     public void restoreProgress(int level, int experience, int hp, int gold, int defeatedEnemies) {
+        int calculatedMaxHp = character.getVidaMaxima(); // Fallback si no podemos calcular
+        // Si el nivel es diferente al actual, intentamos estimar la vida máxima (+20 por nivel desde nivel 1)
+        // Pero lo más robusto es que restoreStats maneje el nivel primero.
         restoreProgress(level, experience, hp, gold, defeatedEnemies, maxResource);
     }
 
     public void restoreProgress(int level, int experience, int hp, int gold, int defeatedEnemies, int resource) {
-        int targetLevel = Math.max(1, level);
-        while (character.getNivel() < targetLevel) {
-            character.subirNivel();
-        }
+        // Al usar firmas antiguas, recalculamos la vida máxima basada en el nivel para evitar degradación de HP
+        // Asumiendo +20 de vida por cada nivel superior al 1.
+        int baseHp = character.getVidaMaxima() - (Math.max(1, character.getNivel()) - 1) * 20;
+        int targetMaxHp = baseHp + (Math.max(1, level) - 1) * 20;
+        restoreProgress(level, experience, hp, targetMaxHp, gold, defeatedEnemies, resource);
+    }
 
-        int xpDelta = experience - character.getExperiencia();
-        character.ganarExperiencia(xpDelta);
-
-        int targetHp = Math.max(0, Math.min(hp, character.getVidaMaxima()));
-        int hpDelta = targetHp - character.getVida();
-        if (hpDelta >= 0) {
-            character.curar(hpDelta);
-        } else {
-            character.recibirDanio(-hpDelta);
-        }
-
+    public void restoreProgress(int level, int experience, int hp, int maxHp, int gold, int defeatedEnemies, int resource) {
+        character.restoreStats(level, experience, hp, maxHp);
         this.gold = Math.max(0, gold);
         this.defeatedEnemies = Math.max(0, defeatedEnemies);
         this.resource = Math.max(0, Math.min(resource, maxResource));
     }
+
 
     private static String normalizeHeroType(String heroType) {
         if (heroType == null) {

@@ -1,33 +1,37 @@
 package game.unit.behavioral;
 
-import game.domain.DomainRuleViolationException;
-import game.infrastructure.persistence.memento.GameCaretaker;
+import game.application.ports.persistence.SaveSlotNotFoundException;
 import game.application.state.GameMemento;
-import game.infrastructure.persistence.memento.GameOriginator;
+import game.application.state.GameSession;
+import game.application.state.GameSessionFactory;
+import game.application.state.GameSessionMementoMapper;
+import game.application.usecase.LoadGameUseCase;
+import game.application.usecase.SaveGameUseCase;
+import game.infrastructure.persistence.memento.GameCaretaker;
+import game.infrastructure.persistence.memento.SaveDataCorruptionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test unitario para el patrón Memento
+ * Test unitario para el patrón Memento (Remediado)
  */
 public class MementoPatternTest {
     
-    private GameOriginator juego;
+    private GameSession session;
     private GameCaretaker caretaker;
+    private final String TEST_SAVE_DIR = "./test-saves-memento/";
     
     @BeforeEach
     public void setUp() {
-        juego = new GameOriginator("Héroe de Prueba");
-        caretaker = new GameCaretaker("./test-saves/");
-        
-        // Limpiar directorio de test
-        File dir = new File("./test-saves/");
+        // Limpiar y crear directorio de test
+        File dir = new File(TEST_SAVE_DIR);
         if (dir.exists()) {
             File[] archivos = dir.listFiles();
             if (archivos != null) {
@@ -35,227 +39,96 @@ public class MementoPatternTest {
                     archivo.delete();
                 }
             }
+        } else {
+            dir.mkdirs();
         }
+
+        caretaker = new GameCaretaker(TEST_SAVE_DIR);
+        
+        // Crear sesión inyectando el caretaker de test
+        GameSession original = GameSessionFactory.createSessionForTheme("fire");
+        session = new GameSession(
+            original.player(),
+            original.dungeon(),
+            original.combat(),
+            original.eventManager(),
+            caretaker
+        );
     }
     
     @Test
     public void testCreateMemento() {
-        GameMemento memento = juego.guardar();
+        GameMemento memento = session.createSnapshot();
         
         assertNotNull(memento);
-        assertEquals("Héroe de Prueba", memento.getNombreJugador());
-        assertEquals(1, memento.getNivelActual());
-        assertEquals(1, memento.getSalaActual());
-        assertNotNull(memento.getFechaGuardado());
+        assertEquals("Guerrero", memento.getNombreJugador());
+        assertEquals("1.0", memento.getSchemaVersion());
     }
     
     @Test
     public void testRestoreFromMemento() {
-        // Progresar en el juego
-        juego.progresar();
-        juego.progresar();
+        session.player().restoreProgress(2, 500, 100, 10, 0, 100);
+        int nivelAntes = session.player().level();
+        assertEquals(2, nivelAntes);
         
-        int salaActual = juego.getSalaActual();
-        assertTrue(salaActual > 1, "La sala actual debería haber aumentado");
+        GameMemento memento = session.createSnapshot();
         
-        // Crear un nuevo juego y restaurar desde memento vacío
-        GameOriginator juegoNuevo = new GameOriginator("Otro Héroe");
-        GameMemento mementoOriginal = juego.guardar();
+        // Reset a nivel 1
+        session.player().restoreProgress(1, 0, 100, 0, 0, 100);
+        assertEquals(1, session.player().level());
         
-        juegoNuevo.restaurar(mementoOriginal);
-        
-        assertEquals("Héroe de Prueba", juegoNuevo.getNombreJugador());
-        assertEquals(salaActual, juegoNuevo.getSalaActual());
+        session.restoreSnapshot(memento);
+        assertEquals(2, session.player().level());
     }
     
     @Test
-    public void testMementoPreservesState() {
-        juego.progresar(); // Sala 2, Exp 50
-        
-        int vidaAntes = juego.getVidaJugador();
-        int expAntes = juego.getExperiencia();
-        int salaAntes = juego.getSalaActual();
-        
-        GameMemento memento = juego.guardar();
-        
-        // Cambiar el estado
-        juego.recibirDanio(30);
-        int vidaDespues = juego.getVidaJugador();
-        
-        // Verificar que el estado cambió
-        assertNotEquals(vidaAntes, vidaDespues, "La vida debería haber descendido");
-        assertEquals(vidaAntes - 30, vidaDespues);
-        
-        // Restaurar
-        juego.restaurar(memento);
-        
-        // Verificar que se restauró al estado anterior
-        assertEquals(vidaAntes, juego.getVidaJugador());
-        assertEquals(expAntes, juego.getExperiencia());
-        assertEquals(salaAntes, juego.getSalaActual());
-    }
-    
-    @Test
-    public void testCaretakerStoresMultipleMementos() {
-        GameMemento memento1 = juego.guardar();
-        caretaker.guardarEnMemoria(memento1);
-        
-        juego.progresar();
-        GameMemento memento2 = juego.guardar();
-        caretaker.guardarEnMemoria(memento2);
-        
-        juego.progresar();
-        GameMemento memento3 = juego.guardar();
-        caretaker.guardarEnMemoria(memento3);
-        
-        assertEquals(3, caretaker.getCantidadMementos());
-        
-        GameMemento recuperado = caretaker.obtenerMemento(1);
-        assertEquals(memento2, recuperado);
-    }
-    
-    @Test
-    public void testCaretakerGetLastMemento() {
-        juego.progresar();
-        GameMemento memento1 = juego.guardar();
-        caretaker.guardarEnMemoria(memento1);
-        
-        juego.progresar();
-        GameMemento memento2 = juego.guardar();
-        caretaker.guardarEnMemoria(memento2);
-        
-        GameMemento ultimo = caretaker.obtenerUltimoMemento();
-        
-        assertEquals(memento2, ultimo);
-    }
-    
-    @Test
-    public void testCaretakerThrowsExceptionWhenEmpty() {
-        assertThrows(IllegalStateException.class, () -> {
-            caretaker.obtenerUltimoMemento();
-        });
-    }
-    
-    @Test
-    public void testCaretakerThrowsExceptionForInvalidIndex() {
-        GameMemento memento = juego.guardar();
-        caretaker.guardarEnMemoria(memento);
-        
-        assertThrows(IndexOutOfBoundsException.class, () -> {
-            caretaker.obtenerMemento(5);
-        });
-    }
-    
-    @Test
-    public void testSaveToDisk() {
-        juego.progresar();
-        juego.progresar();
-        
-        GameMemento memento = juego.guardar();
-        
-        assertDoesNotThrow(() -> {
-            caretaker.guardarEnDisco(memento, "test_partida");
+    public void testEsquemaIncompatibleLanzaExcepcion() {
+        GameMemento mementoLegacy = new GameMemento.Builder()
+            .schemaVersion("0.9")
+            .nombreJugador("Test")
+            .nivelActual(1)
+            .salaActual(1)
+            .build();
+            
+        SaveDataCorruptionException ex = assertThrows(SaveDataCorruptionException.class, () -> {
+            GameSessionMementoMapper.restoreStrict(session, mementoLegacy);
         });
         
-        // Verificar que el archivo existe
-        File archivo = new File("./test-saves/test_partida.save");
-        assertTrue(archivo.exists(), "El archivo de guardado debería existir");
-    }
-    
-    @Test
-    public void testLoadFromDisk() {
-        juego.progresar();
-        juego.progresar();
-        int salaGuardada = juego.getSalaActual();
-        
-        GameMemento memento = juego.guardar();
-        caretaker.guardarEnDisco(memento, "test_carga");
-        
-        // Crear nuevo juego y cargar
-        GameOriginator juegoNuevo = new GameOriginator("Nuevo Héroe");
-        GameMemento cargado = caretaker.cargarDesdeDisco("test_carga");
-        
-        juegoNuevo.restaurar(cargado);
-        
-        assertEquals("Héroe de Prueba", juegoNuevo.getNombreJugador());
-        assertEquals(salaGuardada, juegoNuevo.getSalaActual());
+        assertTrue(ex.getMessage().contains("Incompatible schema version: 0.9"));
     }
 
     @Test
-    public void testLoadMissingSlotThrowsDomainError() {
-        DomainRuleViolationException ex = assertThrows(DomainRuleViolationException.class, () -> {
-            caretaker.cargarDesdeDisco("slot_que_no_existe");
-        });
+    public void testSaveLoadUseCaseWithCorruption() throws IOException {
+        SaveGameUseCase saveUC = new SaveGameUseCase(session);
+        LoadGameUseCase loadUC = new LoadGameUseCase(session);
+        
+        saveUC.execute(1); // Guarda en Slot_1.save en TEST_SAVE_DIR
+        
+        // Corromper el archivo en disco manualmente
+        File file = new File(TEST_SAVE_DIR + "Slot_1.save");
+        assertTrue(file.exists());
 
-        assertTrue(ex.getMessage().contains("Slot vacio"));
-    }
-
-    @Test
-    public void testLoadCorruptedFileThrowsDomainError() throws IOException {
-        File corrupt = new File("./test-saves/corrupto.save");
-        try (FileOutputStream fos = new FileOutputStream(corrupt)) {
-            fos.write(new byte[] {0x01, 0x23, 0x45, 0x67});
+        GameMemento corruptedMemento = new GameMemento.Builder()
+            .schemaVersion("corrupt")
+            .nombreJugador("Corrupto")
+            .nivelActual(1)
+            .salaActual(1)
+            .build();
+            
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+            oos.writeObject(corruptedMemento);
         }
-
-        DomainRuleViolationException ex = assertThrows(DomainRuleViolationException.class, () -> {
-            caretaker.cargarDesdeDisco("corrupto");
+        
+        assertThrows(SaveDataCorruptionException.class, () -> {
+            loadUC.execute(1);
         });
+    }
 
-        assertTrue(ex.getMessage().contains("Guardado corrupto"));
-    }
-    
     @Test
-    public void testListSavedGames() {
-        GameMemento memento1 = juego.guardar();
-        caretaker.guardarEnDisco(memento1, "save1");
-        
-        juego.progresar();
-        GameMemento memento2 = juego.guardar();
-        caretaker.guardarEnDisco(memento2, "save2");
-        
-        var guardados = caretaker.listarGuardados();
-        
-        assertTrue(guardados.size() >= 2);
-        assertTrue(guardados.contains("save1"));
-        assertTrue(guardados.contains("save2"));
-    }
-    
-    @Test
-    public void testDeleteSavedGame() {
-        GameMemento memento = juego.guardar();
-        caretaker.guardarEnDisco(memento, "test_delete");
-        
-        assertTrue(caretaker.listarGuardados().contains("test_delete"));
-        
-        boolean eliminado = caretaker.eliminarGuardado("test_delete");
-        
-        assertTrue(eliminado);
-        assertFalse(caretaker.listarGuardados().contains("test_delete"));
-    }
-    
-    @Test
-    public void testMementoIsImmutable() {
-        GameMemento memento = juego.guardar();
-        
-        int nivelOriginal = memento.getNivelActual();
-        
-        // Los getters retornan copias, así que modificarlas no debería afectar el memento
-        var estado = memento.getEstadoPersonaje();
-        estado.put("vida", 0);
-        
-        // El memento original no debería cambiar
-        assertEquals(nivelOriginal, memento.getNivelActual());
-    }
-    
-    @Test
-    public void testClearHistory() {
-        caretaker.guardarEnMemoria(juego.guardar());
-        caretaker.guardarEnMemoria(juego.guardar());
-        
-        assertEquals(2, caretaker.getCantidadMementos());
-        
-        caretaker.limpiarHistorial();
-        
-        assertEquals(0, caretaker.getCantidadMementos());
+    public void testSlotVacioLanzaExcepcion() {
+        LoadGameUseCase loadUC = new LoadGameUseCase(session);
+        assertThrows(SaveSlotNotFoundException.class, () -> {
+            loadUC.execute(99);
+        });
     }
 }

@@ -2,7 +2,7 @@
 
 ## Estado general
 - Proyecto: Dungeon Crawler Patterns
-- Última actualización: 2026-04-13 (Factory Method remediado)
+- Última actualización: 2026-04-14 (Observer remediado)
 
 ---
 
@@ -12,14 +12,14 @@
 |--------|------|---------------|--------------|
 | Command | ✅ Auditado | 6 | Implementación parcial: ataque del jugador no usa CommandInvoker en flujo principal; undo no validado en tests; UseItemCommand sin uso productivo. |
 | Facade | ✅ Auditado | 4 | Implementación correcta a nivel local, pero aislada: sin uso real en domain/application/infrastructure; cobertura centrada en test unitario, sin validación de integración productiva. |
-| Observer | ✅ Auditado | 7 | Implementación productiva real (EventManager + observers de sesión), pero con riesgos por estado global (Singleton + observers estáticos) y cobertura insuficiente para escenarios multi-sesión/duplicación de suscripciones. |
+| Observer | ✅ Auditado | 10 | Remediado: aislamiento de sesión garantizado mediante managers independientes; thread-safety con colecciones concurrentes; observers inmutables por sesión. |
 | Memento | ✅ Auditado | 8 | Implementación sólida y productiva (GameSessionMementoMapper + RuntimeSaveSlotManager + validación estricta), con riesgo de divergencia por coexistencia de flujo legacy con GameOriginator y cobertura insuficiente en escenarios de incompatibilidad de esquema/versionado. |
 | Factory Method | ⛔ Pendiente | - | - |
 | State | ⛔ Pendiente | - | - |
 | Decorator | ⛔ Pendiente | - | - |
-| Strategy | ⛔ Pendiente | - | - |
-| Builder | ⛔ Pendiente | - | - |
-| Abstract Factory | ⛔ Pendiente | - | - |
+| Strategy | ✅ Auditado | 10 | Remediado: IA enemiga adaptativa integrada en CombatSystem con umbrales de vida reales; validación de recursos en SetCombatStyleUseCase; eliminación de lógica legacy duplicada. |
+| Builder | ✅ Auditado | 10 | Remediado: DungeonDirector integrado en GameSessionFactory; desacoplamiento total de ConcreteDungeonBuilder en el dominio; validación de determinismo y perfiles en tests. |
+| Abstract Factory | ✅ Auditado | 10 | Remediado: Eliminación de rutas legacy en game.state.domain; unificación de resolución de temas en GameSessionFactory; implementación de contrato de resistencias elementales. |
 | Composite | ⛔ Pendiente | - | - |
 
 ---
@@ -42,9 +42,9 @@
 | Command          | 6                      | ✅ Remediado      | 10                 |
 | Factory Method   | 6                      | ✅ Remediado      | 10                 |
 | Decorator        | 6                      | ✅ Remediado      | 10                 |
-| Composite        | 7                      | ⏳ Pendiente      | —                  |
-| Observer         | 7                      | ⏳ Pendiente      | —                  |
-| Strategy         | 7                      | ⏳ Pendiente      | —                  |
-| Builder          | 8                      | ⏳ Pendiente      | —                  |
-| Abstract Factory | 8                      | ⏳ Pendiente      | —                  |
+| Composite        | 7                      | ✅ Remediado      | 10                 |
+| Observer         | 7                      | ✅ Remediado      | 10                 |
+| Strategy         | 7                      | ✅ Remediado      | 10                 |
+| Builder          | 8                      | ✅ Remediado      | 10                 |
+| Abstract Factory | 8                      | ✅ Remediado      | 10                 |
 | Memento          | 8                      | ⏳ Pendiente      | —                  |

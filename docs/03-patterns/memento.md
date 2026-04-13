@@ -1,48 +1,44 @@
-# Patron Memento en Runtime
+# Patrón Memento en Runtime
 
-- Fecha de revision: 2026-04-13
-- Estado: vigente
+- Fecha de actualización: 2026-04-13
+- Estado: ✅ Remediado
 
 ## Problema real que resuelve
-El runtime necesita guardar y restaurar sesion completa (pantalla, progreso de mazmorra,
-inventario, combate, seed) sin exponer internals de estado mutable.
+El sistema necesita persistir y restaurar sesiones completas (progresión, inventario, estado de mazmorra, combate activo) garantizando la integridad de los datos y permitiendo rollbacks ante fallos en casos de uso.
 
-## Clases principales (rutas reales)
-- `src/main/java/game/application/state/GameMemento.java` (Memento — inmutable, Serializable)
-- `src/main/java/game/infrastructure/persistence/memento/GameCaretaker.java` (Caretaker — persistencia fisica)
-- `src/main/java/game/infrastructure/persistence/memento/GameOriginator.java` (Originator)
-- `src/main/java/game/application/usecase/SaveGameUseCase.java`
-- `src/main/java/game/application/usecase/LoadGameUseCase.java`
-- `src/main/java/game/application/runtime/RuntimeSaveSlotManager.java`
+## Clases Principales (Rutas Reales)
+- `game.application.state.GameMemento`: El **Memento**. Objeto inmutable y serializable que contiene el snapshot del estado. Incluye validación de `schemaVersion`.
+- `game.application.state.GameSessionMementoMapper`: El **Originator** real del sistema productivo. Transforma una `GameSession` compleja en un `GameMemento` y viceversa.
+- `game.infrastructure.persistence.memento.GameCaretaker`: El **Caretaker**. Gestiona el almacenamiento físico en disco y memoria de los mementos. Implementa `SessionSnapshotStore`.
+- `game.application.usecase.UseCaseTransactionSupport`: Uso de Memento para **Rollback**. Toma un snapshot antes de ejecutar un caso de uso y lo restaura si ocurre una excepción runtime.
 
-## Conexion con runtime productivo
-- `GameRuntime` delega save/load al `RuntimeSaveSlotManager`.
-- `SaveGameUseCase` y `LoadGameUseCase` usan `GameCaretaker` como store de snapshots.
-- `GameOriginator` provee contrato clasico de captura/restauracion de estado con `GameMemento`.
-- `GameMemento` usa patron Builder interno para construccion inmutable.
-- Persistencia fisica: serialization Java a disco en `./saves/`.
+## Validación de Versiones (Schema Versioning)
+Para prevenir la carga de datos incompatibles tras actualizaciones del código, `GameMemento` incluye un campo `schemaVersion` (actualmente `"1.0"`).
+- `toMemento()`: Setea la versión actual.
+- `restoreStrict()`: Valida que la versión del memento coincida con la esperada, lanzando `SaveDataCorruptionException` ante discrepancias.
 
-## Test de validacion en runtime real
-- `src/test/java/game/unit/behavioral/MementoPatternTest.java`
-- `src/test/java/game/unit/application/SaveLoadUseCaseTest.java`
-- `src/test/java/game/unit/application/GameRuntimeLoadGameTest.java`
+## Conexión con Runtime Productivo
+- Se ha eliminado la clase legacy `GameOriginator`, centralizando la lógica en el flujo productivo de `GameSession`.
+- `SaveGameUseCase` y `LoadGameUseCase` orquestan la persistencia delegando en el Mapper y el Caretaker.
+- El sistema de transacciones en los casos de uso garantiza que el juego nunca quede en un estado inconsistente tras un error inesperado.
 
-## Diagrama
+## Diagrama de Flujo Productivo
 ```mermaid
-classDiagram
-    class GameMemento {
-        <<Serializable>>
-        -nombreJugador String
-        -nivelActual int
-        -salaActual int
-        -fechaGuardado LocalDateTime
-        +Builder
-    }
-    GameRuntime --> RuntimeSaveSlotManager
-    RuntimeSaveSlotManager --> SaveGameUseCase
-    RuntimeSaveSlotManager --> LoadGameUseCase
-    SaveGameUseCase --> GameCaretaker
-    LoadGameUseCase --> GameCaretaker
-    GameCaretaker --> GameMemento : guardar/restaurar
-    GameOriginator --> GameMemento : guardar()/restaurar()
+graph TD
+    A[GameRuntime] --> B(Save/Load UseCase)
+    B --> C[GameSession]
+    C -->|createSnapshot| D(GameSessionMementoMapper)
+    D -->|builds| E[GameMemento v1.0]
+    E -.->|persisted by| F[GameCaretaker]
+    F -->|disk/memory| G[(Save Slots)]
+    
+    subgraph Transaction Support
+    H[UseCaseTransactionSupport] -->|snapshot| C
+    H -->|restore on error| C
+    end
 ```
+
+## Validación de Integración
+- **Tests de Esquema**: `MementoPatternTest.testEsquemaIncompatibleLanzaExcepcion` verifica la protección contra versiones antiguas o corruptas.
+- **Tests de Integración**: `BehavioralPatternsIntegrationTest` valida la persistencia y restauración de niveles y progreso real.
+- **Tests de Transacción**: Los casos de uso que utilizan `UseCaseTransactionSupport` garantizan la atomicidad mediante mementos.

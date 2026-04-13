@@ -17,21 +17,24 @@ public class IceThemeFactory implements DungeonThemeFactory {
     
     @Override
     public Personaje crearEnemigoBasico() {
-        PersonajeFactory factory = new EnemigoBasicoFactory(28, 7);
-        return factory.crearPersonaje("Lobo de Hielo");
+        Personaje p = new EnemigoBasicoFactory(28, 7).crearPersonaje("Lobo de Hielo");
+        p.setResistenciaHielo(20);
+        return p;
     }
 
     @Override
     public Personaje crearEnemigoMedio() {
-        PersonajeFactory factory = new OrcoFactory(58, 13);
-        return factory.crearPersonaje("Orco Glacial");
+        Personaje p = new OrcoFactory(58, 13).crearPersonaje("Orco Glacial");
+        p.setResistenciaHielo(40);
+        return p;
     }
 
     @Override
     public Personaje crearJefe() {
         GameBalance.BossProfile profile = GameBalance.boss("ice");
-        PersonajeFactory factory = new DragonFactory(profile.hp(), profile.attack());
-        return factory.crearPersonaje(profile.name());
+        Personaje p = new DragonFactory(profile.hp(), profile.attack()).crearPersonaje(profile.name());
+        p.setResistenciaHielo(100);
+        return p;
     }
 
     @Override

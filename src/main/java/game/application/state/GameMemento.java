@@ -14,6 +14,7 @@ import java.util.Map;
 public class GameMemento implements Serializable {
     private static final long serialVersionUID = 1L;
     
+    private final String schemaVersion;
     private final String nombreJugador;
     private final int nivelActual;
     private final int salaActual;
@@ -26,6 +27,7 @@ public class GameMemento implements Serializable {
      * Constructor privado para usar Builder
      */
     private GameMemento(Builder builder) {
+        this.schemaVersion = builder.schemaVersion;
         this.nombreJugador = builder.nombreJugador;
         this.nivelActual = builder.nivelActual;
         this.salaActual = builder.salaActual;
@@ -36,6 +38,7 @@ public class GameMemento implements Serializable {
     }
     
     // Getters (sin setters - inmutable)
+    public String getSchemaVersion() { return schemaVersion; }
     public String getNombreJugador() { return nombreJugador; }
     public int getNivelActual() { return nivelActual; }
     public int getSalaActual() { return salaActual; }
@@ -63,12 +66,18 @@ public class GameMemento implements Serializable {
      * Builder para crear GameMemento
      */
     public static class Builder {
+        private String schemaVersion = "1.0";
         private String nombreJugador;
         private int nivelActual;
         private int salaActual;
         private Map<String, Object> estadoPersonaje = new HashMap<>();
         private Map<String, Object> estadoInventario = new HashMap<>();
         private Map<String, Object> estadoMazmorra = new HashMap<>();
+        
+        public Builder schemaVersion(String version) {
+            this.schemaVersion = version;
+            return this;
+        }
         
         public Builder nombreJugador(String nombre) {
             this.nombreJugador = nombre;

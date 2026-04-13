@@ -10,10 +10,15 @@ import game.application.ports.events.GameObserver;
  */
 public final class SessionEventFeedObserver implements GameObserver {
 
-    private volatile GameSession session;
+    private final GameSession session;
+    private final String nombre;
 
-    public void bindSession(GameSession session) {
+    public SessionEventFeedObserver(GameSession session) {
+        if (session == null) {
+            throw new IllegalArgumentException("Session cannot be null");
+        }
         this.session = session;
+        this.nombre = "SessionEventFeedObserver-" + System.identityHashCode(session);
     }
 
     @Override
@@ -37,7 +42,7 @@ public final class SessionEventFeedObserver implements GameObserver {
 
     @Override
     public String getNombre() {
-        return "SessionEventFeedObserver";
+        return nombre;
     }
 
     private static boolean isCombatChannel(EventType type) {

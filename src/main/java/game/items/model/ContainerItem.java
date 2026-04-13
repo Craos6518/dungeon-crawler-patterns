@@ -141,4 +141,16 @@ public class ContainerItem extends ItemComponent {
         return String.format("%s (Contenedor: %d/%d items)", 
             nombre, items.size(), capacidadMaxima);
     }
+
+    public int getPesoPropio() {
+        return pesoPropio;
+    }
+    @Override
+    public ItemComponent deepCopy() {
+        ContainerItem copy = new ContainerItem(nombre, descripcion, capacidadMaxima, pesoPropio);
+        for (ItemComponent child : items) {
+            copy.agregar(child.deepCopy());
+        }
+        return copy;
+    }
 }

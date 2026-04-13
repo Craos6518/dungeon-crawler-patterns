@@ -17,21 +17,24 @@ public class DarkThemeFactory implements DungeonThemeFactory {
     
     @Override
     public Personaje crearEnemigoBasico() {
-        PersonajeFactory factory = new EnemigoBasicoFactory(20, 4);
-        return factory.crearPersonaje("Sombra Errante");
+        Personaje p = new EnemigoBasicoFactory(20, 4).crearPersonaje("Sombra Errante");
+        p.setResistenciaOscuridad(20);
+        return p;
     }
 
     @Override
     public Personaje crearEnemigoMedio() {
-        PersonajeFactory factory = new OrcoFactory(70, 15);
-        return factory.crearPersonaje("Caballero Oscuro");
+        Personaje p = new OrcoFactory(70, 15).crearPersonaje("Caballero Oscuro");
+        p.setResistenciaOscuridad(40);
+        return p;
     }
 
     @Override
     public Personaje crearJefe() {
         GameBalance.BossProfile profile = GameBalance.boss("dark");
-        PersonajeFactory factory = new DragonFactory(profile.hp(), profile.attack());
-        return factory.crearPersonaje(profile.name());
+        Personaje p = new DragonFactory(profile.hp(), profile.attack()).crearPersonaje(profile.name());
+        p.setResistenciaOscuridad(100);
+        return p;
     }
 
     @Override

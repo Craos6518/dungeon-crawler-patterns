@@ -17,21 +17,24 @@ public class PoisonThemeFactory implements DungeonThemeFactory {
     
     @Override
     public Personaje crearEnemigoBasico() {
-        PersonajeFactory factory = new EnemigoBasicoFactory(25, 5);
-        return factory.crearPersonaje("Araña Venenosa");
+        Personaje p = new EnemigoBasicoFactory(25, 5).crearPersonaje("Araña Venenosa");
+        p.setResistenciaVeneno(20);
+        return p;
     }
 
     @Override
     public Personaje crearEnemigoMedio() {
-        PersonajeFactory factory = new OrcoFactory(55, 11);
-        return factory.crearPersonaje("Orco Putrefacto");
+        Personaje p = new OrcoFactory(55, 11).crearPersonaje("Orco Putrefacto");
+        p.setResistenciaVeneno(40);
+        return p;
     }
 
     @Override
     public Personaje crearJefe() {
         GameBalance.BossProfile profile = GameBalance.boss("poison");
-        PersonajeFactory factory = new DragonFactory(profile.hp(), profile.attack());
-        return factory.crearPersonaje(profile.name());
+        Personaje p = new DragonFactory(profile.hp(), profile.attack()).crearPersonaje(profile.name());
+        p.setResistenciaVeneno(100);
+        return p;
     }
 
     @Override

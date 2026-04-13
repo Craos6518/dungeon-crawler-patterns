@@ -10,7 +10,10 @@ import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Orco;
 import game.domain.personaje.Personaje;
 import game.items.model.SimpleItem;
+import game.items.model.ContainerItem;
+import game.items.model.ItemComponent;
 
+import game.infrastructure.persistence.memento.SaveDataCorruptionException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,16 +47,7 @@ public final class GameSessionMementoMapper {
     }
 
     public static GameMemento toMemento(GameSession session, String currentScreen) {
-        List<Map<String, Object>> items = new ArrayList<>();
-        for (Item item : session.inventory().items()) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("nombre", item.getName());
-            data.put("descripcion", item.getDescription());
-            data.put("tipo", item.getType());
-            data.put("valor", item.getValue());
-            data.put("peso", item.getWeight());
-            items.add(data);
-        }
+        Map<String, Object> inventoryTree = serializeComponent(session.inventory().exportTree());
 
         boolean combatActive = session.combat().isActive();
         String enemyName = null;
@@ -97,6 +91,7 @@ public final class GameSessionMementoMapper {
         }
 
         return new GameMemento.Builder()
+            .schemaVersion("1.0")
             .nombreJugador(session.player().name())
             .nivelActual(Math.max(1, session.player().level()))
             .salaActual(session.dungeon().currentRoomIndex() + 1)
@@ -114,7 +109,7 @@ public final class GameSessionMementoMapper {
             .agregarEstadoPersonaje("defensaActiva", session.combat().isDefenseActive())
             .agregarEstadoPersonaje("venenoTurnos", session.combat().poisonTurns())
             .agregarEstadoPersonaje("venenoDanio", session.combat().poisonDamage())
-            .agregarEstadoInventario("items", items)
+            .agregarEstadoInventario("tree", inventoryTree)
             .agregarEstadoInventario("selectedIndex", session.inventory().selectedIndex())
             .agregarEstadoMazmorra("tema", session.dungeon().themeName())
             .agregarEstadoMazmorra("schemaVersion", 1)
@@ -166,6 +161,11 @@ public final class GameSessionMementoMapper {
             throw corrupt("memento nulo");
         }
 
+        String version = memento.getSchemaVersion();
+        if (!"1.0".equals(version)) {
+            throw new SaveDataCorruptionException("Incompatible schema version: " + (version == null ? "null" : version));
+        }
+
         Map<String, Object> characterState = memento.getEstadoPersonaje();
         Map<String, Object> inventoryState = memento.getEstadoInventario();
         Map<String, Object> dungeonState = memento.getEstadoMazmorra();
@@ -214,6 +214,7 @@ public final class GameSessionMementoMapper {
             Math.max(1, level),
             Math.max(0, experience),
             Math.max(0, Math.min(hp, Math.max(1, maxHp))),
+            Math.max(1, maxHp),
             Math.max(0, gold),
             Math.max(0, defeatedEnemies),
             Math.max(0, resource)
@@ -224,12 +225,9 @@ public final class GameSessionMementoMapper {
         }
         session.setHeroSelectionLocked(heroSelectionLocked);
 
-        List<SimpleItem> restoredItems = parseItems(inventoryState.get("items"), strict);
+        ItemComponent restoredTree = parseComponent(inventoryState.get("tree"), strict);
         Integer selectedIndex = readNullableInt(inventoryState.get("selectedIndex"));
-        if (strict && !isValidSelectedIndex(selectedIndex, restoredItems.size())) {
-            throw corrupt("selectedIndex invalido");
-        }
-        session.inventory().replaceItems(restoredItems, selectedIndex);
+        session.inventory().importTree(restoredTree, selectedIndex);
 
         int totalRooms = session.dungeon().totalRooms();
         Integer schemaVersion = readNullableInt(dungeonState.get("schemaVersion"));
@@ -389,9 +387,71 @@ public final class GameSessionMementoMapper {
         );
 
         session.setActiveScreen(screen);
-
         session.replaceEventLog(parseStringList(dungeonState.get("eventLog"), strict, "eventLog"));
         session.replaceCombatLog(parseStringList(dungeonState.get("combatLog"), strict, "combatLog"));
+    }
+
+    private static Map<String, Object> serializeComponent(ItemComponent component) {
+        Map<String, Object> data = new HashMap<>();
+        if (component instanceof SimpleItem simple) {
+            data.put("compositeType", "simple");
+            data.put("nombre", simple.getNombre());
+            data.put("descripcion", simple.getDescripcion());
+            data.put("tipo", simple.getTipo());
+            data.put("valor", simple.getValorTotal());
+            data.put("peso", simple.getPesoTotal());
+        } else if (component instanceof ContainerItem container) {
+            data.put("compositeType", "container");
+            data.put("nombre", container.getNombre());
+            data.put("descripcion", container.getDescripcion());
+            data.put("capacidad", container.getCapacidadMaxima());
+            data.put("pesoBase", container.getPesoPropio());
+            
+            List<Map<String, Object>> children = new ArrayList<>();
+            for (ItemComponent child : container.obtenerItems()) {
+                children.add(serializeComponent(child));
+            }
+            data.put("children", children);
+        }
+        return data;
+    }
+
+    private static ItemComponent parseComponent(Object raw, boolean strict) {
+        if (raw == null) return null;
+        if (!(raw instanceof Map<?, ?> map)) {
+            if (strict) throw corrupt("componente de inventario invalido");
+            return null;
+        }
+
+        String compositeType = readString(map.get("compositeType"), "simple");
+        String nombre = readString(map.get("nombre"), "Item");
+        String descripcion = readString(map.get("descripcion"), "");
+
+        if ("container".equals(compositeType)) {
+            int capacidad = readInt(map.get("capacidad"), 10);
+            int pesoBase = readInt(map.get("pesoBase"), 1);
+            ContainerItem container = new ContainerItem(nombre, descripcion, capacidad, pesoBase);
+            
+            Object rawChildren = map.get("children");
+            if (rawChildren instanceof List<?> list) {
+                for (Object childObj : list) {
+                    ItemComponent child = parseComponent(childObj, strict);
+                    if (child != null) {
+                        try {
+                            container.agregar(child);
+                        } catch (Exception e) {
+                            if (strict) throw corrupt("no se pudo agregar hijo al contenedor: " + e.getMessage());
+                        }
+                    }
+                }
+            }
+            return container;
+        } else {
+            String tipo = readString(map.get("tipo"), "Consumible");
+            int valor = readInt(map.get("valor"), 0);
+            int peso = readInt(map.get("peso"), 1);
+            return new SimpleItem(nombre, descripcion, tipo, valor, peso);
+        }
     }
 
     private static List<Map<String, Object>> serializeItems(List<SimpleItem> items) {

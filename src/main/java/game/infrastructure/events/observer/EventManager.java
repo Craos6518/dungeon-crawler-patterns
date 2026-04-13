@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Observer Pattern - Subject (EventManager)
@@ -17,7 +19,7 @@ import java.util.Map;
  * Implementa el patrón Singleton para acceso global.
  */
 public class EventManager implements EventPublisher {
-    private static EventManager instance;
+    private static final EventManager instance = new EventManager();
     
     private final List<GameObserver> observers;
     private final Map<EventType, List<GameObserver>> observersPorTipo;
@@ -25,10 +27,10 @@ public class EventManager implements EventPublisher {
     private boolean habilitado;
     private boolean validacionContratoHabilitada;
     
-    private EventManager() {
-        this.observers = new ArrayList<>();
-        this.observersPorTipo = new HashMap<>();
-        this.historialEventos = new ArrayList<>();
+    public EventManager() {
+        this.observers = new CopyOnWriteArrayList<>();
+        this.observersPorTipo = new ConcurrentHashMap<>();
+        this.historialEventos = new CopyOnWriteArrayList<>();
         this.habilitado = true;
         this.validacionContratoHabilitada = true;
     }
@@ -37,9 +39,6 @@ public class EventManager implements EventPublisher {
      * Obtiene la instancia única del EventManager
      */
     public static EventManager getInstance() {
-        if (instance == null) {
-            instance = new EventManager();
-        }
         return instance;
     }
     
@@ -63,7 +62,7 @@ public class EventManager implements EventPublisher {
             throw new IllegalArgumentException("El observer no puede ser null");
         }
         
-        observersPorTipo.computeIfAbsent(tipo, k -> new ArrayList<>());
+        observersPorTipo.computeIfAbsent(tipo, k -> new CopyOnWriteArrayList<>());
         List<GameObserver> observersDeTipo = observersPorTipo.get(tipo);
         
         if (!observersDeTipo.contains(observer)) {
@@ -141,6 +140,15 @@ public class EventManager implements EventPublisher {
         observersPorTipo.clear();
         historialEventos.clear();
     }
+
+    /**
+     * Resetea el estado completo del EventManager para tests.
+     */
+    void reset() {
+        limpiar();
+        habilitado = true;
+        validacionContratoHabilitada = true;
+    }
     
     /**
      * Limpia solo el historial de eventos
@@ -175,7 +183,7 @@ public class EventManager implements EventPublisher {
      * Obtiene el historial de eventos
      */
     public List<GameEvent> getHistorial() {
-        return new ArrayList<>(historialEventos);
+        return List.copyOf(historialEventos);
     }
     
     /**

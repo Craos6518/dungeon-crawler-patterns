@@ -23,9 +23,9 @@ public final class GameBalance {
     );
 
     private static final Map<String, ResourceProfile> RESOURCES = Map.of(
-        "guerrero", new ResourceProfile("stamina", 100, 18, 14, 26, 8, 12),
-        "mago", new ResourceProfile("mana", 120, 22, 16, 34, 6, 10),
-        "arquero", new ResourceProfile("concentracion", 110, 16, 12, 28, 10, 14)
+        "guerrero", new ResourceProfile("stamina", 100, 18, 14, 26, 8, 12, 5),
+        "mago", new ResourceProfile("mana", 120, 22, 16, 34, 6, 10, 8),
+        "arquero", new ResourceProfile("concentracion", 110, 16, 12, 28, 10, 14, 6)
     );
 
     private GameBalance() {
@@ -78,7 +78,8 @@ public final class GameBalance {
         int defendRecovery,
         int skillCost,
         int buffCost,
-        int checkpointCost
+        int checkpointCost,
+        int styleChangeCost
     ) {
     }
 }

@@ -17,21 +17,24 @@ public class FireThemeFactory implements DungeonThemeFactory {
     
     @Override
     public Personaje crearEnemigoBasico() {
-        PersonajeFactory factory = new EnemigoBasicoFactory(30, 6);
-        return factory.crearPersonaje("Salamandra de Fuego");
+        Personaje p = new EnemigoBasicoFactory(30, 6).crearPersonaje("Salamandra de Fuego");
+        p.setResistenciaFuego(20);
+        return p;
     }
 
     @Override
     public Personaje crearEnemigoMedio() {
-        PersonajeFactory factory = new OrcoFactory(60, 12);
-        return factory.crearPersonaje("Orco Flamígero");
+        Personaje p = new OrcoFactory(60, 12).crearPersonaje("Orco Flamígero");
+        p.setResistenciaFuego(40);
+        return p;
     }
 
     @Override
     public Personaje crearJefe() {
         GameBalance.BossProfile profile = GameBalance.boss("fire");
-        PersonajeFactory factory = new DragonFactory(profile.hp(), profile.attack());
-        return factory.crearPersonaje(profile.name());
+        Personaje p = new DragonFactory(profile.hp(), profile.attack()).crearPersonaje(profile.name());
+        p.setResistenciaFuego(100);
+        return p;
     }
 
     @Override

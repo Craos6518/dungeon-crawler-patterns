@@ -140,4 +140,33 @@ class CombatSystemTest {
         assertEquals(1, system.enemyActionCount(player, slowEnemy));
         assertEquals(2, system.playerActionCount(player, slowEnemy));
     }
+
+    @Test
+    void enemyStrategyChangesByThresholds() {
+        Player player = Player.demo();
+        Enemy enemy = new Enemy(new EnemigoBasico("Golemn", 100, 20));
+        CombatSystem system = new CombatSystem();
+        TurnManager turnManager = new TurnManager();
+        AIController ai = new AIController(enemy.character(), new game.ai.strategy.AggressiveStrategy());
+        CommandInvoker invoker = new CommandInvoker();
+
+        // HP 100/100 (100%) -> Aggressive
+        system.enemyTurn(player, enemy, ai, turnManager, "dark", new Random(), invoker);
+        assertEquals("Agresiva", ai.getEstrategia().getNombreEstrategia());
+
+        // HP 60/100 (60%) -> Intelligent
+        enemy.receiveDamage(40);
+        system.enemyTurn(player, enemy, ai, turnManager, "dark", new Random(), invoker);
+        assertEquals("Inteligente", ai.getEstrategia().getNombreEstrategia());
+
+        // HP 30/100 (30%) -> Defensive
+        enemy.receiveDamage(30);
+        system.enemyTurn(player, enemy, ai, turnManager, "dark", new Random(), invoker);
+        assertEquals("Defensiva", ai.getEstrategia().getNombreEstrategia());
+
+        // HP 10/100 (10%) -> Desesperado (Intelligent)
+        enemy.receiveDamage(20);
+        system.enemyTurn(player, enemy, ai, turnManager, "dark", new Random(), invoker);
+        assertEquals("Inteligente", ai.getEstrategia().getNombreEstrategia());
+    }
 }

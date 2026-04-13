@@ -4,6 +4,8 @@ import game.dungeon.builder.ConcreteDungeonBuilder;
 import game.dungeon.builder.DungeonBuilder;
 import game.dungeon.builder.DungeonDirector;
 import game.dungeon.model.Dungeon;
+import game.dungeon.theme.FireThemeFactory;
+import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -92,5 +94,56 @@ public class BuilderPatternTest {
         assertEquals("Volcán Ardiente", mazmorraFuego.getNombre());
         assertEquals("Fuego", mazmorraFuego.getTema());
         assertEquals(3, mazmorraFuego.getNivelDificultad());
+    }
+
+    @Test
+    public void testEquivalenciaDirectorYFactory() {
+        long seed = 456L;
+        FireThemeFactory theme = new FireThemeFactory();
+        
+        // Vía Director
+        DungeonBuilder builder = new ConcreteDungeonBuilder();
+        DungeonDirector director = new DungeonDirector(builder);
+        game.domain.exploration.Dungeon dungeon1 = director.buildForTheme(theme, seed);
+        
+        // Vía Aggregate (que ahora usa el Director internamente)
+        game.domain.exploration.Dungeon dungeon2 = game.domain.exploration.Dungeon.fromTheme(new Random(seed), theme, seed);
+        
+        assertEquals(dungeon1.totalRooms(), dungeon2.totalRooms(), "Mismas salas");
+        assertEquals(dungeon1.model().getNombre(), dungeon2.model().getNombre(), "Mismo nombre");
+        assertEquals(dungeon1.model().getNivelDificultad(), dungeon2.model().getNivelDificultad(), "Misma dificultad");
+    }
+
+    @Test
+    public void testDeterminismoSemilla() {
+        long seed = 789L;
+        FireThemeFactory theme = new FireThemeFactory();
+        DungeonDirector director = new DungeonDirector(new ConcreteDungeonBuilder());
+        
+        game.domain.exploration.Dungeon d1 = director.buildForTheme(theme, seed);
+        game.domain.exploration.Dungeon d2 = director.buildForTheme(theme, seed);
+        
+        assertEquals(d1.totalRooms(), d2.totalRooms());
+        for (int i = 0; i < d1.totalRooms(); i++) {
+            assertEquals(d1.model().getSalas().get(i).getNombre(), 
+                         d2.model().getSalas().get(i).getNombre());
+            assertEquals(d1.model().getSalas().get(i).getDificultad(), 
+                         d2.model().getSalas().get(i).getDificultad());
+        }
+    }
+
+    @Test
+    public void testDificultadPerfiles() {
+        DungeonBuilder builder = new ConcreteDungeonBuilder();
+        DungeonDirector director = new DungeonDirector(builder);
+        
+        Dungeon easy = director.construirMazmorraBasica();
+        Dungeon hard = director.construirMazmorraOscura();
+        
+        assertTrue(hard.getNivelDificultad() > easy.getNivelDificultad(), 
+            "La mazmorra oscura debe ser más difícil que la básica");
+        
+        assertTrue(hard.getSalaJefe().getDificultad() > easy.getSalaJefe().getDificultad(),
+            "El jefe oscuro debe tener mayor dificultad que el básico");
     }
 }

@@ -256,4 +256,34 @@ public class Inventory {
         this.selectedItemIndex = selectedIndex == null ? 0 : selectedIndex;
         clampSelection();
     }
+
+    /**
+     * Exporta el contenedor raíz del inventario preservando toda la jerarquía de Composite.
+     */
+    public ContainerItem exportTree() {
+        return (ContainerItem) container.deepCopy();
+    }
+
+    /**
+     * Reemplaza el árbol de ítems actual por uno nuevo, reconstruyendo toda la jerarquía.
+     */
+    public void importTree(ItemComponent root, Integer selectedIndex) {
+        if (!(root instanceof ContainerItem newContainer)) {
+            return;
+        }
+
+        // Limpiar contenedor actual
+        List<ItemComponent> current = new ArrayList<>(container.obtenerItems());
+        for (ItemComponent item : current) {
+            container.remover(item);
+        }
+
+        // Importar hijos del nuevo contenedor al actual
+        for (ItemComponent child : newContainer.obtenerItems()) {
+            container.agregar(child);
+        }
+
+        this.selectedItemIndex = selectedIndex == null ? 0 : selectedIndex;
+        clampSelection();
+    }
 }

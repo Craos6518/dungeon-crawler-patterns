@@ -8,6 +8,10 @@ public abstract class Personaje {
     private int vidaMaxima;
     private int nivel;
     private int experiencia;
+    private int resistenciaFuego = 0;
+    private int resistenciaHielo = 0;
+    private int resistenciaVeneno = 0;
+    private int resistenciaOscuridad = 0;
 
     protected Personaje(String nombre, int vidaInicial) {
         this.nombre = nombre;
@@ -37,6 +41,13 @@ public abstract class Personaje {
         this.nivel++;
         this.vidaMaxima += 20;
         this.vida = this.vidaMaxima;
+    }
+
+    public void restoreStats(int nivel, int xp, int vida, int vidaMaxima) {
+        this.nivel = nivel;
+        this.experiencia = xp;
+        this.vidaMaxima = vidaMaxima;
+        this.vida = Math.min(vida, vidaMaxima);
     }
 
     public boolean estaVivo() {
@@ -83,4 +94,16 @@ public abstract class Personaje {
 
         this.nombre = normalized;
     }
+
+    public int getResistenciaFuego() { return resistenciaFuego; }
+    public void setResistenciaFuego(int v) { this.resistenciaFuego = v; }
+
+    public int getResistenciaHielo() { return resistenciaHielo; }
+    public void setResistenciaHielo(int v) { this.resistenciaHielo = v; }
+
+    public int getResistenciaVeneno() { return resistenciaVeneno; }
+    public void setResistenciaVeneno(int v) { this.resistenciaVeneno = v; }
+
+    public int getResistenciaOscuridad() { return resistenciaOscuridad; }
+    public void setResistenciaOscuridad(int v) { this.resistenciaOscuridad = v; }
 }

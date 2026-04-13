@@ -18,6 +18,10 @@ public class SetCombatStyleUseCase {
     }
 
     public void execute(String styleKey) {
+        if (styleKey == null) {
+            throw new IllegalArgumentException("Combat style cannot be null");
+        }
+
         if (!session.player().isAlive()) {
             throw new DomainRuleViolationException("No puedes cambiar de estilo: el heroe esta derrotado.");
         }

@@ -7,7 +7,7 @@ import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Orco;
 import game.dungeon.builder.ConcreteDungeonBuilder;
 import game.dungeon.builder.DungeonBuilder;
-import game.dungeon.builder.ProceduralDungeonGenerator;
+import game.dungeon.builder.DungeonDirector;
 import game.dungeon.theme.DungeonThemeFactory;
 import game.dungeon.theme.FireThemeFactory;
 import game.items.model.SimpleItem;
@@ -55,9 +55,9 @@ public class Dungeon {
     }
 
     public static Dungeon fromTheme(Random random, DungeonThemeFactory theme, Long generationSeed) {
-        DungeonBuilder builder = new ConcreteDungeonBuilder();
-        game.dungeon.model.Dungeon generated = ProceduralDungeonGenerator.generar(builder, theme, random);
-        return new Dungeon(random, theme, generated, generationSeed);
+        DungeonDirector director = new DungeonDirector(new ConcreteDungeonBuilder());
+        long seed = generationSeed != null ? generationSeed : random.nextLong();
+        return director.buildForTheme(theme, seed);
     }
 
     public game.dungeon.model.Dungeon model() {

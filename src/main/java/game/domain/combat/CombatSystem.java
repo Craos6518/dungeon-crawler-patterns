@@ -4,6 +4,7 @@ import game.ai.strategy.AIController;
 import game.ai.strategy.AIStrategy;
 import game.ai.strategy.AggressiveStrategy;
 import game.ai.strategy.DefensiveStrategy;
+import game.ai.strategy.IntelligentStrategy;
 import game.ai.strategy.RandomStrategy;
 import game.patterns.command.actions.AttackCommand;
 import game.patterns.command.actions.Command;
@@ -167,14 +168,18 @@ public class CombatSystem {
     }
 
     private AIStrategy selectEnemyStrategy(Enemy enemy) {
-        int hp = enemy.hp();
-        if (hp > 70) {
+        double hpRatio = (double) enemy.hp() / enemy.maxHp();
+
+        if (hpRatio > 0.75) {
             return new AggressiveStrategy();
         }
-        if (hp > 35) {
-            return new RandomStrategy();
+        if (hpRatio >= 0.50) {
+            return new IntelligentStrategy();
         }
-        return new DefensiveStrategy();
+        if (hpRatio >= 0.25) {
+            return new DefensiveStrategy();
+        }
+        return new IntelligentStrategy(); // Desesperado: busca heroe debil
     }
 
     private int computePlayerAttackPower(Player player, Enemy enemy, boolean skillAttack) {
