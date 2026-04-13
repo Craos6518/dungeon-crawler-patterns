@@ -13,6 +13,8 @@ Combate requiere aplicar efectos de estado acumulables (veneno, buff ofensivo, m
 - `src/main/java/game/effects/status/PoisonEffect.java`
 - `src/main/java/game/effects/status/StrengthEffect.java`
 - `src/main/java/game/effects/status/GuardEffect.java`
+- `src/main/java/game/effects/status/BurnEffect.java`
+- `src/main/java/game/effects/status/StunEffect.java`
 - `src/main/java/game/domain/combat/Combat.java`
 
 ## Conexion con runtime productivo
@@ -22,6 +24,7 @@ Combate requiere aplicar efectos de estado acumulables (veneno, buff ofensivo, m
 
 ## Test de validacion en runtime real
 - `src/test/java/game/unit/domain/combat/CombatDecoratorIntegrationTest.java`
+- `src/test/java/game/unit/structural/DecoratorPatternTest.java`
 
 ## Diagrama minimo
 ```mermaid
@@ -31,4 +34,6 @@ classDiagram
     CharacterDecorator <|-- PoisonEffect
     CharacterDecorator <|-- StrengthEffect
     CharacterDecorator <|-- GuardEffect
+    CharacterDecorator <|-- BurnEffect
+    CharacterDecorator <|-- StunEffect
 ```

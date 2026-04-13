@@ -1,36 +1,48 @@
 # Patron Memento en Runtime
 
-- Fecha de creacion: 2026-04-04
-- Rama auditada: Flujo-de-mazmorra
+- Fecha de revision: 2026-04-13
 - Estado: vigente
 
 ## Problema real que resuelve
-El runtime necesita guardar y restaurar sesion completa (pantalla, progreso de mazmorra, inventario, combate, seed) sin exponer internals de estado mutable.
+El runtime necesita guardar y restaurar sesion completa (pantalla, progreso de mazmorra,
+inventario, combate, seed) sin exponer internals de estado mutable.
 
 ## Clases principales (rutas reales)
-- `src/main/java/game/persistence/memento/GameMemento.java`
-- `src/main/java/game/persistence/memento/GameCaretaker.java`
-- `src/main/java/game/application/state/GameSessionMementoMapper.java`
+- `src/main/java/game/application/state/GameMemento.java` (Memento — inmutable, Serializable)
+- `src/main/java/game/infrastructure/persistence/memento/GameCaretaker.java` (Caretaker — persistencia fisica)
+- `src/main/java/game/infrastructure/persistence/memento/GameOriginator.java` (Originator)
 - `src/main/java/game/application/usecase/SaveGameUseCase.java`
 - `src/main/java/game/application/usecase/LoadGameUseCase.java`
 - `src/main/java/game/application/runtime/RuntimeSaveSlotManager.java`
 
 ## Conexion con runtime productivo
 - `GameRuntime` delega save/load al `RuntimeSaveSlotManager`.
-- `SaveGameUseCase` serializa `GameSession` a memento mediante mapper.
-- `LoadGameUseCase` restaura sesion desde memento validado.
+- `SaveGameUseCase` y `LoadGameUseCase` usan `GameCaretaker` como store de snapshots.
+- `GameOriginator` provee contrato clasico de captura/restauracion de estado con `GameMemento`.
+- `GameMemento` usa patron Builder interno para construccion inmutable.
+- Persistencia fisica: serialization Java a disco en `./saves/`.
 
 ## Test de validacion en runtime real
+- `src/test/java/game/unit/behavioral/MementoPatternTest.java`
 - `src/test/java/game/unit/application/SaveLoadUseCaseTest.java`
 - `src/test/java/game/unit/application/GameRuntimeLoadGameTest.java`
 
-## Diagrama minimo
+## Diagrama
 ```mermaid
 classDiagram
+    class GameMemento {
+        <<Serializable>>
+        -nombreJugador String
+        -nivelActual int
+        -salaActual int
+        -fechaGuardado LocalDateTime
+        +Builder
+    }
     GameRuntime --> RuntimeSaveSlotManager
     RuntimeSaveSlotManager --> SaveGameUseCase
     RuntimeSaveSlotManager --> LoadGameUseCase
-    SaveGameUseCase --> GameSessionMementoMapper
-    GameSessionMementoMapper --> GameMemento
+    SaveGameUseCase --> GameCaretaker
     LoadGameUseCase --> GameCaretaker
+    GameCaretaker --> GameMemento : guardar/restaurar
+    GameOriginator --> GameMemento : guardar()/restaurar()
 ```

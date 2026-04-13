@@ -13,12 +13,17 @@ instanciacion a una sola clase concreta.
 - `src/main/java/game/domain/personaje/factory/GuerreroFactory.java`
 - `src/main/java/game/domain/personaje/factory/ArqueroFactory.java`
 - `src/main/java/game/domain/personaje/factory/MagoFactory.java`
+- `src/main/java/game/domain/personaje/factory/DragonFactory.java`
+- `src/main/java/game/domain/personaje/factory/EnemigoBasicoFactory.java`
+- `src/main/java/game/domain/personaje/factory/OrcoFactory.java`
 - `src/main/java/game/application/state/GameSessionFactory.java`
 
 ## Conexion con runtime productivo
 - `GameSessionFactory` selecciona el tipo de heroe y delega la creacion en
   factories concretas via `crearPersonaje(...)`.
 - El flujo evita condicionales de construccion dispersos y centraliza perfiles.
+- El modulo incluye factories de enemigos listas para escenarios de combate
+  especializados y pruebas.
 
 ## Test de validacion en runtime real
 - `src/test/java/game/unit/creational/FactoryMethodTest.java`
@@ -33,5 +38,8 @@ classDiagram
     PersonajeFactory <|.. GuerreroFactory
     PersonajeFactory <|.. ArqueroFactory
     PersonajeFactory <|.. MagoFactory
+  PersonajeFactory <|.. DragonFactory
+  PersonajeFactory <|.. EnemigoBasicoFactory
+  PersonajeFactory <|.. OrcoFactory
     GameSessionFactory --> PersonajeFactory
 ```
