@@ -18,6 +18,8 @@ public class CombatResult {
     public int gainedLevels;
 
     public boolean poisonApplied;
+    public boolean burnApplied;
+    public boolean playerStunned;
     public boolean antidoteUsed;
     public boolean potionUsed;
     public int healedHp;

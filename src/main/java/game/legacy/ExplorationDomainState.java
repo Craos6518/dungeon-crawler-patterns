@@ -1,4 +1,4 @@
-package game.state.domain.exploration;
+package game.legacy;
 
 import game.domain.personaje.Personaje;
 import game.dungeon.model.Room;
@@ -22,6 +22,10 @@ import java.util.Random;
  * - Guardado de partida
  * 
  * Completamente independiente y reutilizable en diferentes interfaces.
+ */
+/**
+ * CLASE LEGACY - NO USAR EN FLUJO PRODUCTIVO.
+ * Reemplazada por DungeonNavigator y flujos basados en GameRuntime.
  */
 public class ExplorationDomainState extends AbstractDomainGameState {
     

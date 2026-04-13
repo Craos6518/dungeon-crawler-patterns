@@ -6,8 +6,11 @@ import game.application.runtime.InvalidRuntimeCommandException;
 import game.application.runtime.GameRuntime;
 import game.application.state.GameSession;
 import game.application.state.GameSessionFactory;
+import game.domain.personaje.factory.GuerreroFactory;
 import game.ui.GameViewModel;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -192,6 +195,42 @@ class GameRuntimeHeroSelectionTest {
         GameViewModel vm = runtime.presentViewModel();
         assertEquals("exploration", vm.screen);
         assertEquals("arquero", vm.heroType);
+    }
+
+    @Test
+    void heroTypeGuerreroCreatesFactoryCompatibleCharacterClass() throws Exception {
+        GameRuntime runtime = new GameRuntime();
+
+        UiCommand goToHeroSelect = new UiCommand();
+        goToHeroSelect.action = "goToHeroSelect";
+        goToHeroSelect.payload = new JsonObject();
+        runtime.handleCommand(goToHeroSelect);
+
+        UiCommand selectHero = new UiCommand();
+        selectHero.action = "selectHero";
+        JsonObject selectPayload = new JsonObject();
+        selectPayload.addProperty("heroType", "guerrero");
+        selectHero.payload = selectPayload;
+        runtime.handleCommand(selectHero);
+
+        UiCommand start = new UiCommand();
+        start.action = "heroNewGame";
+        JsonObject startPayload = new JsonObject();
+        startPayload.addProperty("heroType", "guerrero");
+        startPayload.addProperty("theme", "poison");
+        start.payload = startPayload;
+        runtime.handleCommand(start);
+
+        GameSession session = extractSession(runtime);
+        Class<?> expectedClass = new GuerreroFactory(1, 1).crearPersonaje("tmp").getClass();
+
+        assertEquals(expectedClass, session.player().character().getClass());
+    }
+
+    private static GameSession extractSession(GameRuntime runtime) throws Exception {
+        Field sessionField = GameRuntime.class.getDeclaredField("session");
+        sessionField.setAccessible(true);
+        return (GameSession) sessionField.get(runtime);
     }
 
     @Test

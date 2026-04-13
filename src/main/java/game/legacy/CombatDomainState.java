@@ -1,4 +1,4 @@
-package game.state.domain.combat;
+package game.legacy;
 
 import game.ai.strategy.AIController;
 import game.ai.strategy.AIStrategy;
@@ -32,6 +32,10 @@ import java.util.Random;
  * - Mostrar pantalla de victoria/derrota
  * 
  * Completamente independiente y reutilizable.
+ */
+/**
+ * CLASE LEGACY - NO USAR EN FLUJO PRODUCTIVO.
+ * Reemplazada por el agregado Combat y CombatStatusDecoratorPipeline.
  */
 public class CombatDomainState extends AbstractDomainGameState {
     

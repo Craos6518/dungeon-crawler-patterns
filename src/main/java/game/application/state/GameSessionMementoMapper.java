@@ -87,6 +87,9 @@ public final class GameSessionMementoMapper {
                 tacticalCheckpointState.put("defenseActive", checkpoint.defenseActive());
                 tacticalCheckpointState.put("poisonTurns", checkpoint.poisonTurns());
                 tacticalCheckpointState.put("poisonDamage", checkpoint.poisonDamage());
+                tacticalCheckpointState.put("burnTurns", checkpoint.burnTurns());
+                tacticalCheckpointState.put("burnDamage", checkpoint.burnDamage());
+                tacticalCheckpointState.put("stunTurns", checkpoint.stunTurns());
                 tacticalCheckpointState.put("style", checkpoint.playerStyle().key());
                 tacticalCheckpointState.put("offensiveStacks", checkpoint.offensiveBuffStacks());
                 tacticalCheckpointState.put("guardStacks", checkpoint.guardBuffStacks());
@@ -594,6 +597,9 @@ public final class GameSessionMementoMapper {
         boolean defenseActive = readBoolean(map.get("defenseActive"), false);
         int poisonTurns = readInt(map.get("poisonTurns"), 0);
         int poisonDamage = readInt(map.get("poisonDamage"), 0);
+        int burnTurns = readInt(map.get("burnTurns"), 0);
+        int burnDamage = readInt(map.get("burnDamage"), 0);
+        int stunTurns = readInt(map.get("stunTurns"), 0);
         String styleKey = readString(map.get("style"), "balanced");
         int offensiveStacks = readInt(map.get("offensiveStacks"), 0);
         int guardStacks = readInt(map.get("guardStacks"), 0);
@@ -627,6 +633,9 @@ public final class GameSessionMementoMapper {
             defenseActive,
             Math.max(0, poisonTurns),
             Math.max(0, poisonDamage),
+            Math.max(0, burnTurns),
+            Math.max(0, burnDamage),
+            Math.max(0, stunTurns),
             PlayerCombatStyle.fromRaw(styleKey),
             Math.max(0, offensiveStacks),
             Math.max(0, guardStacks)

@@ -1,4 +1,4 @@
-package game.combat.engine;
+package game.legacy;
 
 import game.ai.strategy.AIController;
 import game.ai.strategy.AIStrategy;
@@ -26,6 +26,11 @@ import java.util.List;
  * 
  * Este motor demuestra cómo múltiples patrones trabajan juntos
  * en un sistema cohesivo.
+ */
+/**
+ * CLASE LEGACY - NO USAR EN FLUJO PRODUCTIVO.
+ * Esta clase ha sido movida a legacy debido a que el runtime principal (GameRuntime)
+ * utiliza el agregado Combat y CombatStatusDecoratorPipeline para la gestion de efectos.
  */
 public class IntegratedCombatEngine {
     private final Personaje heroe;
