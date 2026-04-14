@@ -93,19 +93,49 @@ public class AbstractFactoryTest {
     }
 
     @Test
-    public void testTodosLosTemasCreanJefes() {
-        DungeonThemeFactory[] factories = {
-            new FireThemeFactory(),
-            new PoisonThemeFactory(),
-            new IceThemeFactory(),
-            new DarkThemeFactory()
-        };
+    public void testContratoResistenciasPorTema() {
+        // Fire
+        Personaje f = new FireThemeFactory().crearEnemigoBasico();
+        assertTrue(f.getResistenciaFuego() > 0);
         
-        for (DungeonThemeFactory factory : factories) {
-            Personaje jefe = factory.crearJefe();
-            assertNotNull(jefe);
-            assertTrue(jefe.getVida() > 100, 
-                "El jefe de " + factory.getNombreTema() + " debe tener más de 100 HP");
-        }
+        // Ice
+        Personaje i = new IceThemeFactory().crearEnemigoBasico();
+        assertTrue(i.getResistenciaHielo() > 0);
+        
+        // Poison
+        Personaje p = new PoisonThemeFactory().crearEnemigoBasico();
+        assertTrue(p.getResistenciaVeneno() > 0);
+        
+        // Dark
+        Personaje d = new DarkThemeFactory().crearEnemigoBasico();
+        assertTrue(d.getResistenciaOscuridad() > 0);
+    }
+
+    @Test
+    public void testContratoLootTematico() {
+        DungeonThemeFactory iceFactory = new IceThemeFactory();
+        SimpleItem loot = iceFactory.crearTesoroRaro();
+        assertTrue(loot.getNombre().toLowerCase().contains("invierno") || 
+                   loot.getNombre().toLowerCase().contains("hielo"),
+                   "El loot de hielo debe tener nombre temático");
+        
+        DungeonThemeFactory fireFactory = new FireThemeFactory();
+        SimpleItem lootF = fireFactory.crearTesoroRaro();
+        assertTrue(lootF.getNombre().toLowerCase().contains("flam") || 
+                   lootF.getNombre().toLowerCase().contains("fuego"),
+                   "El loot de fuego debe tener nombre temático");
+    }
+
+    @Test
+    public void testMapeoTemaRuntimeEnSessionFactory() {
+        // Probamos que GameSessionFactory resuelve correctamente las fábricas
+        // Nota: GameSessionFactory no expone la factoría directamente,
+        // pero podemos verificarlo por el nombre de la mazmorra o enemigos creados.
+        
+        game.application.state.GameSession sessionFire = game.application.state.GameSessionFactory.createSessionForTheme("fire");
+        assertTrue(sessionFire.dungeon().themeName().equalsIgnoreCase("fuego"));
+        
+        game.application.state.GameSession sessionIce = game.application.state.GameSessionFactory.createSessionForTheme("ice");
+        assertTrue(sessionIce.dungeon().themeName().equalsIgnoreCase("hielo"));
     }
 }

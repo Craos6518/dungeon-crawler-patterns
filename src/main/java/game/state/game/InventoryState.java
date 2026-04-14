@@ -14,10 +14,16 @@ public class InventoryState implements GameState {
     
     @Override
     public void manejarEntrada(String entrada) {
-        switch (entrada.toLowerCase()) {
+        String accion = entrada == null ? "" : entrada.trim().toLowerCase();
+        if (!permiteAccion(accion)) {
+            System.out.println("Accion no valida en Inventory.");
+            return;
+        }
+
+        switch (accion) {
             case "1" -> System.out.println("Usaste una poción de vida");
             case "2" -> System.out.println("Equipaste la espada");
-            case "e", "salir" -> contexto.cambiarEstado(estadoAnterior);
+            case "e", "salir" -> contexto.transitionTo(estadoAnterior);
             default -> System.out.println("Opción no válida.");
         }
     }
@@ -55,5 +61,27 @@ public class InventoryState implements GameState {
     @Override
     public String getNombre() {
         return "Inventory";
+    }
+
+    @Override
+    public boolean permiteAccion(String accion) {
+        if (accion == null || accion.isBlank()) {
+            return false;
+        }
+        return "1".equals(accion)
+            || "2".equals(accion)
+            || "e".equals(accion)
+            || "salir".equals(accion);
+    }
+
+    @Override
+    public boolean permiteTransicionA(String nombreEstadoDestino) {
+        if (nombreEstadoDestino == null || nombreEstadoDestino.isBlank()) {
+            return false;
+        }
+        return "Inventory".equals(nombreEstadoDestino)
+            || "Exploration".equals(nombreEstadoDestino)
+            || "Combat".equals(nombreEstadoDestino)
+            || "Menu".equals(nombreEstadoDestino);
     }
 }

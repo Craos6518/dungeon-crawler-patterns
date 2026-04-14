@@ -5,12 +5,12 @@ import game.domain.combat.Combat;
 import game.domain.DomainRuleViolationException;
 import game.domain.exploration.Dungeon;
 import game.domain.inventory.Inventory;
-import game.events.observer.EventManager;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.patterns.combat.facade.CombatFacade;
+import game.application.ports.events.EventPublisher;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
+import game.application.ports.persistence.SessionSnapshotStore;
 import game.items.model.SimpleItem;
-import game.persistence.memento.GameCaretaker;
-import game.persistence.memento.GameMemento;
 import game.state.game.GameState;
 import game.state.game.GameStateContext;
 
@@ -42,9 +42,9 @@ public class GameSession {
 
     private final Player player;
     private final Dungeon dungeon;
-    private final Combat combat;
-    private final EventManager eventManager;
-    private final GameCaretaker caretaker;
+    private final CombatFacade combat;
+    private final EventPublisher eventManager;
+    private final SessionSnapshotStore caretaker;
     private final GameStateContext flowContext;
 
     private final List<String> eventLog;
@@ -75,9 +75,9 @@ public class GameSession {
     public GameSession(
         Player player,
         Dungeon dungeon,
-        Combat combat,
-        EventManager eventManager,
-        GameCaretaker caretaker
+        CombatFacade combat,
+        EventPublisher eventManager,
+        SessionSnapshotStore caretaker
     ) {
         this.player = player;
         this.dungeon = dungeon;
@@ -104,6 +104,16 @@ public class GameSession {
         syncActiveScreenFromContext();
     }
 
+    public GameSession(
+        Player player,
+        Dungeon dungeon,
+        Combat combat,
+        EventPublisher eventManager,
+        SessionSnapshotStore caretaker
+    ) {
+        this(player, dungeon, new CombatFacade(combat), eventManager, caretaker);
+    }
+
     public Player player() {
         return player;
     }
@@ -116,15 +126,15 @@ public class GameSession {
         return dungeon;
     }
 
-    public Combat combat() {
+    public CombatFacade combat() {
         return combat;
     }
 
-    public EventManager eventManager() {
+    public EventPublisher eventManager() {
         return eventManager;
     }
 
-    public GameCaretaker caretaker() {
+    public SessionSnapshotStore caretaker() {
         return caretaker;
     }
 
@@ -141,6 +151,10 @@ public class GameSession {
         return flowContext;
     }
 
+    public void assertActionAllowed(String action) {
+        flowContext.assertAccionPermitida(action);
+    }
+
     public void transitionTo(GameFlowState nextState) {
         GameFlowState target = nextState == null ? GameFlowState.EXPLORATION : nextState;
 
@@ -152,7 +166,7 @@ public class GameSession {
         }
 
         LOGGER.log(Level.INFO, "Cambio de pantalla: {0} -> {1}", new Object[]{previous, next});
-        flowContext.cambiarEstado(new SessionScreenState(target));
+        flowContext.transitionTo(new SessionScreenState(target));
         syncActiveScreenFromContext();
     }
 
@@ -629,15 +643,22 @@ public class GameSession {
             String dungeonName = dungeon.model().getNombre();
             markThemeCompleted(dungeon.themeKey());
             setHeroSelectionLocked(true);
+            boolean campaignCompleted = nextCampaignTheme().isBlank();
+
             clearTreasureState();
-            transitionTo(GameFlowState.HERO);
-            appendEvent("Conquistaste " + dungeonName + ". Elige tu siguiente mazmorra.");
+            transitionTo(campaignCompleted ? GameFlowState.MENU : GameFlowState.HERO);
+            if (campaignCompleted) {
+                appendEvent("Conquistaste " + dungeonName + ". Has completado la campana de Eranthia.");
+            } else {
+                appendEvent("Conquistaste " + dungeonName + ". Elige tu siguiente mazmorra.");
+            }
 
             eventManager.notificar(new GameEvent(EventType.SALA_COMPLETADA)
                 .agregarDato("resultado", "mazmorra_completada")
                 .agregarDato("mazmorra", dungeonName)
                 .agregarDato("tema", dungeon.themeKey())
-                .agregarDato("salas", dungeon.totalRooms()));
+                .agregarDato("salas", dungeon.totalRooms())
+                .agregarDato("campanaCompleta", campaignCompleted));
             return;
         }
 
@@ -720,6 +741,16 @@ public class GameSession {
         @Override
         public String getNombre() {
             return flowState.screenKey();
+        }
+
+        @Override
+        public boolean permiteAccion(String accionRaw) {
+            return accionRaw != null && !accionRaw.trim().isBlank();
+        }
+
+        @Override
+        public boolean permiteTransicionA(String nombreEstadoDestino) {
+            return nombreEstadoDestino != null && !nombreEstadoDestino.isBlank();
         }
     }
 

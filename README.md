@@ -54,7 +54,7 @@ source setup-java.sh
 
 Alternativa Maven:
 ```bash
-mvn exec:java -Dexec.mainClass="game.InteractiveGame"
+mvn exec:java -Dexec.mainClass="game.ui.GameWebApplication"
 ```
 
 ### Web (JavaFX + WebView)
@@ -64,7 +64,7 @@ mvn exec:java -Dexec.mainClass="game.InteractiveGame"
 
 Alternativa Maven:
 ```bash
-mvn javafx:run
+mvn exec:java -Dexec.mainClass="game.ui.GameWebApplication"
 ```
 
 ## Empaquetado nativo (jpackage)

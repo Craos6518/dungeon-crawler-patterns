@@ -1,6 +1,7 @@
 package game.unit.ui.integration;
 
 import game.application.state.GameSessionFactory;
+import game.infrastructure.persistence.memento.GameCaretaker;
 import game.ui.integration.GamePresenter;
 import org.junit.jupiter.api.Test;
 
@@ -12,9 +13,9 @@ class GamePresenterSaveSlotsEmptyTest {
     @Test
     void savesScreenShowsAllSlotsEmptyWhenNoFilesExist() {
         var session = GameSessionFactory.createDemoSession();
-        session.caretaker().eliminarGuardado("Slot_1");
-        session.caretaker().eliminarGuardado("Slot_2");
-        session.caretaker().eliminarGuardado("Slot_3");
+        ((GameCaretaker) session.caretaker()).eliminarGuardado("Slot_1");
+        ((GameCaretaker) session.caretaker()).eliminarGuardado("Slot_2");
+        ((GameCaretaker) session.caretaker()).eliminarGuardado("Slot_3");
         session.setActiveScreen("saves");
 
         var vm = new GamePresenter().present(session);

@@ -3,8 +3,8 @@ package game.application.usecase;
 import game.application.dto.UseSkillCommandRequest;
 import game.application.state.GameSession;
 import game.domain.DomainRuleViolationException;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 
 /**
  * Caso de uso: ejecutar habilidad especial durante combate.

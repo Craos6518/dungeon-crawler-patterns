@@ -9,10 +9,10 @@ import game.domain.exploration.Dungeon;
 import game.domain.inventory.Inventory;
 import game.domain.personaje.factory.GuerreroFactory;
 import game.domain.turn.TurnManager;
-import game.events.observer.EventManager;
+import game.infrastructure.events.observer.EventManager;
 import game.items.model.ContainerItem;
 import game.items.model.SimpleItem;
-import game.persistence.memento.GameCaretaker;
+import game.infrastructure.persistence.memento.GameCaretaker;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;

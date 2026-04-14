@@ -1,9 +1,10 @@
 package game.application.usecase;
 
 import game.application.state.GameSession;
+import game.application.state.GameFlowState;
 import game.domain.DomainRuleViolationException;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 
 /**
  * Caso de uso: aplicar buffs acumulativos (Decorator) durante combate.
@@ -60,7 +61,7 @@ public class ApplyCombatBuffUseCase {
                 .agregarDato("acumulaciones", result.buffStacks));
 
             session.combat().resolveTurn();
-            session.setActiveScreen("combat");
+            session.transitionTo(GameFlowState.COMBAT);
         });
     }
 }

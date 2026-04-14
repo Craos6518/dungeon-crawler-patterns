@@ -70,4 +70,8 @@ public abstract class ItemComponent {
             "No se puede obtener hijos de " + this.getClass().getSimpleName()
         );
     }
+    /**
+     * Crea una copia profunda del componente y toda su descendencia.
+     */
+    public abstract ItemComponent deepCopy();
 }

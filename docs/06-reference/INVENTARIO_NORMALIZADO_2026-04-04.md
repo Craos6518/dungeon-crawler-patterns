@@ -20,13 +20,13 @@ Clasificacion correcta:
 
 ## 3) Fragmentacion detectada (explicita)
 Existe fragmentacion del GDD en tres archivos superpuestos:
-- `Docs/GDD.md`
-- `Docs/Extracto_Proyecto_DungeonCrawler.md`
-- `Docs/GDD_Fichas_Primera_Persona.md`
+- `docs/legacy/GDD.md` (retirado)
+- `docs/legacy/Extracto_Proyecto_DungeonCrawler.md` (retirado)
+- `docs/legacy/GDD_Fichas_Primera_Persona.md` (retirado)
 
 Decision canonica:
 - Consolidar contenido de producto en `docs/01-product/GDD_CANONICO.md`.
-- Mantener los tres archivos originales como legacy (sin eliminarlos).
+- Retirar los tres archivos originales del repositorio activo para eliminar duplicacion.
 
 ## 4) Estado documental por archivo (vigente/historico/obsoleto)
 
@@ -41,24 +41,13 @@ Decision canonica:
 - `docs/06-reference/MAPA_MIGRACION_2026-04-04.md`
 
 ### Historico
-- `Docs/AUDITORIA_TECNICA_FORMAL_2026-04-04.md`
-- `Docs/CAMBIOS_REALIZADOS_2026-03-31.md`
-- `Docs/DESARROLLO.md`
-- `Docs/DISEÑO.md`
-- `Docs/ESTADO_PROYECTO.md`
-- `Docs/EVENTOS.md`
-- `Docs/GUIA_USUARIO.md`
-- `Docs/INTERFACES_JUEGO_ESTADO_2026-03-31.md`
-- `Docs/review_report.md`
-- `Docs/files/*.md`
-- `Docs/Diagramas/*.txt`
+- `docs/01-product/Especificacion_Requerimientos_Sistema_ISO29148.md`
+- `docs/02-architecture/diagramas/*.png`
+- `docs/02-architecture/diagramas/*.txt`
 - `.vscode/README.md`
 
 ### Obsoleto (conservado por trazabilidad)
-- `Docs/GDD.md` (consolidado)
-- `Docs/Extracto_Proyecto_DungeonCrawler.md` (consolidado)
-- `Docs/GDD_Fichas_Primera_Persona.md` (consolidado)
-- `Docs/PROMPTS_DEFINITIVOS_UI.md` (no fuente de verdad de producto)
+- derivados legacy retirados de `Docs/` tras la consolidacion del 2026-04-10
 - `.github/copilot-instructions.md` (instrucciones de asistencia, no documento de producto)
 
 ## 5) Priorizacion de Javadoc faltante

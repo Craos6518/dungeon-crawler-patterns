@@ -57,6 +57,52 @@ class CombatDecoratorIntegrationTest {
         assertEquals(1, guarded.combat().guardBuffStacks());
     }
 
+    @Test
+    void burnEffectAppliesPeriodicDamage() {
+        CombatFixture f = newCombatFixture(1);
+        f.combat().applyStackingBuff("burn", "ice");
+        
+        int hpBefore = f.player().hp();
+        f.combat().attack("current", "ice");
+        
+        assertTrue(f.player().hp() < hpBefore, "El jugador debe recibir daño por quemadura");
+    }
+
+    @Test
+    void stunEffectSkipsPlayerTurn() {
+        CombatFixture f = newCombatFixture(1);
+        f.combat().applyStackingBuff("stun", "ice");
+        
+        var result = f.combat().attack("current", "ice");
+        
+        assertTrue(result.playerStunned);
+        assertEquals(0, result.playerDamage, "No debe haber daño del jugador si está aturdido");
+    }
+
+    @Test
+    void stackingLimitIsEnforced() {
+        CombatFixture f = newCombatFixture(1);
+        f.combat().applyStackingBuff("power", "ice");
+        f.combat().applyStackingBuff("power", "ice");
+        f.combat().applyStackingBuff("power", "ice");
+        
+        var result = f.combat().applyStackingBuff("power", "ice");
+        
+        assertEquals("El buff ofensivo ya esta al maximo.", result.warning);
+        assertEquals(3, f.combat().offensiveBuffStacks());
+    }
+
+    @Test
+    void insufficientResourceRejectsBuff() {
+        CombatFixture f = newCombatFixture(1);
+        while(f.player().resource() > 0) f.player().spendResource(1);
+        
+        var result = f.combat().applyStackingBuff("power", "ice");
+        
+        assertTrue(result.warning.contains("No tienes suficiente"));
+        assertEquals(0, f.combat().offensiveBuffStacks());
+    }
+
     private static CombatFixture newCombatFixture(long seed) {
         Player player = Player.demo();
         Combat combat = new Combat(player, new TurnManager(), new Random(seed));

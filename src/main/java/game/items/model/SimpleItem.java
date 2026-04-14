@@ -40,4 +40,8 @@ public class SimpleItem extends ItemComponent {
     public String toString() {
         return mostrarDetalle();
     }
+    @Override
+    public ItemComponent deepCopy() {
+        return new SimpleItem(nombre, descripcion, tipo, valor, peso);
+    }
 }

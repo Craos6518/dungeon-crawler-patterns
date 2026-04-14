@@ -3,8 +3,8 @@ package game.application.state;
 import game.balance.GameBalance;
 import game.application.observer.SessionEventCounterObserver;
 import game.application.observer.SessionEventFeedObserver;
+import game.application.ports.events.EventPublisher;
 import game.domain.character.Player;
-import game.domain.combat.Combat;
 import game.domain.exploration.Dungeon;
 import game.domain.inventory.Inventory;
 import game.domain.personaje.Personaje;
@@ -12,15 +12,19 @@ import game.domain.personaje.factory.ArqueroFactory;
 import game.domain.personaje.factory.GuerreroFactory;
 import game.domain.personaje.factory.MagoFactory;
 import game.domain.turn.TurnManager;
+import game.patterns.combat.facade.CombatFacade;
 import game.dungeon.theme.DarkThemeFactory;
 import game.dungeon.theme.DungeonThemeFactory;
 import game.dungeon.theme.FireThemeFactory;
 import game.dungeon.theme.IceThemeFactory;
 import game.dungeon.theme.PoisonThemeFactory;
-import game.events.observer.EventManager;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
-import game.persistence.memento.GameCaretaker;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
+import game.application.ports.persistence.SessionSnapshotStore;
+import game.infrastructure.events.observer.EventManager;
+import game.infrastructure.persistence.memento.GameCaretaker;
+import game.dungeon.builder.ConcreteDungeonBuilder;
+import game.dungeon.builder.DungeonDirector;
 
 import java.nio.file.Path;
 import java.text.Normalizer;
@@ -36,8 +40,6 @@ public final class GameSessionFactory {
     private static final String HERO_TYPE_GUERRERO = "guerrero";
     private static final String HERO_TYPE_MAGO = "mago";
     private static final String HERO_TYPE_ARQUERO = "arquero";
-    private static final SessionEventFeedObserver SESSION_EVENT_FEED_OBSERVER = new SessionEventFeedObserver();
-    private static final SessionEventCounterObserver SESSION_EVENT_COUNTER_OBSERVER = new SessionEventCounterObserver();
 
     private GameSessionFactory() {
     }
@@ -68,12 +70,13 @@ public final class GameSessionFactory {
         String normalizedHeroType = normalizeHeroType(heroType);
         Player player = createPlayerForHero(normalizedHeroType);
         DungeonThemeFactory theme = resolveThemeFactory(themeKey);
-        Dungeon dungeon = Dungeon.fromTheme(random, theme, dungeonSeed);
+        DungeonDirector director = new DungeonDirector(new ConcreteDungeonBuilder());
+        Dungeon dungeon = director.buildForTheme(theme, dungeonSeed);
         TurnManager turnManager = new TurnManager();
-        Combat combat = new Combat(player, turnManager, random);
+        CombatFacade combat = new CombatFacade(player, turnManager, random);
 
-        EventManager eventManager = EventManager.getInstance();
-        GameCaretaker caretaker = new GameCaretaker(resolveSaveDirectory());
+        EventPublisher eventManager = new EventManager();
+        SessionSnapshotStore caretaker = new GameCaretaker(resolveSaveDirectory());
 
         GameSession session = new GameSession(player, dungeon, combat, eventManager, caretaker);
         registerRuntimeObservers(eventManager, session);
@@ -94,12 +97,12 @@ public final class GameSessionFactory {
         return createSessionForTheme(themeKey, heroType, dungeonSeed);
     }
 
-    private static void registerRuntimeObservers(EventManager eventManager, GameSession session) {
-        SESSION_EVENT_FEED_OBSERVER.bindSession(session);
-        SESSION_EVENT_COUNTER_OBSERVER.bindSession(session);
+    private static void registerRuntimeObservers(EventPublisher eventManager, GameSession session) {
+        var feedObserver = new SessionEventFeedObserver(session);
+        var counterObserver = new SessionEventCounterObserver(session);
 
-        eventManager.suscribir(SESSION_EVENT_FEED_OBSERVER);
-        eventManager.suscribir(SESSION_EVENT_COUNTER_OBSERVER);
+        eventManager.suscribir(feedObserver);
+        eventManager.suscribir(counterObserver);
     }
 
     private static Player createPlayerForHero(String heroType) {

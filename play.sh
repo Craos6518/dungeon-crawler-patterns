@@ -1,10 +1,10 @@
 #!/bin/bash
-# Script de inicio rápido para el juego interactivo
+# Script de inicio rápido para la interfaz grafica principal
 # Uso: ./play.sh
 
 export JAVA_HOME=/usr/lib/jvm/java-17-temurin-jdk
 
-echo "🎮 Iniciando Dungeon Crawler Interactivo..."
+echo "🎮 Iniciando Dungeon Crawler Web..."
 echo ""
 
 # Verificar que estamos en el directorio correcto
@@ -26,7 +26,7 @@ fi
 # Ejecutar el juego
 echo "🚀 Lanzando juego..."
 echo ""
-mvn exec:java -Dexec.mainClass="game.InteractiveGame" -q
+mvn javafx:run -q
 
 echo ""
 echo "👋 ¡Gracias por jugar!"

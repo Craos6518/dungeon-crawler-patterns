@@ -1,10 +1,11 @@
 package game.dungeon.theme;
 
 import game.balance.GameBalance;
-import game.domain.personaje.Dragon;
-import game.domain.personaje.EnemigoBasico;
-import game.domain.personaje.Orco;
 import game.domain.personaje.Personaje;
+import game.domain.personaje.factory.DragonFactory;
+import game.domain.personaje.factory.EnemigoBasicoFactory;
+import game.domain.personaje.factory.OrcoFactory;
+import game.domain.personaje.factory.PersonajeFactory;
 import game.items.model.SimpleItem;
 
 /**
@@ -16,18 +17,24 @@ public class DarkThemeFactory implements DungeonThemeFactory {
     
     @Override
     public Personaje crearEnemigoBasico() {
-        return new EnemigoBasico("Sombra Errante", 20, 4);
+        Personaje p = new EnemigoBasicoFactory(20, 4).crearPersonaje("Sombra Errante");
+        p.setResistenciaOscuridad(20);
+        return p;
     }
 
     @Override
     public Personaje crearEnemigoMedio() {
-        return new Orco("Caballero Oscuro", 70, 15);
+        Personaje p = new OrcoFactory(70, 15).crearPersonaje("Caballero Oscuro");
+        p.setResistenciaOscuridad(40);
+        return p;
     }
 
     @Override
     public Personaje crearJefe() {
         GameBalance.BossProfile profile = GameBalance.boss("dark");
-        return new Dragon(profile.name(), profile.hp(), profile.attack());
+        Personaje p = new DragonFactory(profile.hp(), profile.attack()).crearPersonaje(profile.name());
+        p.setResistenciaOscuridad(100);
+        return p;
     }
 
     @Override

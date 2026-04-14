@@ -31,6 +31,21 @@ class AdvanceTurnUseCaseDungeonCompletionTest {
     }
 
     @Test
+    void advanceFromLastBossRoomAfterFourthThemeReturnsToMainMenu() {
+        GameSession session = GameSessionFactory.createSessionForTheme("dark", "guerrero");
+        session.replaceCompletedThemes(Set.of("poison", "ice", "fire"));
+        moveToLastRoom(session);
+        session.dungeon().markCurrentRoomEnemyResolved();
+        session.setActiveScreen("exploration");
+
+        new AdvanceTurnUseCase(session).execute();
+
+        assertEquals("menu", session.activeScreen());
+        assertTrue(session.isThemeCompleted("dark"));
+        assertEquals("", session.nextCampaignTheme());
+    }
+
+    @Test
     void advanceFromLastRoomWithoutBossDefeatStillFails() {
         GameSession session = GameSessionFactory.createSessionForTheme("fire", "guerrero");
         moveToLastRoom(session);

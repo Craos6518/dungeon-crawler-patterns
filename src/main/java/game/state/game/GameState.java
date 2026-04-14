@@ -38,4 +38,18 @@ public interface GameState {
      * Obtiene el nombre del estado
      */
     String getNombre();
+
+    /**
+     * Indica si una accion runtime es valida para este estado.
+     */
+    default boolean permiteAccion(String accion) {
+        return true;
+    }
+
+    /**
+     * Indica si se permite transicionar desde este estado al estado destino.
+     */
+    default boolean permiteTransicionA(String nombreEstadoDestino) {
+        return true;
+    }
 }

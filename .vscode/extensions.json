@@ -18,6 +18,9 @@
         "eamodio.gitlens",
         
         // Markdown
-        "yzhang.markdown-all-in-one"
+        "yzhang.markdown-all-in-one",
+
+        // Diagramas (fuentes PlantUML)
+        "jebbs.plantuml"
     ]
 }

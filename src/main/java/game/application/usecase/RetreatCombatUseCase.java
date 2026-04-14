@@ -1,9 +1,10 @@
 package game.application.usecase;
 
 import game.application.state.GameSession;
+import game.application.state.GameFlowState;
 import game.domain.DomainRuleViolationException;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 
 /**
  * Caso de uso: intentar retirarse de un combate activo.
@@ -31,7 +32,7 @@ public class RetreatCombatUseCase {
                 session.appendCombat("Lograste retirarte del combate contra " + enemy.name() + ".");
                 CombatUseCaseSupport.appendResourceFlow(session, result);
                 session.appendEvent("Te reagrupas tras una retirada tactica.");
-                session.setActiveScreen("exploration");
+                session.transitionTo(GameFlowState.EXPLORATION);
 
                 session.eventManager().notificar(new GameEvent(EventType.ACCION_REALIZADA)
                     .agregarDato("personaje", session.player().name())
@@ -57,7 +58,7 @@ public class RetreatCombatUseCase {
                 .agregarDato("enemigo", enemy.name()));
 
             session.combat().resolveTurn();
-            session.setActiveScreen("combat");
+            session.transitionTo(GameFlowState.COMBAT);
         });
     }
 }

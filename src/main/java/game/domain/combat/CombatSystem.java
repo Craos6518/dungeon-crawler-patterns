@@ -4,12 +4,13 @@ import game.ai.strategy.AIController;
 import game.ai.strategy.AIStrategy;
 import game.ai.strategy.AggressiveStrategy;
 import game.ai.strategy.DefensiveStrategy;
+import game.ai.strategy.IntelligentStrategy;
 import game.ai.strategy.RandomStrategy;
-import game.command.actions.AttackCommand;
-import game.command.actions.Command;
-import game.command.actions.CommandInvoker;
-import game.command.actions.DefendCommand;
-import game.command.actions.SkillCommand;
+import game.patterns.command.actions.AttackCommand;
+import game.patterns.command.actions.Command;
+import game.patterns.command.actions.CommandInvoker;
+import game.patterns.command.actions.DefendCommand;
+import game.patterns.command.actions.SkillCommand;
 import game.domain.character.Enemy;
 import game.domain.character.Player;
 import game.domain.turn.TurnManager;
@@ -31,11 +32,24 @@ public class CombatSystem {
             throw new IllegalStateException("No se puede ejecutar el ataque ahora.");
         }
 
-        int attackPower = computePlayerAttackPower(player, enemy, false);
-        int targetDefense = effectiveEnemyDefense(player, enemy, false);
-        int damage = applyDefenseFormula(attackPower, targetDefense);
-        enemy.receiveDamage(damage);
-        return damage;
+        AttackCommand attackCommand = new AttackCommand(
+            player.character(),
+            enemy.character(),
+            (attacker, defender) -> {
+                int attackPower = computePlayerAttackPower(player, enemy, false);
+                int targetDefense = effectiveEnemyDefense(player, enemy, false);
+                int damage = applyDefenseFormula(attackPower, targetDefense);
+                defender.recibirDanio(damage);
+                return damage;
+            }
+        );
+
+        if (!attackCommand.canExecute()) {
+            throw new IllegalStateException("No se puede ejecutar el ataque ahora.");
+        }
+
+        invoker.execute(attackCommand);
+        return attackCommand.getDanioAplicado();
     }
 
     public void playerDefend(Player player, TurnManager turnManager, CommandInvoker invoker) {
@@ -103,12 +117,25 @@ public class CombatSystem {
                 return outcome;
             }
 
-            outcome.rawDamage = applyDefenseFormula(
-                computeEnemyAttackPower(enemy),
-                player.defenseStat()
+            AttackCommand executedEnemyAttack = new AttackCommand(
+                enemy.character(),
+                player.character(),
+                (attacker, defender) -> {
+                    int damage = applyDefenseFormula(
+                        computeEnemyAttackPower(enemy),
+                        player.defenseStat()
+                    );
+                    defender.recibirDanio(damage);
+                    return damage;
+                }
             );
 
-            player.receiveDamage(outcome.rawDamage);
+            if (!executedEnemyAttack.canExecute()) {
+                throw new IllegalStateException("No se puede ejecutar el ataque enemigo en este momento.");
+            }
+
+            invoker.execute(executedEnemyAttack);
+            outcome.rawDamage = executedEnemyAttack.getDanioAplicado();
             outcome.mitigatedDamage = turnManager.mitigateIncomingDamage(outcome.rawDamage);
             boolean defeatedByRawHit = !player.isAlive();
 
@@ -128,7 +155,7 @@ public class CombatSystem {
                 outcome.poisonApplied = true;
             }
         } else if (enemyAction instanceof DefendCommand) {
-            invoker.ejecutarComando(enemyAction);
+            invoker.execute(enemyAction);
             outcome.enemyDefended = true;
         }
 
@@ -141,14 +168,18 @@ public class CombatSystem {
     }
 
     private AIStrategy selectEnemyStrategy(Enemy enemy) {
-        int hp = enemy.hp();
-        if (hp > 70) {
+        double hpRatio = (double) enemy.hp() / enemy.maxHp();
+
+        if (hpRatio > 0.75) {
             return new AggressiveStrategy();
         }
-        if (hp > 35) {
-            return new RandomStrategy();
+        if (hpRatio >= 0.50) {
+            return new IntelligentStrategy();
         }
-        return new DefensiveStrategy();
+        if (hpRatio >= 0.25) {
+            return new DefensiveStrategy();
+        }
+        return new IntelligentStrategy(); // Desesperado: busca heroe debil
     }
 
     private int computePlayerAttackPower(Player player, Enemy enemy, boolean skillAttack) {

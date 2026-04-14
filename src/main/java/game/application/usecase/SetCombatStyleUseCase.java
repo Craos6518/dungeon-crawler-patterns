@@ -1,9 +1,10 @@
 package game.application.usecase;
 
 import game.application.state.GameSession;
+import game.application.state.GameFlowState;
 import game.domain.DomainRuleViolationException;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 
 /**
  * Caso de uso: cambiar estrategia de combate del héroe en tiempo real.
@@ -17,6 +18,10 @@ public class SetCombatStyleUseCase {
     }
 
     public void execute(String styleKey) {
+        if (styleKey == null) {
+            throw new IllegalArgumentException("Combat style cannot be null");
+        }
+
         if (!session.player().isAlive()) {
             throw new DomainRuleViolationException("No puedes cambiar de estilo: el heroe esta derrotado.");
         }
@@ -58,7 +63,7 @@ public class SetCombatStyleUseCase {
                 .agregarDato("estilo", result.styleName));
 
             session.combat().resolveTurn();
-            session.setActiveScreen("combat");
+            session.transitionTo(GameFlowState.COMBAT);
         });
     }
 }

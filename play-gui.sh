@@ -89,7 +89,7 @@ if [[ "$USE_XVFB" -eq 1 ]]; then
   fi
 
   echo "Iniciando interfaz grafica sobre Xvfb..."
-  xvfb-run -a mvn -B javafx:run
+  xvfb-run -a mvn -B exec:java -Dexec.mainClass=game.ui.GameWebApplication
   exit $?
 fi
 
@@ -125,4 +125,4 @@ if ! can_open_x11_display; then
 fi
 
 echo "Iniciando interfaz grafica..."
-mvn -B javafx:run
+mvn -B exec:java -Dexec.mainClass=game.ui.GameWebApplication

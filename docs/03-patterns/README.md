@@ -13,6 +13,7 @@
 - Auditoria: docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md
 
 ## Documentos
+- `PATRONES_UNIFICADOS.md`
 - `state.md`
 - `observer.md`
 - `decorator.md`
@@ -29,3 +30,5 @@
 La documentacion de esta carpeta evidencia 11 patrones implementados en el proyecto:
 State, Observer, Decorator, Composite, Builder, Memento, Strategy, Factory Method,
 Abstract Factory, Facade y Command.
+
+El documento recomendado para consulta integral es `PATRONES_UNIFICADOS.md`.

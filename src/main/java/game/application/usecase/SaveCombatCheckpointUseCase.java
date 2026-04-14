@@ -1,9 +1,10 @@
 package game.application.usecase;
 
 import game.application.state.GameSession;
+import game.application.state.GameFlowState;
 import game.domain.DomainRuleViolationException;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 
 /**
  * Caso de uso: guardar checkpoint táctico parcial (Memento limitado).
@@ -43,7 +44,7 @@ public class SaveCombatCheckpointUseCase {
                 .agregarDato("personaje", session.player().name())
                 .agregarDato("estado", "checkpoint-tactico-guardado"));
 
-            session.setActiveScreen("combat");
+            session.transitionTo(GameFlowState.COMBAT);
         });
     }
 }

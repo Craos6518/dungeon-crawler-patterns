@@ -1,11 +1,19 @@
 package game.unit.structural;
 
-import game.combat.facade.CombatFacade;
+import game.patterns.combat.facade.CombatFacade;
+import game.domain.character.Enemy;
+import game.domain.character.Player;
+import game.domain.combat.Combat;
+import game.domain.inventory.Inventory;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Guerrero;
 import game.domain.personaje.Personaje;
+import game.domain.turn.TurnManager;
+import game.effects.status.StrengthEffect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -145,6 +153,56 @@ class FacadePatternTest {
         if (!facade.estaFinalizado()) {
             assertNull(facade.obtenerGanador());
         }
+    }
+
+    @Test
+    void facadeAplicaCharacterDecoratorEnEjecutarRonda() {
+        Personaje heroeBase = new Guerrero("Héroe", 100, 10);
+        StrengthEffect heroeFortalecido = new StrengthEffect(heroeBase, 2.0, 2);
+        Personaje enemigo = new EnemigoBasico("Goblin", 50, 8);
+
+        facade.iniciarCombate(heroeFortalecido, enemigo);
+        var resultado = facade.ejecutarRonda();
+
+        assertNotNull(resultado);
+        assertEquals(20, resultado.danio());
+        assertEquals(30, enemigo.getVida());
+        assertTrue(
+            facade.obtenerLogCombate().stream().anyMatch(line -> line.contains("Fortalecido")),
+            "El log de combate debe reflejar el efecto del decorator aplicado"
+        );
+    }
+
+    @Test
+    void facadeReplicaEstadoFinalFrenteASubsistemasDirectos() {
+        int randomSeed = 42;
+
+        Player jugadorFacade = new Player(new Guerrero("Héroe", 140, 22), Inventory.demo(), "guerrero");
+        Enemy enemigoFacade = new Enemy(new EnemigoBasico("Orco", 240, 16), 18, 14, 13);
+        CombatFacade facadeRuntime = new CombatFacade(jugadorFacade, new TurnManager(), new Random(randomSeed));
+        facadeRuntime.start(enemigoFacade, false);
+
+        var facadeAtaque = facadeRuntime.attack("current", "fire");
+        var facadeDefensa = facadeRuntime.defend("fire");
+        var facadeSkill = facadeRuntime.useSkill("Embate de Acero", "fire");
+
+        Player jugadorDirecto = new Player(new Guerrero("Héroe", 140, 22), Inventory.demo(), "guerrero");
+        Enemy enemigoDirecto = new Enemy(new EnemigoBasico("Orco", 240, 16), 18, 14, 13);
+        Combat combateDirecto = new Combat(jugadorDirecto, new TurnManager(), new Random(randomSeed));
+        combateDirecto.start(enemigoDirecto, false);
+
+        var directoAtaque = combateDirecto.attack("current", "fire");
+        var directoDefensa = combateDirecto.defend("fire");
+        var directoSkill = combateDirecto.useSkill("Embate de Acero", "fire");
+
+        assertEquals(jugadorDirecto.hp(), jugadorFacade.hp());
+        assertEquals(enemigoDirecto.hp(), enemigoFacade.hp());
+        assertEquals(jugadorDirecto.experience(), jugadorFacade.experience());
+
+        assertEquals(directoAtaque.playerDamage, facadeAtaque.playerDamage);
+        assertEquals(directoDefensa.enemyDamage, facadeDefensa.enemyDamage);
+        assertEquals(directoSkill.enemyDefeated, facadeSkill.enemyDefeated);
+        assertEquals(directoSkill.playerDefeated, facadeSkill.playerDefeated);
     }
 
     @Test

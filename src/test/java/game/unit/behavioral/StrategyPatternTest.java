@@ -1,9 +1,12 @@
 package game.unit.behavioral;
 
 import game.ai.strategy.*;
-import game.command.actions.AttackCommand;
-import game.command.actions.Command;
-import game.command.actions.DefendCommand;
+import game.application.state.GameSession;
+import game.application.usecase.SetCombatStyleUseCase;
+import game.domain.combat.CombatResult;
+import game.patterns.command.actions.AttackCommand;
+import game.patterns.command.actions.Command;
+import game.patterns.command.actions.DefendCommand;
 import game.domain.personaje.EnemigoBasico;
 import game.domain.personaje.Guerrero;
 import game.domain.personaje.Personaje;
@@ -164,9 +167,41 @@ public class StrategyPatternTest {
     }
     
     @Test
-    public void testAIControllerRequiresNonNullStrategy() {
+    public void testSetCombatStyleNullStyleThrowsException() {
+        // Usamos un stub manual o un test de dominio directo en Combat para evitar Mockito
+        // ya que el UseCase es un pasamanos.
+        game.domain.character.Player player = game.domain.character.Player.demo();
+        game.domain.turn.TurnManager turnManager = new game.domain.turn.TurnManager();
+        game.domain.combat.Combat combat = new game.domain.combat.Combat(player, turnManager, new java.util.Random());
+        
+        SetCombatStyleUseCase useCase = new SetCombatStyleUseCase(new game.application.state.GameSession(
+            player, 
+            (game.domain.exploration.Dungeon)null, 
+            (game.patterns.combat.facade.CombatFacade)null, 
+            (game.application.ports.events.EventPublisher)null, 
+            (game.application.ports.persistence.SessionSnapshotStore)null));
+        
         assertThrows(IllegalArgumentException.class, () -> {
-            new AIController(enemigo, null);
-        });
+            useCase.execute(null);
+        }, "Debe lanzar IllegalArgumentException cuando el estilo es null");
+    }
+
+    @Test
+    public void testCombatStyleChangeFailsWithoutResources() {
+        game.domain.character.Player player = game.domain.character.Player.demo();
+        // Agotar recursos
+        while(player.resource() > 0) {
+            player.spendResource(1);
+        }
+        
+        game.domain.turn.TurnManager turnManager = new game.domain.turn.TurnManager();
+        game.domain.combat.Combat combat = new game.domain.combat.Combat(player, turnManager, new java.util.Random());
+        combat.start(new game.domain.character.Enemy(new EnemigoBasico("Test", 10, 1)), false);
+        
+        var result = combat.setCombatStyle("aggressive", "fire");
+        
+        assertFalse(result.actionExecuted, "No debería ejecutarse sin recursos");
+        assertNotNull(result.warning);
+        assertTrue(result.warning.contains("suficiente"), "El aviso debe mencionar la falta de recursos");
     }
 }

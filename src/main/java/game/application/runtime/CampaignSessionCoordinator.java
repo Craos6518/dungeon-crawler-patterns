@@ -121,7 +121,8 @@ final class CampaignSessionCoordinator {
         newSession.player().restoreProgress(
             inheritedLevel,
             inheritedExperience,
-            inheritedMaxHp,
+            inheritedMaxHp, // vida actual (full heal al iniciar nueva mazmorra)
+            inheritedMaxHp, // vida máxima heredada
             inheritedGold,
             inheritedDefeatedEnemies,
             inheritedResource

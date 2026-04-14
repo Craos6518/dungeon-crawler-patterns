@@ -9,6 +9,7 @@
 | Concepto | Documento fuente de verdad | Ubicacion |
 | --- | --- | --- |
 | GDD (producto) | docs/01-product/GDD_CANONICO.md | docs/01-product/ |
+| Requerimientos | docs/01-product/Especificacion_Requerimientos_Sistema_ISO29148.md | docs/01-product/ |
 | Arquitectura | docs/02-architecture/ARQUITECTURA_RUNTIME.md | docs/02-architecture/ |
 | Patrones | docs/03-patterns/README.md | docs/03-patterns/ |
 | Testing | docs/04-testing/ESTRATEGIA_TESTING.md | docs/04-testing/ |
@@ -17,7 +18,10 @@
 ## Navegacion documental
 
 - Producto (GDD): docs/01-product/GDD_CANONICO.md
+- Requerimientos: docs/01-product/Especificacion_Requerimientos_Sistema_ISO29148.md
 - Arquitectura: docs/02-architecture/ARQUITECTURA_RUNTIME.md
+- Diagramas de arquitectura: docs/02-architecture/diagramas/
+- Galeria visual de diagramas (PNG + fuente): docs/02-architecture/diagramas/README.md
 - Patrones: docs/03-patterns/README.md
 - Testing: docs/04-testing/ESTRATEGIA_TESTING.md
 - Auditoria: docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md

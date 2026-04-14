@@ -1,18 +1,23 @@
 package game.application.observer;
 
 import game.application.state.GameSession;
-import game.events.observer.GameEvent;
-import game.events.observer.GameObserver;
+import game.application.ports.events.GameEvent;
+import game.application.ports.events.GameObserver;
 
 /**
  * Observer productivo que mantiene contadores de eventos en la sesión activa.
  */
 public final class SessionEventCounterObserver implements GameObserver {
 
-    private volatile GameSession session;
+    private final GameSession session;
+    private final String nombre;
 
-    public void bindSession(GameSession session) {
+    public SessionEventCounterObserver(GameSession session) {
+        if (session == null) {
+            throw new IllegalArgumentException("Session cannot be null");
+        }
         this.session = session;
+        this.nombre = "SessionEventCounterObserver-" + System.identityHashCode(session);
     }
 
     @Override
@@ -27,6 +32,6 @@ public final class SessionEventCounterObserver implements GameObserver {
 
     @Override
     public String getNombre() {
-        return "SessionEventCounterObserver";
+        return nombre;
     }
 }

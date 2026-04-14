@@ -1,13 +1,15 @@
 package game.domain.combat;
 
 import game.ai.strategy.AIController;
-import game.command.actions.CommandInvoker;
+import game.patterns.command.actions.Command;
+import game.patterns.command.actions.CommandInvoker;
 import game.domain.DomainRuleViolationException;
 import game.domain.character.Enemy;
 import game.domain.character.Player;
 import game.domain.inventory.Item;
 import game.domain.turn.TurnManager;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
@@ -108,6 +110,21 @@ public class Combat {
 
     public TacticalCheckpoint tacticalCheckpoint() {
         return tacticalCheckpoint;
+    }
+
+    public void executeCommand(Command command) {
+        if (command == null) {
+            throw new IllegalArgumentException("El comando no puede ser null");
+        }
+        invoker.execute(command);
+    }
+
+    public int commandHistorySize() {
+        return invoker.getCantidadComandos();
+    }
+
+    public List<Command> commandHistory() {
+        return invoker.getHistory();
     }
 
     public boolean isDefenseActive() {
@@ -417,6 +434,13 @@ public class Combat {
             return result;
         }
 
+        int cost = adjustedCost(player.styleChangeCost());
+        if (!player.spendResource(cost)) {
+            result.warning = "No tienes suficiente " + player.resourceType() + " para cambiar de estilo.";
+            captureResourceAfter(result);
+            return result;
+        }
+
         playerStyle = requested;
         result.actionExecuted = true;
         result.styleChanged = true;
@@ -451,6 +475,16 @@ public class Combat {
             captureResourceAfter(result);
             return result;
         }
+        if ("burn".equals(buffType) && turnManager.getBurnTurns() >= MAX_BUFF_STACKS) {
+            result.warning = "El efecto de quemadura ya esta al maximo.";
+            captureResourceAfter(result);
+            return result;
+        }
+        if ("stun".equals(buffType) && turnManager.getStunTurns() >= MAX_BUFF_STACKS) {
+            result.warning = "El efecto de aturdimiento ya esta al maximo.";
+            captureResourceAfter(result);
+            return result;
+        }
 
         int cost = adjustedCost(player.buffCost());
         if (!player.spendResource(cost)) {
@@ -470,6 +504,16 @@ public class Combat {
             guardBuffStacks++;
             result.buffType = "guardia";
             result.buffStacks = guardBuffStacks;
+        } else if ("burn".equals(buffType)) {
+            turnManager.applyBurn(3, 10);
+            result.buffType = "quemadura";
+            result.buffStacks = turnManager.getBurnTurns();
+            result.buffApplied = true;
+        } else if ("stun".equals(buffType)) {
+            turnManager.applyStun(1);
+            result.buffType = "aturdimiento";
+            result.buffStacks = turnManager.getStunTurns();
+            result.buffApplied = true;
         } else {
             offensiveBuffStacks++;
             result.buffType = "poder";
@@ -547,6 +591,22 @@ public class Combat {
                 return false;
             }
         }
+
+        TurnManager.BurnTick burnTick = decoratorPipeline.applyBurnTick(player, turnManager);
+        if (burnTick.active()) {
+            if (!player.isAlive()) {
+                result.playerDefeated = true;
+                return false;
+            }
+        }
+
+        TurnManager.StunStatus stunStatus = decoratorPipeline.resolveStun(player, turnManager);
+        if (stunStatus.active()) {
+            result.playerStunned = true;
+            result.warning = "Estas aturdido y pierdes el turno.";
+            return false;
+        }
+
         return true;
     }
 
@@ -691,6 +751,9 @@ public class Combat {
             turnManager.isDefenseActive(),
             turnManager.getPoisonTurns(),
             turnManager.getPoisonDamage(),
+            turnManager.getBurnTurns(),
+            turnManager.getBurnDamage(),
+            turnManager.getStunTurns(),
             playerStyle,
             offensiveBuffStacks,
             guardBuffStacks
@@ -703,10 +766,13 @@ public class Combat {
             currentEnemy.restoreHp(checkpoint.enemyHp());
         }
 
-        turnManager.restoreState(
+        turnManager.restoreFullState(
             checkpoint.defenseActive(),
             checkpoint.poisonTurns(),
-            checkpoint.poisonDamage()
+            checkpoint.poisonDamage(),
+            checkpoint.burnTurns(),
+            checkpoint.burnDamage(),
+            checkpoint.stunTurns()
         );
 
         playerStyle = checkpoint.playerStyle();
@@ -734,6 +800,12 @@ public class Combat {
         if ("guard".equals(normalized) || "defense".equals(normalized)) {
             return "guard";
         }
+        if ("burn".equals(normalized) || "fire".equals(normalized)) {
+            return "burn";
+        }
+        if ("stun".equals(normalized) || "daze".equals(normalized)) {
+            return "stun";
+        }
         return "power";
     }
 
@@ -752,6 +824,9 @@ public class Combat {
         boolean defenseActive,
         int poisonTurns,
         int poisonDamage,
+        int burnTurns,
+        int burnDamage,
+        int stunTurns,
         PlayerCombatStyle playerStyle,
         int offensiveBuffStacks,
         int guardBuffStacks

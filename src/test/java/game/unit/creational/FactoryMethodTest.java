@@ -1,12 +1,18 @@
 package game.unit.creational;
 
+import game.balance.GameBalance;
+import game.dungeon.theme.FireThemeFactory;
+import game.domain.personaje.Dragon;
 import game.domain.personaje.Arquero;
 import game.domain.personaje.Guerrero;
 import game.domain.personaje.Mago;
+import game.domain.personaje.Orco;
 import game.domain.personaje.Personaje;
 import game.domain.personaje.factory.ArqueroFactory;
+import game.domain.personaje.factory.DragonFactory;
 import game.domain.personaje.factory.GuerreroFactory;
 import game.domain.personaje.factory.MagoFactory;
+import game.domain.personaje.factory.OrcoFactory;
 import game.domain.personaje.factory.PersonajeFactory;
 import org.junit.jupiter.api.Test;
 
@@ -59,5 +65,43 @@ public class FactoryMethodTest {
         Personaje mago = magoFactory.crearPersonaje("Heroe2");
         
         assertNotEquals(guerrero.getClass(), mago.getClass());
+    }
+
+    @Test
+    public void testDragonFactory() {
+        PersonajeFactory factory = new DragonFactory(290, 33);
+        Personaje jefe = factory.crearPersonaje("Malachar");
+
+        assertNotNull(jefe);
+        assertTrue(jefe instanceof Dragon);
+        assertEquals("Malachar", jefe.getNombre());
+        assertEquals(290, jefe.getVida());
+        assertEquals(33, ((Dragon) jefe).getFuegoDragon());
+    }
+
+    @Test
+    public void testOrcoFactory() {
+        PersonajeFactory factory = new OrcoFactory(70, 15);
+        Personaje enemigo = factory.crearPersonaje("Caballero Oscuro");
+
+        assertNotNull(enemigo);
+        assertTrue(enemigo instanceof Orco);
+        assertEquals("Caballero Oscuro", enemigo.getNombre());
+        assertEquals(70, enemigo.getVida());
+        assertEquals(15, ((Orco) enemigo).getFuerza());
+    }
+
+    @Test
+    public void testFireThemeFactoryBossContractUsesDragonFactoryOutputType() {
+        FireThemeFactory factory = new FireThemeFactory();
+        Personaje boss = factory.crearJefe();
+        GameBalance.BossProfile profile = GameBalance.boss("fire");
+
+        assertNotNull(boss);
+        assertEquals(Dragon.class, boss.getClass(),
+            "El jefe del tema fire debe ser compatible con el producto de DragonFactory");
+        assertEquals(profile.name(), boss.getNombre());
+        assertEquals(profile.hp(), boss.getVida());
+        assertEquals(profile.attack(), ((Dragon) boss).getFuegoDragon());
     }
 }

@@ -13,7 +13,6 @@ import game.application.dto.UseItemCommandRequest;
 import game.application.dto.UseSkillCommandRequest;
 import game.application.state.GameFlowState;
 import game.application.state.GameSession;
-import game.application.state.GameSessionFactory;
 import game.application.usecase.AdvanceTurnUseCase;
 import game.application.usecase.ApplyCombatBuffUseCase;
 import game.application.usecase.AttackUseCase;
@@ -58,6 +57,8 @@ public class GameRuntime implements GameCommandHandler {
     private final RuntimePayloadValidator payloadValidator;
     /** Colaborador para persistencia por slot y resolución de slot preferido. */
     private final RuntimeSaveSlotManager saveSlotManager;
+    /** Orquestador del ciclo de vida de sesión y estados de arranque. */
+    private final GameRuntimeCoordinator runtimeCoordinator;
 
     private GameSession session;
 
@@ -80,12 +81,13 @@ public class GameRuntime implements GameCommandHandler {
     private final Map<String, TypedCommandHandler<?>> handlers;
 
     public GameRuntime() {
-        this(GameSessionFactory.createInitialMenuSession());
+        this(null);
     }
 
     public GameRuntime(GameSession session) {
         this.gson = new Gson();
         this.presenter = new GamePresenter();
+        this.runtimeCoordinator = new GameRuntimeCoordinator();
         this.campaignSessionCoordinator = new CampaignSessionCoordinator(SUPPORTED_THEME_KEYS, SUPPORTED_HERO_TYPES);
         this.payloadValidator = new RuntimePayloadValidator(
             () -> this.session,
@@ -96,7 +98,7 @@ public class GameRuntime implements GameCommandHandler {
             campaignSessionCoordinator::normalizeHeroType
         );
         this.saveSlotManager = new RuntimeSaveSlotManager(MIN_SLOT, MAX_SLOT, SUPPORTED_HERO_TYPES);
-        bindSession(session == null ? GameSessionFactory.createInitialMenuSession() : session);
+        bindSession(runtimeCoordinator.resolveInitialSession(session));
         this.handlers = registerHandlers();
     }
 
@@ -120,6 +122,8 @@ public class GameRuntime implements GameCommandHandler {
         if (handler == null) {
             throw new InvalidRuntimeCommandException("Accion no soportada: " + action);
         }
+
+        assertActionAllowedByCurrentState(action);
 
         JsonObject payload = command.payload;
         if (payload == null) {
@@ -178,7 +182,7 @@ public class GameRuntime implements GameCommandHandler {
                 theme,
                 heroType
             );
-            newSession.transitionTo(GameFlowState.EXPLORATION);
+            runtimeCoordinator.orchestrateSessionToExploration(newSession);
 
             bindSession(newSession);
             saveSlotManager.resetPreferredSaveSlot();
@@ -355,7 +359,7 @@ public class GameRuntime implements GameCommandHandler {
                 theme,
                 heroType
             );
-            newSession.transitionTo(GameFlowState.EXPLORATION);
+            runtimeCoordinator.orchestrateSessionToExploration(newSession);
             bindSession(newSession);
             saveSlotManager.resetPreferredSaveSlot();
         }, payloadValidator::validateStartGamePayload));
@@ -430,10 +434,22 @@ public class GameRuntime implements GameCommandHandler {
     }
 
     private void startFreshCampaignSetup() {
-        GameSession freshSession = GameSessionFactory.createInitialMenuSession();
+        GameSession freshSession = runtimeCoordinator.resolveInitialSession(null);
         freshSession.transitionTo(GameFlowState.HERO);
         bindSession(freshSession);
         saveSlotManager.resetPreferredSaveSlot();
+    }
+
+    private void assertActionAllowedByCurrentState(String action) {
+        if (session == null) {
+            return;
+        }
+
+        try {
+            session.assertActionAllowed(action);
+        } catch (IllegalStateException ex) {
+            throw new InvalidRuntimeCommandException(ex.getMessage());
+        }
     }
 
     private void bindLoadedSession(GameSession loadedSession) {
@@ -469,7 +485,7 @@ public class GameRuntime implements GameCommandHandler {
      * - fuera de alcance de la auditoria actual para backend de comandos.
      *
      * Referencia:
-     * - HU-03 en Docs/GDD.md (filtros avanzados de inventario pendientes de cierre).
+     * - HU-03 en docs/01-product/GDD_CANONICO.md (filtros avanzados de inventario pendientes de cierre).
      */
     private void handleFilterCategoryStub() {
         // No-op intencional.

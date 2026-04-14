@@ -51,7 +51,7 @@ public class AIController {
     /**
      * Delega la decisión a la estrategia actual
      */
-    public game.command.actions.Command decidirAccion(java.util.List<Personaje> enemigos) {
+    public game.patterns.command.actions.Command decidirAccion(java.util.List<Personaje> enemigos) {
         return estrategia.decidirAccion(personaje, enemigos);
     }
     

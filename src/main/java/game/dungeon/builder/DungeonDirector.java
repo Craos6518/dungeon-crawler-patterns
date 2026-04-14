@@ -1,6 +1,8 @@
 package game.dungeon.builder;
 
 import game.dungeon.model.Dungeon;
+import game.dungeon.theme.DungeonThemeFactory;
+import java.util.Random;
 
 /**
  * Builder Pattern - Director que construye mazmorras predefinidas
@@ -60,5 +62,14 @@ public class DungeonDirector {
             .agregarSala("Salón de Huesos", "Montañas de esqueletos", 6, false, true)
             .setSalaJefe("Trono de las Sombras", "Sede del Señor Oscuro", 7)
             .build();
+    }
+
+    /**
+     * Construye una mazmorra procedural según el tema y la semilla
+     */
+    public game.domain.exploration.Dungeon buildForTheme(DungeonThemeFactory theme, long seed) {
+        Random random = new Random(seed);
+        game.dungeon.model.Dungeon generated = ProceduralDungeonGenerator.generar(builder, theme, random);
+        return new game.domain.exploration.Dungeon(random, theme, generated, seed);
     }
 }

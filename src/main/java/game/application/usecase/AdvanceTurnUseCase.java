@@ -1,9 +1,10 @@
 package game.application.usecase;
 
 import game.application.state.GameSession;
+import game.application.state.GameFlowState;
 import game.domain.DomainRuleViolationException;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
 
 /**
  * Caso de uso: avanzar la progresion de turno/sala en exploracion.
@@ -30,16 +31,22 @@ public class AdvanceTurnUseCase {
                 UseCaseTransactionSupport.runAtomically(session, () -> {
                     session.markThemeCompleted(session.dungeon().themeKey());
                     session.setHeroSelectionLocked(true);
-                    session.setActiveScreen("hero");
-
                     String dungeonName = session.dungeon().model().getNombre();
-                    session.appendEvent("Conquistaste " + dungeonName + ". Elige tu siguiente mazmorra.");
+                    boolean campaignCompleted = session.nextCampaignTheme().isBlank();
+
+                    session.transitionTo(campaignCompleted ? GameFlowState.MENU : GameFlowState.HERO);
+                    if (campaignCompleted) {
+                        session.appendEvent("Conquistaste " + dungeonName + ". Has completado la campana de Eranthia.");
+                    } else {
+                        session.appendEvent("Conquistaste " + dungeonName + ". Elige tu siguiente mazmorra.");
+                    }
 
                     session.eventManager().notificar(new GameEvent(EventType.SALA_COMPLETADA)
                         .agregarDato("resultado", "mazmorra_completada")
                         .agregarDato("mazmorra", dungeonName)
                         .agregarDato("tema", session.dungeon().themeKey())
-                        .agregarDato("salas", session.dungeon().totalRooms()));
+                        .agregarDato("salas", session.dungeon().totalRooms())
+                        .agregarDato("campanaCompleta", campaignCompleted));
                 });
                 return;
             }
@@ -49,12 +56,12 @@ public class AdvanceTurnUseCase {
 
         UseCaseTransactionSupport.runAtomically(session, () -> {
             session.dungeon().advanceRoom();
-            session.setActiveScreen("exploration");
+            session.transitionTo(GameFlowState.EXPLORATION);
 
             var room = session.dungeon().currentRoom();
             session.appendEvent("Avanzas a la sala " + (session.dungeon().currentRoomIndex() + 1) + ": " + room.name());
 
-            session.eventManager().notificar(new game.events.observer.GameEvent(game.events.observer.EventType.SALA_ENTRAR)
+            session.eventManager().notificar(new game.application.ports.events.GameEvent(game.application.ports.events.EventType.SALA_ENTRAR)
                 .agregarDato("sala", session.dungeon().currentRoomIndex() + 1)
                 .agregarDato("nombre", room.name()));
 

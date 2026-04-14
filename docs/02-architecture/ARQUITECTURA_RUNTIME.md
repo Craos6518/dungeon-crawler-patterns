@@ -11,9 +11,15 @@ Describir la arquitectura que efectivamente corre en produccion (web y consola),
 
 - Producto (GDD): docs/01-product/GDD_CANONICO.md
 - Arquitectura: docs/02-architecture/ARQUITECTURA_RUNTIME.md
+- Diagramas (galeria PNG + fuentes PlantUML): docs/02-architecture/diagramas/README.md
 - Patrones: docs/03-patterns/README.md
 - Testing: docs/04-testing/ESTRATEGIA_TESTING.md
 - Auditoria: docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md
+
+## Visualizacion de diagramas
+- Las fuentes de diagramas en `docs/02-architecture/diagramas/*.txt` usan sintaxis PlantUML.
+- Para visualizacion inmediata, abrir `docs/02-architecture/diagramas/README.md` (incluye los PNG).
+- Para editar/re-renderizar fuentes, usar soporte PlantUML en VS Code.
 
 ## Componentes principales
 - `game.application.runtime.GameRuntime`: orquestador de comandos UI -> casos de uso.

@@ -2,9 +2,9 @@ package game.application.usecase;
 
 import game.application.state.GameSession;
 import game.application.state.GameSessionMementoMapper;
-import game.events.observer.EventType;
-import game.events.observer.GameEvent;
-import game.persistence.memento.GameMemento;
+import game.application.ports.events.EventType;
+import game.application.ports.events.GameEvent;
+import game.application.state.GameMemento;
 
 /**
  * Caso de uso: persistir estado de partida.
