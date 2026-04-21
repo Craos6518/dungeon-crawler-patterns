@@ -41,7 +41,7 @@ class ApplyCombatBuffUseCaseTest {
         assertEquals(1, efectoEvents.size(), "Debe emitir exactamente un evento EFECTO_APLICADO");
 
         GameEvent event = efectoEvents.get(0);
-        assertEquals("guerrero", event.getDato("personaje"));
+        assertEquals("Guerrero", event.getDato("personaje"));
         assertEquals("poder", event.getDato("efecto"));
         assertEquals(1, event.getDato("acumulaciones"));
     }
@@ -92,6 +92,11 @@ class ApplyCombatBuffUseCaseTest {
         @Override
         public void onEvent(GameEvent event) {
             events.add(event);
+        }
+
+        @Override
+        public String getNombre() {
+            return "EventCaptureTest";
         }
 
         List<GameEvent> getEventsByType(EventType type) {

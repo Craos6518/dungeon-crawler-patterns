@@ -1,0 +1,2120 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eranthia — Dungeon Crawler Patterns</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --fire: #e4572e;
+        --ice: #4ea8de;
+        --poison: #588157;
+        --dark: #6c5ce7;
+        --gold: #c9a84c;
+        --gold-light: #f0d080;
+        --parchment: #1a1410;
+        --stone: #0e0c0a;
+        --ink: #ede0c8;
+        --ink-dim: #9a8b72;
+        --border: rgba(201, 168, 76, 0.25);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--stone);
+        color: var(--ink);
+        font-family: "EB Garamond", Georgia, serif;
+        font-size: 18px;
+        line-height: 1.7;
+        overflow-x: hidden;
+      }
+
+      /* ─── GRAIN OVERLAY ─── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        opacity: 0.5;
+      }
+
+      /* ─── SCROLL PROGRESS ─── */
+      #progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 2px;
+        width: 0%;
+        background: linear-gradient(
+          90deg,
+          var(--fire),
+          var(--gold),
+          var(--dark)
+        );
+        z-index: 2000;
+        transition: width 0.1s;
+      }
+
+      /* ─── NAVIGATION ─── */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 900;
+        padding: 0 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 64px;
+        background: linear-gradient(
+          to bottom,
+          rgba(14, 12, 10, 0.97),
+          rgba(14, 12, 10, 0)
+        );
+        backdrop-filter: blur(8px);
+      }
+      .nav-logo {
+        font-family: "Cinzel Decorative", serif;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--gold);
+        letter-spacing: 0.1em;
+        text-decoration: none;
+      }
+      .nav-links {
+        display: flex;
+        gap: 32px;
+        list-style: none;
+      }
+      .nav-links a {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .nav-links a:hover {
+        color: var(--gold-light);
+      }
+
+      /* ─── HERO ─── */
+      #hero {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 120px 40px 80px;
+        overflow: hidden;
+      }
+
+      .hero-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background:
+          radial-gradient(
+            ellipse 80% 60% at 50% 40%,
+            rgba(108, 92, 231, 0.12) 0%,
+            transparent 70%
+          ),
+          radial-gradient(
+            ellipse 60% 40% at 20% 80%,
+            rgba(228, 87, 46, 0.08) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 40% 50% at 80% 20%,
+            rgba(78, 168, 222, 0.07) 0%,
+            transparent 60%
+          ),
+          var(--stone);
+      }
+
+      /* Animated runes ring */
+      .rune-ring {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border: 1px solid rgba(201, 168, 76, 0.08);
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation: rune-spin 60s linear infinite;
+      }
+      .rune-ring::before {
+        content: "᛫ ᚦ ᛁ ᚢ ᛉ ᚷ ᚨ ᚾ ᛞ ᚱ ᛟ ᚹ";
+        position: absolute;
+        inset: -12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: rgba(201, 168, 76, 0.25);
+        letter-spacing: 32px;
+      }
+      .rune-ring-2 {
+        width: 750px;
+        height: 750px;
+        animation: rune-spin 90s linear infinite reverse;
+        border-color: rgba(108, 92, 231, 0.06);
+      }
+      @keyframes rune-spin {
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      .hero-badge {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--gold);
+        border: 1px solid var(--border);
+        padding: 6px 20px;
+        border-radius: 2px;
+        margin-bottom: 32px;
+        display: inline-block;
+        animation: fade-up 0.8s 0.2s both;
+      }
+
+      .hero-title {
+        font-family: "Cinzel Decorative", serif;
+        font-size: clamp(52px, 9vw, 110px);
+        font-weight: 700;
+        line-height: 0.9;
+        color: var(--gold-light);
+        text-shadow:
+          0 0 80px rgba(201, 168, 76, 0.3),
+          0 2px 4px rgba(0, 0, 0, 0.8);
+        letter-spacing: -0.02em;
+        animation: fade-up 0.8s 0.35s both;
+      }
+      .hero-subtitle-en {
+        font-family: "Cinzel", serif;
+        font-size: 13px;
+        letter-spacing: 0.3em;
+        color: var(--ink-dim);
+        text-transform: uppercase;
+        margin-top: 12px;
+        animation: fade-up 0.8s 0.5s both;
+      }
+
+      .hero-divider {
+        width: 240px;
+        height: 1px;
+        margin: 40px auto;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--gold),
+          transparent
+        );
+        animation: fade-up 0.8s 0.6s both;
+      }
+
+      .hero-desc {
+        max-width: 640px;
+        font-size: 19px;
+        color: var(--ink-dim);
+        font-style: italic;
+        line-height: 1.8;
+        animation: fade-up 0.8s 0.75s both;
+      }
+
+      .hero-stats {
+        display: flex;
+        gap: 60px;
+        margin-top: 56px;
+        animation: fade-up 0.8s 0.9s both;
+      }
+      .stat {
+        text-align: center;
+      }
+      .stat-number {
+        font-family: "Cinzel", serif;
+        font-size: 36px;
+        font-weight: 900;
+        color: var(--gold);
+        line-height: 1;
+      }
+      .stat-label {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        color: var(--ink-dim);
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+
+      .hero-scroll {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        color: var(--ink-dim);
+        animation: fade-up 1s 1.2s both;
+      }
+      .scroll-line {
+        width: 1px;
+        height: 48px;
+        background: linear-gradient(to bottom, var(--gold), transparent);
+        animation: scroll-pulse 2s ease-in-out infinite;
+      }
+      @keyframes scroll-pulse {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* ─── SECTION SHARED ─── */
+      section {
+        position: relative;
+      }
+      .section-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 100px 40px;
+      }
+      .section-eyebrow {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 16px;
+      }
+      .section-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(28px, 4vw, 46px);
+        font-weight: 900;
+        color: var(--ink);
+        line-height: 1.1;
+        margin-bottom: 20px;
+      }
+      .section-lead {
+        font-size: 19px;
+        color: var(--ink-dim);
+        font-style: italic;
+        max-width: 660px;
+        line-height: 1.8;
+        margin-bottom: 60px;
+      }
+      .ornament {
+        color: var(--gold);
+        opacity: 0.5;
+        font-size: 24px;
+        margin: 0 12px;
+        vertical-align: middle;
+      }
+
+      /* ─── ABOUT / OVERVIEW ─── */
+      #overview {
+        background: linear-gradient(to bottom, var(--stone), var(--parchment));
+      }
+      .overview-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: start;
+      }
+      .overview-text p {
+        color: var(--ink-dim);
+        margin-bottom: 16px;
+      }
+      .overview-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .overview-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        padding: 20px 24px;
+        border-radius: 2px;
+        transition:
+          border-color 0.3s,
+          background 0.3s;
+      }
+      .overview-card:hover {
+        border-color: rgba(201, 168, 76, 0.5);
+        background: rgba(201, 168, 76, 0.04);
+      }
+      .overview-card h4 {
+        font-family: "Cinzel", serif;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        color: var(--gold);
+        margin-bottom: 6px;
+      }
+      .overview-card p {
+        font-size: 15px;
+        color: var(--ink-dim);
+        margin: 0;
+      }
+
+      /* ─── PATTERNS GRID ─── */
+      #patterns {
+        background: var(--parchment);
+      }
+
+      .pattern-category {
+        margin-bottom: 60px;
+      }
+      .cat-title {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .patterns-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .pattern-card {
+        position: relative;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        padding: 28px;
+        border-radius: 2px;
+        cursor: pointer;
+        transition:
+          transform 0.3s,
+          border-color 0.3s,
+          background 0.3s;
+      }
+      .pattern-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--accent, var(--gold));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s;
+      }
+      .pattern-card:hover {
+        transform: translateY(-4px);
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .pattern-card:hover::before {
+        transform: scaleX(1);
+      }
+      .pattern-card:hover {
+        border-color: var(--accent, var(--gold));
+      }
+
+      .pattern-icon {
+        font-size: 28px;
+        margin-bottom: 14px;
+        display: block;
+      }
+      .pattern-name {
+        font-family: "Cinzel", serif;
+        font-size: 16px;
+        font-weight: 900;
+        color: var(--ink);
+        margin-bottom: 6px;
+      }
+      .pattern-category-tag {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent, var(--gold));
+        margin-bottom: 12px;
+        display: block;
+      }
+      .pattern-desc {
+        font-size: 14px;
+        color: var(--ink-dim);
+        line-height: 1.6;
+      }
+      .pattern-classes {
+        margin-top: 14px;
+        font-size: 12px;
+        color: rgba(154, 139, 114, 0.7);
+        font-style: italic;
+      }
+      .pattern-classes code {
+        font-family: "Courier New", monospace;
+        font-size: 11px;
+        color: rgba(201, 168, 76, 0.6);
+        background: rgba(201, 168, 76, 0.06);
+        padding: 1px 5px;
+        border-radius: 2px;
+      }
+
+      /* Pattern badge */
+      .pattern-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        color: var(--ink-dim);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+
+      /* ─── ARCHITECTURE ─── */
+      #architecture {
+        background: var(--stone);
+      }
+
+      .arch-flow {
+        display: grid;
+        gap: 0;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .arch-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 24px;
+        padding: 24px 0;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+      }
+      .arch-step:last-child {
+        border-bottom: none;
+      }
+      .arch-num {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        font-weight: 900;
+        color: var(--gold);
+        background: rgba(201, 168, 76, 0.08);
+        border: 1px solid var(--border);
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 2px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .arch-step-body h4 {
+        font-family: "Cinzel", serif;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 4px;
+      }
+      .arch-step-body p {
+        font-size: 15px;
+        color: var(--ink-dim);
+      }
+      .arch-step-body code {
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        color: var(--gold);
+        background: rgba(201, 168, 76, 0.08);
+        padding: 1px 6px;
+        border-radius: 2px;
+      }
+
+      .arch-diagram {
+        margin-top: 60px;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.015);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        overflow-x: auto;
+      }
+      .arch-diagram pre {
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        color: var(--ink-dim);
+        line-height: 1.7;
+        white-space: pre;
+      }
+      .arch-diagram .highlight {
+        color: var(--gold-light);
+      }
+
+      /* ─── LORE / THEMES ─── */
+      #themes {
+        background: var(--parchment);
+      }
+      .themes-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+      }
+      .theme-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        padding: 36px 32px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.015);
+        transition: transform 0.3s;
+      }
+      .theme-card:hover {
+        transform: translateY(-3px);
+      }
+      .theme-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background: radial-gradient(
+          ellipse at top right,
+          var(--theme-glow, transparent) 0%,
+          transparent 65%
+        );
+        opacity: 0.08;
+        pointer-events: none;
+      }
+      .theme-card > * {
+        position: relative;
+        z-index: 1;
+      }
+      .theme-emoji {
+        font-size: 36px;
+        margin-bottom: 16px;
+        display: block;
+      }
+      .theme-name {
+        font-family: "Cinzel", serif;
+        font-size: 22px;
+        font-weight: 900;
+        margin-bottom: 6px;
+      }
+      .theme-location {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: var(--ink-dim);
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        display: block;
+      }
+      .theme-desc {
+        font-size: 15px;
+        color: var(--ink-dim);
+        margin-bottom: 16px;
+      }
+      .theme-boss {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        color: var(--gold);
+        background: rgba(201, 168, 76, 0.08);
+        border: 1px solid var(--border);
+        padding: 8px 14px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+
+      /* ─── HEROES ─── */
+      #heroes {
+        background: var(--stone);
+      }
+      .heroes-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 32px;
+      }
+      .hero-card {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.015);
+        padding: 36px 28px;
+        border-radius: 2px;
+        text-align: center;
+        transition: border-color 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero-card::before {
+        content: attr(data-rune);
+        position: absolute;
+        top: -20px;
+        right: -10px;
+        font-size: 120px;
+        opacity: 0.04;
+        color: var(--gold);
+        line-height: 1;
+        pointer-events: none;
+      }
+      .hero-card:hover {
+        border-color: rgba(201, 168, 76, 0.45);
+      }
+      .hero-class-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        display: block;
+      }
+      .hero-class-name {
+        font-family: "Cinzel Decorative", serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: 4px;
+      }
+      .hero-full-name {
+        font-family: "Cinzel", serif;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: var(--ink-dim);
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+      .hero-card-divider {
+        width: 60px;
+        height: 1px;
+        margin: 16px auto;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--gold),
+          transparent
+        );
+      }
+      .hero-desc-card {
+        font-size: 14px;
+        color: var(--ink-dim);
+        line-height: 1.65;
+      }
+
+      /* ─── TECH STACK ─── */
+      #tech {
+        background: var(--parchment);
+      }
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+      }
+      .tech-item {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+        padding: 20px 22px;
+        border-radius: 2px;
+        transition: border-color 0.3s;
+      }
+      .tech-item:hover {
+        border-color: rgba(201, 168, 76, 0.4);
+      }
+      .tech-item h4 {
+        font-family: "Cinzel", serif;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        color: var(--gold);
+        margin-bottom: 6px;
+      }
+      .tech-item p {
+        font-size: 13px;
+        color: var(--ink-dim);
+      }
+
+      /* ─── TESTING ─── */
+      #testing {
+        background: var(--stone);
+      }
+      .test-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-bottom: 60px;
+      }
+      .test-metric {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+        padding: 28px 24px;
+        border-radius: 2px;
+        text-align: center;
+      }
+      .test-metric-num {
+        font-family: "Cinzel", serif;
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--gold);
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+      .test-metric-num.green {
+        color: #4caf50;
+      }
+      .test-metric-label {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        color: var(--ink-dim);
+        text-transform: uppercase;
+      }
+
+      .test-suites {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .test-suite {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.015);
+        padding: 20px 24px;
+        border-radius: 2px;
+      }
+      .test-suite h4 {
+        font-family: "Cinzel", serif;
+        font-size: 13px;
+        color: var(--ink);
+        margin-bottom: 10px;
+      }
+      .test-suite ul {
+        list-style: none;
+      }
+      .test-suite ul li {
+        font-size: 13px;
+        color: var(--ink-dim);
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .test-suite ul li::before {
+        content: "✓";
+        color: #4caf50;
+        font-size: 11px;
+      }
+
+      /* ─── AUDIT ─── */
+      #audit {
+        background: var(--parchment);
+      }
+      .audit-table-wrap {
+        overflow-x: auto;
+      }
+      table.audit-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      .audit-table th {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        text-align: left;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .audit-table td {
+        padding: 14px 16px;
+        color: var(--ink-dim);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .audit-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .audit-table td:first-child {
+        font-family: "Cinzel", serif;
+        font-size: 13px;
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .badge-remediated {
+        font-size: 11px;
+        background: rgba(76, 175, 80, 0.15);
+        color: #4caf50;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-family: "Cinzel", serif;
+        letter-spacing: 0.05em;
+      }
+      .badge-pending {
+        font-size: 11px;
+        background: rgba(201, 168, 76, 0.1);
+        color: var(--gold);
+        border: 1px solid var(--border);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-family: "Cinzel", serif;
+        letter-spacing: 0.05em;
+      }
+      .score-before {
+        color: #e4572e;
+      }
+      .score-after {
+        color: #4caf50;
+        font-weight: 700;
+      }
+
+      /* ─── DEPLOYMENT ─── */
+      #deploy {
+        background: var(--stone);
+      }
+      .deploy-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+      }
+      .deploy-card {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+        padding: 32px;
+        border-radius: 2px;
+      }
+      .deploy-card h3 {
+        font-family: "Cinzel", serif;
+        font-size: 16px;
+        font-weight: 900;
+        color: var(--ink);
+        margin-bottom: 6px;
+      }
+      .deploy-platform {
+        font-family: "Cinzel", serif;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        color: var(--gold);
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        display: block;
+      }
+      .code-block {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 16px 18px;
+        margin-top: 16px;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        color: var(--ink-dim);
+        line-height: 1.7;
+        overflow-x: auto;
+      }
+      .code-block .cmd {
+        color: var(--gold-light);
+      }
+      .code-block .comment {
+        color: rgba(154, 139, 114, 0.5);
+      }
+
+      /* ─── FOOTER ─── */
+      footer {
+        background: var(--stone);
+        border-top: 1px solid var(--border);
+        padding: 60px 40px 40px;
+        text-align: center;
+      }
+      .footer-logo {
+        font-family: "Cinzel Decorative", serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: 12px;
+      }
+      .footer-tagline {
+        font-style: italic;
+        color: var(--ink-dim);
+        margin-bottom: 32px;
+      }
+      .footer-links {
+        display: flex;
+        gap: 40px;
+        justify-content: center;
+        list-style: none;
+        margin-bottom: 40px;
+      }
+      .footer-links a {
+        font-family: "Cinzel", serif;
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .footer-links a:hover {
+        color: var(--gold);
+      }
+      .footer-copy {
+        font-size: 13px;
+        color: rgba(154, 139, 114, 0.4);
+      }
+
+      /* ─── ANIMATIONS ─── */
+      @keyframes fade-up {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(32px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* ─── SEPARATOR ─── */
+      .sep {
+        text-align: center;
+        padding: 40px 0;
+        color: rgba(201, 168, 76, 0.3);
+        font-size: 20px;
+        letter-spacing: 20px;
+      }
+
+      /* ─── RESPONSIVE ─── */
+      @media (max-width: 768px) {
+        nav {
+          padding: 0 20px;
+        }
+        .nav-links {
+          display: none;
+        }
+        .section-inner {
+          padding: 60px 20px;
+        }
+        .overview-grid,
+        .themes-grid,
+        .heroes-grid,
+        .deploy-grid,
+        .test-suites {
+          grid-template-columns: 1fr;
+        }
+        .test-metrics {
+          grid-template-columns: 1fr 1fr;
+        }
+        .hero-stats {
+          gap: 30px;
+        }
+        .hero-title {
+          font-size: 48px;
+        }
+        .patterns-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress-bar"></div>
+
+    <!-- NAV -->
+    <nav>
+      <a href="#hero" class="nav-logo">Eranthia</a>
+      <ul class="nav-links">
+        <li><a href="#overview">Proyecto</a></li>
+        <li><a href="#patterns">Patrones</a></li>
+        <li><a href="#architecture">Arquitectura</a></li>
+        <li><a href="#themes">Mundo</a></li>
+        <li><a href="#testing">Testing</a></li>
+        <li><a href="#audit">Auditoría</a></li>
+        <li><a href="#deploy">Despliegue</a></li>
+      </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="hero-bg"></div>
+      <div class="rune-ring"></div>
+      <div class="rune-ring rune-ring-2"></div>
+
+      <div style="position: relative; z-index: 1">
+        <div class="hero-badge">
+          Proyecto Académico · Java 17 · Design Patterns
+        </div>
+        <h1 class="hero-title">Eranthia</h1>
+        <p class="hero-subtitle-en">Dungeon Crawler Patterns</p>
+        <div class="hero-divider"></div>
+        <p class="hero-desc">
+          Un dungeon crawler por turnos construido sobre Java 17 que evidencia
+          once patrones de diseño ejecutándose en flujo productivo real — no en
+          demos aisladas, sino en el runtime de un videojuego funcional.
+        </p>
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-number">11</div>
+            <div class="stat-label">Patrones</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number">241</div>
+            <div class="stat-label">Tests</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number">4</div>
+            <div class="stat-label">Biomas</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number">3</div>
+            <div class="stat-label">Héroes</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-scroll">
+        <div class="scroll-line"></div>
+        Descender
+      </div>
+    </section>
+
+    <!-- OVERVIEW -->
+    <section id="overview">
+      <div class="section-inner">
+        <div class="section-eyebrow">El Proyecto</div>
+        <div class="overview-grid">
+          <div class="overview-text reveal">
+            <h2 class="section-title">Arquitectura como artefacto vivo</h2>
+            <p class="section-lead">
+              Un proyecto académico que demuestra la implementación verificable
+              de patrones de diseño en un dungeon crawler por turnos con flujo
+              productivo en runtime.
+            </p>
+            <p>
+              El principio rector es que declarar un patrón implementado es
+              insuficiente — cada patrón debe participar en el flujo real de
+              <code>GameRuntime</code> → casos de uso → dominio, y debe estar
+              validado por tests de integración que lo ejerciten desde la raíz.
+            </p>
+            <p style="margin-top: 16px">
+              El sistema soporta dos entornos de ejecución:
+              <strong style="color: var(--ink)">WebView</strong> (JavaFX +
+              WebEngine con HTML/CSS/JS) y
+              <strong style="color: var(--ink)">consola</strong>, ambos sobre el
+              mismo núcleo Java.
+            </p>
+            <p style="margin-top: 16px">
+              La campaña transcurre en cuatro biomas temáticos —
+              <span style="color: var(--fire)">Fuego</span>,
+              <span style="color: var(--ice)">Hielo</span>,
+              <span style="color: var(--poison)">Veneno</span> y
+              <span style="color: var(--dark)">Oscuridad</span> — con enemigos,
+              loot y resistencias coherentes por tema.
+            </p>
+          </div>
+          <div class="overview-cards reveal" style="transition-delay: 0.15s">
+            <div class="overview-card">
+              <h4>🎯 Propósito Académico</h4>
+              <p>
+                Evidenciar patrones ejecutándose en flujo productivo con
+                trazabilidad directa a código y pruebas. Permite defensa técnica
+                sin depender de lectura completa del código.
+              </p>
+            </div>
+            <div class="overview-card">
+              <h4>⚙️ Flujo Principal</h4>
+              <p>
+                Menú → Selección de héroe → Exploración → Combate → Tesoro →
+                Progresión por campaña (Poison → Ice → Fire → Dark).
+              </p>
+            </div>
+            <div class="overview-card">
+              <h4>🔒 Persistencia</h4>
+              <p>
+                Sistema de slots con serialización JSON completa. El Patrón
+                Memento garantiza snapshots atómicos y rollback ante fallos.
+                Schema versioning con <code>v1.0</code>.
+              </p>
+            </div>
+            <div class="overview-card">
+              <h4>📐 Contrato UI/Backend</h4>
+              <p>
+                El frontend HTML se comunica con Java mediante
+                <code>data-action</code> / <code>data-bind</code> /
+                alert-bridge. El núcleo corre independiente del shell visual.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep">✦ ✦ ✦</div>
+
+    <!-- PATTERNS -->
+    <section id="patterns">
+      <div class="section-inner">
+        <div class="section-eyebrow reveal">Los Once Patrones</div>
+        <h2 class="section-title reveal">Diseño que vive en producción</h2>
+        <p class="section-lead reveal">
+          Cada patrón está conectado al runtime, validado con tests de
+          integración y documentado con su cadena real de invocación.
+        </p>
+
+        <!-- CREACIONALES -->
+        <div class="pattern-category reveal">
+          <div class="cat-title">✦ Creacionales</div>
+          <div class="patterns-row">
+            <div class="pattern-card" style="--accent: #c9a84c">
+              <span class="pattern-icon">🏭</span>
+              <div class="pattern-badge">Creacional</div>
+              <div class="pattern-name">Abstract Factory</div>
+              <span class="pattern-category-tag"
+                >Familias de contenido por tema</span
+              >
+              <p class="pattern-desc">
+                Crea familias coherentes de enemigos y loot por bioma (Fire,
+                Ice, Poison, Dark) garantizando resistencias elementales
+                consistentes. Cada fábrica asegura el contrato de propiedades
+                del tema.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>DungeonThemeFactory</code> →
+                <code>FireThemeFactory</code>, <code>IceThemeFactory</code>…
+              </div>
+            </div>
+
+            <div class="pattern-card" style="--accent: #c9a84c">
+              <span class="pattern-icon">🧱</span>
+              <div class="pattern-badge">Creacional</div>
+              <div class="pattern-name">Builder</div>
+              <span class="pattern-category-tag"
+                >Generación procedural de mazmorra</span
+              >
+              <p class="pattern-desc">
+                Construye mazmorras reproducibles por semilla con configuración
+                incremental.
+                <code>DungeonDirector.buildForTheme(tema, seed)</code> garantiza
+                determinismo: misma semilla, misma mazmorra.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>ProceduralDungeonGenerator</code> ·
+                <code>ConcreteDungeonBuilder</code> ·
+                <code>DungeonDirector</code>
+              </div>
+            </div>
+
+            <div class="pattern-card" style="--accent: #c9a84c">
+              <span class="pattern-icon">⚗️</span>
+              <div class="pattern-badge">Creacional</div>
+              <div class="pattern-name">Factory Method</div>
+              <span class="pattern-category-tag"
+                >Creación de héroes y enemigos</span
+              >
+              <p class="pattern-desc">
+                Evita instanciación directa de tipos concretos. Las factories de
+                tema delegan en <code>PersonajeFactory</code> concretas;
+                <code>GameSessionFactory</code> hace lo mismo con héroes.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>PersonajeFactory</code> →
+                <code>GuerreroFactory</code>, <code>MagoFactory</code>,
+                <code>DragonFactory</code>…
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTRUCTURALES -->
+        <div class="pattern-category reveal">
+          <div class="cat-title">✦ Estructurales</div>
+          <div class="patterns-row">
+            <div class="pattern-card" style="--accent: #4ea8de">
+              <span class="pattern-icon">🌳</span>
+              <div class="pattern-badge">Estructural</div>
+              <div class="pattern-name">Composite</div>
+              <span class="pattern-category-tag">Inventario jerárquico</span>
+              <p class="pattern-desc">
+                Maneja estructuras de contenedores anidados permitiendo
+                operaciones uniformes sobre hojas y compuestos. El
+                <code>GameSessionMementoMapper</code> serializa el árbol
+                completo de forma recursiva, preservando jerarquías al
+                guardar/cargar.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>ItemComponent</code> · <code>ContainerItem</code> ·
+                <code>SimpleItem</code> · <code>Inventory</code>
+              </div>
+            </div>
+
+            <div class="pattern-card" style="--accent: #4ea8de">
+              <span class="pattern-icon">🎨</span>
+              <div class="pattern-badge">Estructural</div>
+              <div class="pattern-name">Decorator</div>
+              <span class="pattern-category-tag"
+                >Efectos de estado acumulables</span
+              >
+              <p class="pattern-desc">
+                Aplica efectos (veneno, quemadura, aturdimiento, fortaleza,
+                guardia) de forma dinámica sin multiplicar condicionales. Máximo
+                3 stacks por efecto; los buffs se consumen tras uso.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>CombatStatusDecoratorPipeline</code> ·
+                <code>PoisonEffect</code> · <code>BurnEffect</code> ·
+                <code>StunEffect</code>
+              </div>
+            </div>
+
+            <div class="pattern-card" style="--accent: #4ea8de">
+              <span class="pattern-icon">🗡️</span>
+              <div class="pattern-badge">Estructural</div>
+              <div class="pattern-name">Facade</div>
+              <span class="pattern-category-tag"
+                >Subsistema de combate unificado</span
+              >
+              <p class="pattern-desc">
+                Expone un punto de entrada único para combate.
+                <code>GameSession.combat()</code> retorna
+                <code>CombatFacade</code>, que oculta <code>Combat</code>,
+                <code>CombatSystem</code>, <code>TurnManager</code> y
+                <code>CombatStatusDecoratorPipeline</code>.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>CombatFacade</code> encapsula →
+                <code>Combat</code> · <code>CombatSystem</code> ·
+                <code>TurnManager</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPORTAMIENTO -->
+        <div class="pattern-category reveal">
+          <div class="cat-title">✦ Comportamiento</div>
+          <div class="patterns-row">
+            <div class="pattern-card" style="--accent: #6c5ce7">
+              <span class="pattern-icon">⚔️</span>
+              <div class="pattern-badge">Comportamiento</div>
+              <div class="pattern-name">Command</div>
+              <span class="pattern-category-tag"
+                >Encapsulación de acciones</span
+              >
+              <p class="pattern-desc">
+                Unifica la ejecución de acciones de combate e inventario.
+                <code>AttackCommand</code>, <code>DefendCommand</code>,
+                <code>UseItemCommand</code> y <code>LevelUpCommand</code> pasan
+                por <code>CommandInvoker</code> con historial trazable.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>CommandInvoker</code> ·
+                <code>AttackCommand</code> · <code>UseItemCommand</code> ·
+                <code>LevelUpCommand</code>
+              </div>
+            </div>
+
+            <div class="pattern-card" style="--accent: #6c5ce7">
+              <span class="pattern-icon">💾</span>
+              <div class="pattern-badge">Comportamiento</div>
+              <div class="pattern-name">Memento</div>
+              <span class="pattern-category-tag">Persistencia y rollback</span>
+              <p class="pattern-desc">
+                Serializa snapshots completos de sesión con schema versioning
+                (<code>v1.0</code>). <code>UseCaseTransactionSupport</code> usa
+                Memento para rollback atómico ante fallos. Detecta versiones
+                incompatibles con <code>SaveDataCorruptionException</code>.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>GameMemento</code> ·
+                <code>GameSessionMementoMapper</code> ·
+                <code>GameCaretaker</code> · <code>RuntimeSaveSlotManager</code>
+              </div>
+            </div>
+
+            <div class="pattern-card" style="--accent: #6c5ce7">
+              <span class="pattern-icon">👁️</span>
+              <div class="pattern-badge">Comportamiento</div>
+              <div class="pattern-name">Observer</div>
+              <span class="pattern-category-tag"
+                >Eventos con aislamiento de sesión</span
+              >
+              <p class="pattern-desc">
+                Reacciona a eventos de juego sin acoplar emisores a
+                consumidores. Cada sesión recibe su propio
+                <code>EventManager</code> con observers locales; garantiza que
+                eventos de la sesión A no se filtren en la B.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>EventManager</code> ·
+                <code>SessionEventFeedObserver</code> ·
+                <code>SessionEventCounterObserver</code>
+              </div>
+            </div>
+
+            <div class="pattern-card" style="--accent: #6c5ce7">
+              <span class="pattern-icon">🗺️</span>
+              <div class="pattern-badge">Comportamiento</div>
+              <div class="pattern-name">State</div>
+              <span class="pattern-category-tag"
+                >Flujo de pantallas y transiciones</span
+              >
+              <p class="pattern-desc">
+                <code>GameStateContext</code> es la fuente de verdad del flujo.
+                Cada estado concreto gobierna qué acciones son válidas y qué
+                transiciones están permitidas, eliminando strings hardcodeados
+                de los use cases.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>GameStateContext</code> → <code>MenuState</code> ·
+                <code>CombatState</code> · <code>ExplorationState</code> ·
+                <code>GameOverState</code>
+              </div>
+            </div>
+
+            <div class="pattern-card" style="--accent: #6c5ce7">
+              <span class="pattern-icon">🧠</span>
+              <div class="pattern-badge">Comportamiento</div>
+              <div class="pattern-name">Strategy</div>
+              <span class="pattern-category-tag"
+                >IA adaptativa y estilos de combate</span
+              >
+              <p class="pattern-desc">
+                La IA enemiga selecciona estrategia según ratio de vida:
+                Agresiva (&gt;75%), Inteligente (50–75%), Defensiva (25–50%),
+                Desesperada (&lt;25%). El jugador cambia estilo en tiempo real
+                consumiendo recurso.
+              </p>
+              <div class="pattern-classes">
+                Ancla: <code>CombatSystem</code> · <code>AIStrategy</code> →
+                <code>AggressiveStrategy</code> ·
+                <code>DefensiveStrategy</code> ·
+                <code>IntelligentStrategy</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep">✦ ✦ ✦</div>
+
+    <!-- ARCHITECTURE -->
+    <section id="architecture">
+      <div class="section-inner">
+        <div class="section-eyebrow reveal">Arquitectura Runtime</div>
+        <h2 class="section-title reveal">El flujo canónico</h2>
+        <p class="section-lead reveal">
+          Toda acción del jugador recorre el mismo pipeline, garantizando
+          validación, trazabilidad y coherencia de estado.
+        </p>
+
+        <div class="arch-flow reveal">
+          <div class="arch-step">
+            <div class="arch-num">01</div>
+            <div class="arch-step-body">
+              <h4>UI envía comando JSON</h4>
+              <p>
+                El frontend HTML o la consola emite un payload con la acción del
+                jugador. <code>UiCommandDispatcher</code> valida la estructura
+                básica.
+              </p>
+            </div>
+          </div>
+          <div class="arch-step">
+            <div class="arch-num">02</div>
+            <div class="arch-step-body">
+              <h4>GameRuntime recibe y valida</h4>
+              <p>
+                <code>RuntimePayloadValidator</code> aplica validación
+                estructural y tipada del comando. Si falla, retorna error sin
+                mutar estado.
+              </p>
+            </div>
+          </div>
+          <div class="arch-step">
+            <div class="arch-num">03</div>
+            <div class="arch-step-body">
+              <h4>GameStateContext verifica permisos</h4>
+              <p>
+                <code>GameSession.assertActionAllowed(action)</code> delega en
+                el estado activo. Solo las acciones válidas para el estado
+                actual continúan.
+              </p>
+            </div>
+          </div>
+          <div class="arch-step">
+            <div class="arch-num">04</div>
+            <div class="arch-step-body">
+              <h4>Caso de uso ejecuta la mutación</h4>
+              <p>
+                El use case correspondiente modifica <code>GameSession</code>.
+                <code>UseCaseTransactionSupport</code> toma snapshot previo para
+                rollback ante excepción.
+              </p>
+            </div>
+          </div>
+          <div class="arch-step">
+            <div class="arch-num">05</div>
+            <div class="arch-step-body">
+              <h4>EventManager notifica observers</h4>
+              <p>
+                Los eventos del dominio se propagan al
+                <code>EventManager</code> local de la sesión.
+                <code>SessionEventFeedObserver</code> y
+                <code>SessionEventCounterObserver</code> reaccionan sin
+                acoplamiento.
+              </p>
+            </div>
+          </div>
+          <div class="arch-step">
+            <div class="arch-num">06</div>
+            <div class="arch-step-body">
+              <h4>GamePresenter construye ViewModel</h4>
+              <p>
+                <code>GamePresenter</code> mapea el estado interno a un
+                <code>GameViewModel</code> JSON completo que la UI renderiza sin
+                conocer el dominio.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-diagram reveal" style="transition-delay: 0.2s">
+          <pre><span class="highlight">UI (HTML/Consola)</span>
+  │  JSON payload
+  ▼
+<span class="highlight">UiCommandDispatcher</span>  →  estructura básica
+  │
+  ▼
+<span class="highlight">GameRuntime</span>  →  RuntimePayloadValidator  →  CampaignSessionCoordinator
+  │
+  ▼
+<span class="highlight">GameSession</span>  →  GameStateContext  →  GameState (activo)
+  │                                    └── assertActionAllowed()
+  ▼
+<span class="highlight">Use Cases</span>  →  CombatFacade  →  Combat  →  CombatSystem
+             │               └── TurnManager
+             │               └── CombatStatusDecoratorPipeline (Decorator)
+             │
+             ├── UseItemUseCase  →  CommandInvoker  →  UseItemCommand  →  Inventory
+             ├── SaveGameUseCase  →  GameSessionMementoMapper  →  GameCaretaker
+             └── EventManager.notificar(event)  →  SessionEventFeedObserver
+  │
+  ▼
+<span class="highlight">GamePresenter</span>  →  GameViewModel JSON  →  UI actualiza</pre>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep">✦ ✦ ✦</div>
+
+    <!-- THEMES / LORE -->
+    <section id="themes">
+      <div class="section-inner">
+        <div class="section-eyebrow reveal">El Mundo de Eranthia</div>
+        <h2 class="section-title reveal">Cuatro biomas, cuatro guardianes</h2>
+        <p class="section-lead reveal">
+          Cada bioma implementa una familia completa vía Abstract Factory:
+          enemigos con resistencias elementales, loot temático y un guardián
+          final único.
+        </p>
+
+        <div class="themes-grid reveal">
+          <div class="theme-card" style="--theme-glow: var(--fire)">
+            <span class="theme-emoji">🔥</span>
+            <div class="theme-name" style="color: var(--fire)">Ignareth</div>
+            <span class="theme-location">El Volcán Eterno</span>
+            <p class="theme-desc">
+              Cavernas de obsidiana ardiente con ríos de magma. La Piedra del
+              Fuego Eterno arrasó la aldea natal de Kael Ferrum. Los enemigos
+              poseen resistencia al fuego (+20 básicos, +100 jefes) y loot
+              ígneo.
+            </p>
+            <span class="theme-boss"
+              >⚔ Guardián: Pyraxis, Salamandra Ancestral</span
+            >
+          </div>
+
+          <div class="theme-card" style="--theme-glow: var(--ice)">
+            <span class="theme-emoji">❄️</span>
+            <div class="theme-name" style="color: var(--ice)">Glaciurvh</div>
+            <span class="theme-location">Catacumbas del Silencio Helado</span>
+            <p class="theme-desc">
+              Agujas glaciares de cristal azul pálido. El vaho gélido silencia
+              todos los sonidos. Enemigos con resistencia al hielo y el Báculo
+              del Invierno como loot de jefe.
+            </p>
+            <span class="theme-boss"
+              >⚔ Guardián: Kryovaleth, El Rey Gélido</span
+            >
+          </div>
+
+          <div class="theme-card" style="--theme-glow: var(--poison)">
+            <span class="theme-emoji">☠️</span>
+            <div class="theme-name" style="color: var(--poison)">Viridax</div>
+            <span class="theme-location">Los Pantanos Corruptos</span>
+            <p class="theme-desc">
+              Acueductos pútridos con niebla asfixiante y hongos
+              bioluminiscentes. El hogar destruido de Thoran Silvis. La Semilla
+              de la Vida Corrupta permea cada sala.
+            </p>
+            <span class="theme-boss"
+              >⚔ Guardián: Arachnovex, la Reina Tejedora</span
+            >
+          </div>
+
+          <div class="theme-card" style="--theme-glow: var(--dark)">
+            <span class="theme-emoji">🌑</span>
+            <div class="theme-name" style="color: var(--dark)">Umbrakar</div>
+            <span class="theme-location">La Ciudadela del Vacío</span>
+            <p class="theme-desc">
+              Geometría brutalista y móvil. El Fragmento de la Oscuridad
+              Absoluta erosiona la memoria del jugador. Geometría inestable: los
+              corredores se reorganizan entre visitas.
+            </p>
+            <span class="theme-boss">⚔ Guardián: Malachar, el Sin-Nombre</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HEROES -->
+    <section id="heroes">
+      <div class="section-inner">
+        <div class="section-eyebrow reveal">Los Campeones</div>
+        <h2 class="section-title reveal">Héroes de Eranthia</h2>
+        <p class="section-lead reveal">
+          Cada héroe es instanciado vía Factory Method con stats y atributos
+          propios. Su selección en el menú de inicio es el primer uso productivo
+          del patrón.
+        </p>
+
+        <div class="heroes-grid reveal">
+          <div class="hero-card" data-rune="⚔">
+            <span class="hero-class-icon">🛡️</span>
+            <div class="hero-class-name">Guerrero</div>
+            <div class="hero-full-name">Kael Ferrum — El Último Guardián</div>
+            <div class="hero-card-divider"></div>
+            <p class="hero-desc-card">
+              Hijo de un herrero de Valdrath, perdió su familia ante las oleadas
+              de Ignareth. Lucha con armadura pesada y escudo como muro. Su
+              tatuaje de aldea destruida es su voto. Factory:
+              <code>GuerreroFactory</code>.
+            </p>
+          </div>
+
+          <div class="hero-card" data-rune="✦">
+            <span class="hero-class-icon">🔮</span>
+            <div class="hero-class-name">Maga</div>
+            <div class="hero-full-name">Sylara Vex — Archivista del Vacío</div>
+            <div class="hero-card-divider"></div>
+            <p class="hero-desc-card">
+              Erudita de la Academia de Valdrath que halló los planos de
+              Thessanor. Para ella las mazmorras son código arcano a hackear.
+              Ropajes con hilos geométricos trazando configuraciones mágicas.
+              Factory: <code>MagoFactory</code>.
+            </p>
+          </div>
+
+          <div class="hero-card" data-rune="🏹">
+            <span class="hero-class-icon">🏹</span>
+            <div class="hero-class-name">Arquero</div>
+            <div class="hero-full-name">
+              Thoran Silvis — Explorador de la Bruma
+            </div>
+            <div class="hero-card-divider"></div>
+            <p class="hero-desc-card">
+              De los bosques de Mirval, vio cómo Viridax los consumía en
+              semanas. Caza para mantener el equilibrio sagrado del ecosistema.
+              Ágil, flechas de madera nativa, viales anti-toxina en el arnés.
+              Factory: <code>ArqueroFactory</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep">✦ ✦ ✦</div>
+
+    <!-- TECH STACK -->
+    <section id="tech">
+      <div class="section-inner">
+        <div class="section-eyebrow reveal">Stack Técnico</div>
+        <h2 class="section-title reveal">Las herramientas del craftsman</h2>
+
+        <div class="tech-grid reveal">
+          <div class="tech-item">
+            <h4>Java 17</h4>
+            <p>
+              Runtime principal. Records, sealed classes y switch expressions
+              aplicados en Memento y State.
+            </p>
+          </div>
+          <div class="tech-item">
+            <h4>Maven</h4>
+            <p>
+              Build system con toolchains.xml para portabilidad multi-máquina
+              sin modificar pom.xml.
+            </p>
+          </div>
+          <div class="tech-item">
+            <h4>JUnit 5</h4>
+            <p>
+              241 tests: unitarios, integración y E2E de contrato. Suite con 0
+              fallos, 0 errores.
+            </p>
+          </div>
+          <div class="tech-item">
+            <h4>jpackage / jlink</h4>
+            <p>
+              Empaquetado nativo con JRE embebido. Genera .deb/.rpm (Linux) y
+              .exe (Windows) sin Java del sistema.
+            </p>
+          </div>
+          <div class="tech-item">
+            <h4>VS Code 1.116.0</h4>
+            <p>
+              IDE de desarrollo. Extensiones: GitHub Copilot, Test Runner,
+              Debugger for Java. Fedora Linux como plataforma primaria.
+            </p>
+          </div>
+          <div class="tech-item">
+            <h4>JSON / Memento</h4>
+            <p>
+              Persistencia de sesión en archivos locales. Schema versioning v1.0
+              con protección contra datos corruptos.
+            </p>
+          </div>
+          <div class="tech-item">
+            <h4>JavaFX 17</h4>
+            <p>
+              WebView embebida para renderizar game.html. Módulos:
+              javafx-controls, javafx-web. Packaging nativo con jpackage.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTING -->
+    <section id="testing">
+      <div class="section-inner">
+        <div class="section-eyebrow reveal">Evidencia de Calidad</div>
+        <h2 class="section-title reveal">Suite de validación</h2>
+        <p class="section-lead reveal">
+          El criterio académico exige que cada patrón sea ejercitado desde el
+          runtime, no solo en tests unitarios aislados.
+        </p>
+
+        <div class="test-metrics reveal">
+          <div class="test-metric">
+            <div class="test-metric-num">241</div>
+            <div class="test-metric-label">Tests totales</div>
+          </div>
+          <div class="test-metric">
+            <div class="test-metric-num green">0</div>
+            <div class="test-metric-label">Fallos</div>
+          </div>
+          <div class="test-metric">
+            <div class="test-metric-num green">0</div>
+            <div class="test-metric-label">Errores</div>
+          </div>
+          <div class="test-metric">
+            <div class="test-metric-num">2</div>
+            <div class="test-metric-label">Omitidos*</div>
+          </div>
+        </div>
+        <p
+          style="
+            font-size: 13px;
+            color: var(--ink-dim);
+            margin-bottom: 48px;
+            font-style: italic;
+          "
+        >
+          * Los 2 omitidos no son fallos funcionales. La política
+          <code>DisabledAnnotationPolicyTest</code> impide introducir
+          <code>@Disabled</code> arbitrarios.
+        </p>
+
+        <div class="test-suites reveal">
+          <div class="test-suite">
+            <h4>Tests de Integración de Comportamiento</h4>
+            <ul>
+              <li>GameRuntimeStateFlowIntegrationTest</li>
+              <li>EventObserversRuntimeIntegrationTest</li>
+              <li>StateMementoIntegrationTest</li>
+              <li>BehavioralPatternsIntegrationTest</li>
+              <li>CombatDecoratorIntegrationTest</li>
+            </ul>
+          </div>
+          <div class="test-suite">
+            <h4>Tests de Integración Estructural</h4>
+            <ul>
+              <li>FacadeIntegrationTest</li>
+              <li>CompositeIntegrationTest</li>
+              <li>UseItemUseCaseCompositeHierarchyTest</li>
+              <li>GameRuntimeHeroSelectionTest</li>
+              <li>ApplyCombatBuffUseCaseTest</li>
+            </ul>
+          </div>
+          <div class="test-suite">
+            <h4>Tests Unitarios — Patrones</h4>
+            <ul>
+              <li>StatePatternTest · CommandPatternTest</li>
+              <li>StrategyPatternTest · MementoPatternTest</li>
+              <li>ObserverPatternTest · DecoratorPatternTest</li>
+              <li>CompositePatternTest · FacadePatternTest</li>
+              <li>BuilderPatternTest · AbstractFactoryTest</li>
+            </ul>
+          </div>
+          <div class="test-suite">
+            <h4>Tests Creacionales y de Dominio</h4>
+            <ul>
+              <li>FactoryMethodTest</li>
+              <li>ProceduralDungeonSeedDeterminismTest</li>
+              <li>CombatSystemTest</li>
+              <li>GameRuntimeExtendedCommandsTest</li>
+              <li>SaveLoadUseCaseTest</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="sep">✦ ✦ ✦</div>
+
+    <!-- AUDIT -->
+    <section id="audit">
+      <div class="section-inner">
+        <div class="section-eyebrow reveal">Ciclo de Auditoría</div>
+        <h2 class="section-title reveal">De auditoría a producción</h2>
+        <p class="section-lead reveal">
+          Cada patrón fue sometido a un ciclo: auditar → identificar fallos
+          críticos → remediar en código → validar tests → actualizar
+          documentación.
+        </p>
+
+        <div class="audit-table-wrap reveal">
+          <table class="audit-table">
+            <thead>
+              <tr>
+                <th>Patrón</th>
+                <th>Categoría</th>
+                <th>Calific. inicial</th>
+                <th>Calific. final</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Facade</td>
+                <td style="color: var(--ink-dim)">Estructural</td>
+                <td><span class="score-before">4/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>State</td>
+                <td style="color: var(--ink-dim)">Comportamiento</td>
+                <td><span class="score-before">5/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>Command</td>
+                <td style="color: var(--ink-dim)">Comportamiento</td>
+                <td><span class="score-before">6/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>Factory Method</td>
+                <td style="color: var(--ink-dim)">Creacional</td>
+                <td><span class="score-before">6/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>Decorator</td>
+                <td style="color: var(--ink-dim)">Estructural</td>
+                <td><span class="score-before">6/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>Composite</td>
+                <td style="color: var(--ink-dim)">Estructural</td>
+                <td><span class="score-before">7/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>Observer</td>
+                <td style="color: var(--ink-dim)">Comportamiento</td>
+                <td><span class="score-before">7/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>Strategy</td>
+                <td style="color: var(--ink-dim)">Comportamiento</td>
+                <td><span class="score-before">7/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>Builder</td>
+                <td style="color: var(--ink-dim)">Creacional</td>
+                <td><span class="score-before">8/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>Abstract Factory</td>
+                <td style="color: var(--ink-dim)">Creacional</td>
+                <td><span class="score-before">8/10</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
+              </tr>
+              <tr>
+                <td>Memento</td>
+                <td style="color: var(--ink-dim)">Comportamiento</td>
+                <td><span class="score-before">8/10</span></td>
+                <td><span class="badge-pending">⏳ Pendiente</span></td>
+                <td><span class="badge-pending">En progreso</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div
+          style="
+            margin-top: 40px;
+            padding: 24px 28px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.015);
+            border-radius: 2px;
+          "
+          class="reveal"
+        >
+          <h4
+            style="
+              font-family: &quot;Cinzel&quot;, serif;
+              font-size: 13px;
+              color: var(--gold);
+              margin-bottom: 12px;
+            "
+          >
+            Dictamen de Auditoría de Cierre
+          </h4>
+          <p style="font-size: 15px; color: var(--ink-dim); line-height: 1.7">
+            "La arquitectura es defendible académicamente para 11 patrones
+            implementados y evidenciados en código y pruebas: State, Observer,
+            Decorator, Composite, Builder, Memento, Strategy, Factory Method,
+            Abstract Factory, Facade y Command."
+          </p>
+          <p
+            style="
+              font-size: 12px;
+              color: rgba(154, 139, 114, 0.5);
+              margin-top: 10px;
+              font-style: italic;
+            "
+          >
+            — AUDITORIA_CIERRE_2026-04-04.md
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEPLOY -->
+    <section id="deploy">
+      <div class="section-inner">
+        <div class="section-eyebrow reveal">Despliegue</div>
+        <h2 class="section-title reveal">
+          Distribución nativa multiplataforma
+        </h2>
+        <p class="section-lead reveal">
+          Empaquetado con <code>jpackage</code> + <code>jlink</code>. JRE
+          embebido: el jugador no necesita Java instalado.
+        </p>
+
+        <div class="deploy-grid reveal">
+          <div class="deploy-card">
+            <span class="deploy-platform">🐧 Linux — Fedora primario</span>
+            <h3>App Image / .deb / .rpm</h3>
+            <p style="font-size: 14px; color: var(--ink-dim); margin-top: 8px">
+              Genera distribuciones nativas con JRE embebido. Validado en Fedora
+              con app-image en <code>target/packages/</code>.
+            </p>
+            <div class="code-block">
+              <span class="comment"># Ejecutar juego</span>
+              <span class="cmd">./play-gui.sh</span>
+
+              <span class="comment"># Empaquetar</span>
+              <span class="cmd">./package-linux.sh --type app-image</span>
+              <span class="cmd">./package-linux.sh --type deb</span>
+              <span class="cmd">./package-linux.sh --type rpm</span>
+
+              <span class="comment"># Dependencias .deb/.rpm</span>
+              <span class="cmd">sudo dnf install fakeroot dpkg rpm-build</span>
+            </div>
+          </div>
+
+          <div class="deploy-card">
+            <span class="deploy-platform">🪟 Windows — Target secundario</span>
+            <h3>Instalador .exe</h3>
+            <p style="font-size: 14px; color: var(--ink-dim); margin-top: 8px">
+              Generado desde Windows con PowerShell. Requiere WiX Toolset en
+              PATH. El .exe incluye JRE y JavaFX.
+            </p>
+            <div class="code-block">
+              <span class="comment"># Ejecutar en consola</span>
+              <span class="cmd">./play.sh</span>
+
+              <span class="comment"># Empaquetar (desde Windows)</span>
+              <span class="cmd">.\package-windows.ps1 -Type exe</span>
+              <span class="cmd">.\package-windows.ps1 -Type app-image</span>
+
+              <span class="comment"># Prerequisito</span>
+              <span class="cmd">source setup-java.sh</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="
+            margin-top: 32px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.015);
+            border-radius: 2px;
+            font-size: 14px;
+            color: var(--ink-dim);
+          "
+          class="reveal"
+        >
+          <strong
+            style="
+              color: var(--gold);
+              font-family: &quot;Cinzel&quot;, serif;
+              font-size: 12px;
+              letter-spacing: 0.1em;
+            "
+            >⚠ NOTA JPACKAGE</strong
+          >
+          — El parámetro <code>--input</code> debe listar JARs individuales o un
+          directorio de JARs. Nunca pasar una fat JAR directamente como
+          classpath o jpackage retornará error. Los scripts
+          <code>package-linux.sh</code> y <code>package-windows.ps1</code> ya
+          contemplan esto correctamente.
+        </div>
+      </div>
+    </section>
+
+    <div class="sep">✦ ✦ ✦</div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-logo">Eranthia</div>
+      <p class="footer-tagline">
+        "La arquitectura no se declara, se demuestra."
+      </p>
+      <ul class="footer-links">
+        <li><a href="#overview">Proyecto</a></li>
+        <li><a href="#patterns">Patrones</a></li>
+        <li><a href="#architecture">Arquitectura</a></li>
+        <li><a href="#themes">Mundo</a></li>
+        <li><a href="#testing">Testing</a></li>
+        <li><a href="#audit">Auditoría</a></li>
+      </ul>
+      <p class="footer-copy">
+        Dungeon Crawler Patterns · Java 17 · 11 Design Patterns · 241 Tests ·
+        BUILD SUCCESS
+      </p>
+    </footer>
+
+    <script>
+      // Progress bar
+      window.addEventListener("scroll", () => {
+        const total =
+          document.documentElement.scrollHeight - window.innerHeight;
+        document.getElementById("progress-bar").style.width =
+          (window.scrollY / total) * 100 + "%";
+      });
+
+      // Reveal on scroll
+      const reveals = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e, i) => {
+            if (e.isIntersecting) {
+              const delay =
+                parseFloat(e.target.style.transitionDelay || "0") * 1000;
+              setTimeout(
+                () => e.target.classList.add("visible"),
+                delay > 0 ? 0 : 80,
+              );
+              observer.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: "0px 0px -40px 0px" },
+      );
+
+      reveals.forEach((el) => observer.observe(el));
+
+      // Stagger children in rows
+      document
+        .querySelectorAll(
+          ".patterns-row, .themes-grid, .heroes-grid, .tech-grid, .test-suites, .deploy-grid, .overview-cards",
+        )
+        .forEach((parent) => {
+          parent.querySelectorAll(":scope > *").forEach((child, i) => {
+            if (!child.classList.contains("reveal")) {
+              child.classList.add("reveal");
+              child.style.transitionDelay = i * 0.1 + "s";
+              observer.observe(child);
+            }
+          });
+        });
+    </script>
+  </body>
+</html>
