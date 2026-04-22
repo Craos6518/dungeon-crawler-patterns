@@ -1,0 +1,131 @@
+name: Generar Windows EXE
+
+on:
+  push:
+    branches: [master, main, develop]
+  pull_request:
+    branches: [master, main, develop]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build-windows:
+    name: Compilar y Empaquetar en Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v4
+
+      - name: ☕ Instalar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+
+      - name: 🔧 Instalar WiX Toolset (necesario para .exe)
+        run: |
+          # Descargar WiX v3.14 (última versión v3)
+          $wixDownloadUrl = "https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314.exe"
+          $wixInstaller = "$env:TEMP\wix314.exe"
+
+          Write-Host "⏳ Descargando WiX Toolset..."
+          Invoke-WebRequest -Uri $wixDownloadUrl -OutFile $wixInstaller -UseBasicParsing
+
+          Write-Host "⏳ Instalando WiX Toolset..."
+          & $wixInstaller /install /quiet /log "$env:TEMP\wix-install.log"
+
+          # Esperar a que se complete la instalación
+          Start-Sleep -Seconds 30
+
+          Write-Host "✅ WiX Toolset instalado"
+
+          # Verificar que está en PATH
+          if (Get-Command light -ErrorAction SilentlyContinue) {
+            Write-Host "✅ light.exe encontrado en PATH"
+          } else {
+            Write-Host "❌ light.exe NO encontrado. Agregando a PATH..."
+            $wixPath = "C:\Program Files (x86)\WiX Toolset v3.14\bin"
+            if (Test-Path $wixPath) {
+              $env:Path += ";$wixPath"
+              Write-Host "✅ Ruta de WiX agregada a PATH"
+            } else {
+              throw "No se pudo localizar la instalación de WiX"
+            }
+          }
+        shell: pwsh
+
+      - name: 🏗️ Compilar proyecto Maven
+        run: |
+          mvn clean package -DskipTests -B
+        shell: pwsh
+
+      - name: 📦 Generar EXE con jpackage
+        run: |
+          Write-Host "🔄 Ejecutando script de empaquetado..."
+
+          # Obtener la ruta de Java 17
+          $javaHome = $env:JAVA_HOME
+          Write-Host "JAVA_HOME: $javaHome"
+
+          # Agregar jpackage y WiX a PATH si es necesario
+          $wixPath = "C:\Program Files (x86)\WiX Toolset v3.14\bin"
+          if (Test-Path $wixPath) {
+            $env:Path += ";$wixPath"
+          }
+
+          # Ejecutar el script de empaquetado existente
+          .\package-windows.ps1 -Type exe -SkipBuild $false
+
+          Write-Host "✅ EXE generado exitosamente"
+        shell: pwsh
+
+      - name: 📍 Ubicar archivo EXE
+        id: find-exe
+        run: |
+          $exeFile = Get-ChildItem -Path "target/packages" -Filter "*.exe" -Recurse | Select-Object -First 1
+
+          if ($exeFile) {
+            Write-Host "✅ EXE encontrado: $($exeFile.FullName)"
+            Write-Host "exe_path=$($exeFile.FullName)" >> $env:GITHUB_OUTPUT
+            Write-Host "exe_name=$($exeFile.Name)" >> $env:GITHUB_OUTPUT
+          } else {
+            throw "❌ No se encontró el archivo .exe en target/packages"
+          }
+        shell: pwsh
+
+      - name: 📤 Subir EXE como Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dungeon-crawler-windows-exe
+          path: ${{ steps.find-exe.outputs.exe_path }}
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: 📋 Información de la construcción
+        if: always()
+        run: |
+          Write-Host "════════════════════════════════════════"
+          Write-Host "✅ Construcción completada"
+          Write-Host "════════════════════════════════════════"
+          Write-Host "Archivo: ${{ steps.find-exe.outputs.exe_name }}"
+          Write-Host "Ruta: ${{ steps.find-exe.outputs.exe_path }}"
+          Write-Host ""
+          Write-Host "📥 El archivo está disponible en la pestaña 'Artifacts'"
+          Write-Host "════════════════════════════════════════"
+        shell: pwsh
+
+      - name: 🚨 Reporte de errores
+        if: failure()
+        run: |
+          Write-Host "❌ La construcción falló"
+          Write-Host ""
+          Write-Host "Verificar:"
+          Write-Host "  - Logs de WiX en: $env:TEMP\wix-install.log"
+          Write-Host "  - Salida de Maven"
+          Write-Host "  - Que el pom.xml esté actualizado"
+        shell: pwsh
