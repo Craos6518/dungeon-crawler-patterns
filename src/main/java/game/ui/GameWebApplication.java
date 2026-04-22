@@ -45,7 +45,20 @@ public class GameWebApplication extends Application {
         engine.load(resolveGameHtmlLocation());
 
         stage.setTitle("Dungeon Crawler - UI JavaFX");
-        stage.setScene(new Scene(webView, 1366, 768));
+        
+        // Crear escena sin tamaño fijo para permitir redimensionamiento adaptativo
+        Scene scene = new Scene(webView);
+        stage.setScene(scene);
+        
+        // Configurar ventana para ocupar disponible con mín/máx dimensiones
+        stage.setWidth(1366);
+        stage.setHeight(768);
+        stage.setMinWidth(800);
+        stage.setMinHeight(600);
+        
+        // Maximizar ventana por defecto para adaptarse al monitor
+        stage.setMaximized(true);
+        
         stage.show();
     }
 
