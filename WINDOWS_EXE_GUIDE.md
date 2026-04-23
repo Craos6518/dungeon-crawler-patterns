@@ -14,6 +14,9 @@ Debido a que `jpackage` en Windows requiere **WiX Toolset** para crear instalado
    - Descargar desde: https://adoptium.net/ o https://www.microsoft.com/openjdk
    - Configurar `JAVA_HOME` apuntando al JDK 17
 4. **Maven** (`mvn` en PATH)
+
+- Si Maven solicita un toolchain, crea `~/.m2/toolchains.xml` apuntando al JDK 17
+
 5. **WiX Toolset** (necesario para generar .exe)
    - Descargar: https://wixtoolset.org/releases/
    - O instalar vía Chocolatey: `choco install wixtoolset`
@@ -30,16 +33,26 @@ cd dungeon-crawler-patterns
 
 #### Paso 2: Ejecutar el Script de Empaquetamiento
 
+Si PowerShell bloquea la ejecución de scripts no firmados, usa una de estas opciones:
+
+```powershell
+# Opción puntual para esta ejecución
+powershell -ExecutionPolicy Bypass -File .\package-windows.ps1
+
+# Opción persistente para el usuario actual
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
 ```powershell
 # Generar .exe estándar
-.\package-windows.ps1
+powershell -ExecutionPolicy Bypass -File .\package-windows.ps1
 
 # O con opciones específicas
-.\package-windows.ps1 -Type exe
-.\package-windows.ps1 -Type app-image  # Alternativa: App-Image portable
+powershell -ExecutionPolicy Bypass -File .\package-windows.ps1 -Type exe
+powershell -ExecutionPolicy Bypass -File .\package-windows.ps1 -Type app-image  # Alternativa: App-Image portable
 
 # Reutilizar artefactos existentes (no recompilar)
-.\package-windows.ps1 -SkipBuild
+powershell -ExecutionPolicy Bypass -File .\package-windows.ps1 -SkipBuild
 ```
 
 #### Paso 3: Localizar los Artefactos
