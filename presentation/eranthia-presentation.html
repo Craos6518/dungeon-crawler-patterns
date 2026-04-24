@@ -1680,24 +1680,24 @@
 
         <div class="tech-grid reveal">
           <div class="tech-item">
-            <h4>Java 17</h4>
+            <h4>Java 17.0.18</h4>
             <p>
-              Runtime principal. Records, sealed classes y switch expressions
-              aplicados en Memento y State.
+              Runtime principal sobre Eclipse Temurin 17.0.18+8. Base del
+              motor de juego, persistencia, estados de runtime y adaptadores UI.
             </p>
           </div>
           <div class="tech-item">
-            <h4>Maven</h4>
+            <h4>Maven 3.9.11</h4>
             <p>
-              Build system con toolchains.xml para portabilidad multi-máquina
-              sin modificar pom.xml.
+              Build system Apache Maven 3.9.11 (Red Hat). Gestiona compilacion,
+              pruebas, empaquetado y flujo reproducible sobre Java 17.
             </p>
           </div>
           <div class="tech-item">
             <h4>JUnit 5</h4>
             <p>
-              221 tests: unitarios, integración y E2E de contrato. Suite con 0
-              fallos, 0 errores.
+              221 tests en 48 clases de test: unitarios, integración y E2E de
+              contrato. Suite con 0 fallos, 0 errores y 0 omitidos.
             </p>
           </div>
           <div class="tech-item">
@@ -1708,10 +1708,17 @@
             </p>
           </div>
           <div class="tech-item">
-            <h4>VS Code 1.116.0</h4>
+            <h4>VS Code 1.117.0</h4>
             <p>
               IDE de desarrollo. Extensiones: GitHub Copilot, Test Runner,
-              Debugger for Java. Fedora Linux como plataforma primaria.
+              Debugger for Java y flujo de trabajo principal del proyecto.
+            </p>
+          </div>
+          <div class="tech-item">
+            <h4>Fedora Linux 43</h4>
+            <p>
+              Entorno operativo primario: Linux 6.19.12-200.fc43.x86_64 sobre
+              arquitectura x64. Base de validacion local para build y testing.
             </p>
           </div>
           <div class="tech-item">
@@ -1744,7 +1751,7 @@
 
         <div class="test-metrics reveal">
           <div class="test-metric">
-            <div class="test-metric-num">211</div>
+            <div class="test-metric-num">221</div>
             <div class="test-metric-label">Tests totales</div>
           </div>
           <div class="test-metric">
@@ -1756,8 +1763,8 @@
             <div class="test-metric-label">Errores</div>
           </div>
           <div class="test-metric">
-            <div class="test-metric-num">2</div>
-            <div class="test-metric-label">Omitidos*</div>
+            <div class="test-metric-num">0</div>
+            <div class="test-metric-label">Omitidos</div>
           </div>
         </div>
         <p
@@ -1768,9 +1775,11 @@
             font-style: italic;
           "
         >
-          * Los 2 omitidos no son fallos funcionales. La política
-          <code>DisabledAnnotationPolicyTest</code> impide introducir
-          <code>@Disabled</code> arbitrarios.
+          Verificación vigente: <code>221</code> tests ejecutados en
+          <code>48</code> clases de test, con <code>0</code> fallos,
+          <code>0</code> errores y <code>0</code> omitidos. La política
+          <code>DisabledAnnotationPolicyTest</code> mantiene control sobre el
+          uso de <code>@Disabled</code>.
         </p>
 
         <div class="test-suites reveal">
@@ -1779,19 +1788,19 @@
             <ul>
               <li>GameRuntimeStateFlowIntegrationTest</li>
               <li>EventObserversRuntimeIntegrationTest</li>
-              <li>StateMementoIntegrationTest</li>
-              <li>BehavioralPatternsIntegrationTest</li>
               <li>CombatDecoratorIntegrationTest</li>
+              <li>WebGameAdapterE2EIntegrationTest</li>
+              <li>FacadeIntegrationTest</li>
             </ul>
           </div>
           <div class="test-suite">
             <h4>Tests de Integración Estructural</h4>
             <ul>
-              <li>FacadeIntegrationTest</li>
               <li>CompositeIntegrationTest</li>
               <li>UseItemUseCaseCompositeHierarchyTest</li>
               <li>GameRuntimeHeroSelectionTest</li>
-              <li>ApplyCombatBuffUseCaseTest</li>
+              <li>GameRuntimeDungeonTransitionResetTest</li>
+              <li>GameRuntimeLoadGameTest</li>
             </ul>
           </div>
           <div class="test-suite">
@@ -1811,7 +1820,7 @@
               <li>ProceduralDungeonSeedDeterminismTest</li>
               <li>CombatSystemTest</li>
               <li>GameRuntimeExtendedCommandsTest</li>
-              <li>SaveLoadUseCaseTest</li>
+              <li>GameRuntimeSaveSlotSelectionTest</li>
             </ul>
           </div>
         </div>

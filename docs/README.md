@@ -29,7 +29,7 @@
 ## Nota de consistencia
 
 - Conteo oficial vigente de patrones implementados: 11.
-- Evidencia canonica por patron: docs/03-patterns/*.md + README.md raiz + tests dedicados.
+- Evidencia canonica por patron: docs/03-patterns/*.md + tests dedicados.
 
 ## Bloque obligatorio para archivos legacy
 
