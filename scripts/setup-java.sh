@@ -1,9 +1,6 @@
 #!/bin/bash
 # Script de configuración automática de JAVA_HOME para Dungeon Crawler Patterns
-# Este script se ejecuta al entrar en el directorio del proyecto
-# 
-# Ubicación: dungeon-crawler-patterns/
-# Uso: source setup-java.sh
+# Uso: source scripts/setup-java.sh
 #
 # Detecta automáticamente la versión de Java 17 instalada y la configura
 

@@ -3,6 +3,10 @@
 # Script de verificación de configuración Java 17 para VSCode
 # Proyecto: Dungeon Crawler - Patrones de Diseño
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "$PROJECT_DIR"
+
 echo "=================================================="
 echo "  VERIFICACIÓN DE CONFIGURACIÓN JAVA 17 - VSCODE"
 echo "=================================================="

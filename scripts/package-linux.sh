@@ -2,15 +2,16 @@
 # Empaquetado nativo Linux con runtime incluido (JRE + JavaFX)
 #
 # Uso:
-#   ./package-linux.sh
-#   ./package-linux.sh --type deb
-#   ./package-linux.sh --type rpm
-#   ./package-linux.sh --type app-image
-#   ./package-linux.sh --skip-build
+#   ./scripts/package-linux.sh
+#   ./scripts/package-linux.sh --type deb
+#   ./scripts/package-linux.sh --type rpm
+#   ./scripts/package-linux.sh --type app-image
+#   ./scripts/package-linux.sh --skip-build
 
 set -euo pipefail
 
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "$PROJECT_DIR"
 
 PACKAGE_TYPE="all"  # all | deb | rpm | app-image

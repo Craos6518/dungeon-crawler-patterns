@@ -206,13 +206,13 @@ mvn test: 221 tests, 0 failures, 0 errors, 0 skipped ✅ BUILD SUCCESS
 
 ### Archivos en raíz sin marca de obsolescencia
 
-- AUDITORIA_PRESENTACION_TECNICA.md
-- REPORTE_PATRONES_UBICACION.md
-- EXECUTABLES.md
-- LINUX_EXECUTABLES.md
-- WINDOWS_EXE_GUIDE.md
-- WINDOWS_OPTIONS.md
-- COMPARATIVA_V1_V2_PRESENTACIONES.md
+- docs/05-audit/reportes/AUDITORIA_PRESENTACION_TECNICA.md
+- docs/05-audit/reportes/REPORTE_PATRONES_UBICACION.md
+- docs/06-reference/executables/EXECUTABLES.md
+- docs/06-reference/executables/LINUX_EXECUTABLES.md
+- docs/06-reference/executables/WINDOWS_EXE_GUIDE.md
+- docs/06-reference/executables/WINDOWS_OPTIONS.md
+- docs/05-audit/reportes/COMPARATIVA_V1_V2_PRESENTACIONES.md
 
 **Nota:** Estos archivos no impactan la revisión documental final. Se conservan en raíz por compatibilidad de enlaces históricos. No es crítico agregar marcas de obsolescencia para la entrega académica.
 

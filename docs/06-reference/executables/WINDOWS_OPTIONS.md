@@ -25,7 +25,7 @@ Para ejecutar **Dungeon Crawler Patterns** en Windows, tienes varias opciones:
 
 1. En una máquina Windows, ejecuta:
    ```powershell
-   .\package-windows.ps1
+   .\scripts\package-windows.ps1
    ```
 2. El .exe estará en: `target/packages/dungeon-crawler-patterns-1.0.0.exe`
 3. Distribuye este archivo a usuarios
@@ -55,7 +55,7 @@ Para ejecutar **Dungeon Crawler Patterns** en Windows, tienes varias opciones:
 **Generarlo (requiere Windows):**
 
 ```powershell
-.\package-windows.ps1 -Type app-image
+.\scripts\package-windows.ps1 -Type app-image
 ```
 
 **Usar directamente:**
@@ -140,7 +140,7 @@ pause
 
 ### 📦 Script de ejemplo
 
-**archivo: `play.bat`**
+**archivo: `scripts/play.bat`**
 
 ```batch
 @echo off
@@ -261,10 +261,10 @@ Generados en: `target/packages/`
 
    ```powershell
    # .EXE
-   .\package-windows.ps1
+   .\scripts\package-windows.ps1
 
    # O App-Image (sin WiX)
-   .\package-windows.ps1 -Type app-image
+   .\scripts\package-windows.ps1 -Type app-image
    ```
 
 4. **Distribuyir**

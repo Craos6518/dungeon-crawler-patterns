@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Script de inicio rapido para la interfaz grafica (JavaFX)
-# Uso: ./play-gui.sh
+# Uso: ./scripts/play-gui.sh
 
 set -euo pipefail
 
@@ -9,7 +9,8 @@ if [[ "${1:-}" == "--xvfb" ]]; then
   USE_XVFB=1
 fi
 
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "$PROJECT_DIR"
 
 if [[ ! -f "pom.xml" ]]; then
@@ -105,7 +106,7 @@ if [[ -z "${DISPLAY:-}" ]]; then
   echo "  2) Inicia sesion en Xorg (o habilita XWayland) y vuelve a abrir la terminal."
   echo "  3) Si usas SSH, conecta con reenvio X11: ssh -X o ssh -Y"
   if command -v xvfb-run >/dev/null 2>&1; then
-    echo "  4) Para smoke tests sin UI visible: ./play-gui.sh --xvfb"
+    echo "  4) Para smoke tests sin UI visible: ./scripts/play-gui.sh --xvfb"
   fi
   exit 1
 fi
@@ -119,7 +120,7 @@ if ! can_open_x11_display; then
   echo "  2) Si usas SSH, entra con reenvio X11 (ssh -X o ssh -Y)."
   echo "  3) Verifica acceso: xdpyinfo -display ${DISPLAY}"
   if command -v xvfb-run >/dev/null 2>&1; then
-    echo "  4) Para smoke tests sin ventana visible: ./play-gui.sh --xvfb"
+    echo "  4) Para smoke tests sin ventana visible: ./scripts/play-gui.sh --xvfb"
   fi
   exit 1
 fi

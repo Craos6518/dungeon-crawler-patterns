@@ -15,19 +15,19 @@ Este `README.md` de raiz no reemplaza la documentacion canonica: su funcion es s
 ### Prerrequisito
 
 ```bash
-source setup-java.sh
+source scripts/setup-java.sh
 ```
 
 ### Ejecutar en consola
 
 ```bash
-./play.sh
+./scripts/play.sh
 ```
 
 ### Ejecutar GUI
 
 ```bash
-./play-gui.sh
+./scripts/play-gui.sh
 ```
 
 ### Ejecutar tests
@@ -43,10 +43,11 @@ mvn test
 | `src/main/java` | Codigo fuente del juego y de los patrones en runtime |
 | `src/test/java` | Tests unitarios e integracion |
 | `docs/` | Documentacion canonica del proyecto |
-| `play.sh` | Arranque en consola |
-| `play-gui.sh` | Arranque GUI |
-| `package-linux.sh` | Empaquetado Linux con `jpackage` |
-| `package-windows.ps1` | Empaquetado Windows |
+| `scripts/` | Scripts operativos y de empaquetado |
+| `scripts/play.sh` | Arranque en consola |
+| `scripts/play-gui.sh` | Arranque GUI |
+| `scripts/package-linux.sh` | Empaquetado Linux con `jpackage` |
+| `scripts/package-windows.ps1` | Empaquetado Windows |
 
 ## Puntos de entrada utiles en codigo
 

@@ -64,9 +64,9 @@
 | docs/04-testing/ESTRATEGIA_TESTING.md        | ✅ Revisado     | Ninguna — métrica oficial 221 tests es correcta                      |
 | docs/01-product/GDD_CANONICO.md              | ✅ Revisado     | Ninguna — 5 HU implementadas, flujo validado                         |
 | docs/02-architecture/diagramas/              | ✅ Revisado     | Ninguna — 12 diagramas vigentes en formato PNG + PlantUML            |
-| Archivos ejecutables                         | ✅ Corregido    | Patrones: 10 → 11 en EXECUTABLES.md, LINUX_EXECUTABLES.md            |
+| Archivos ejecutables                         | ✅ Corregido    | Patrones: 10 → 11 en docs/06-reference/executables/EXECUTABLES.md, docs/06-reference/executables/LINUX_EXECUTABLES.md            |
 | .github/copilot-instructions.md              | ✅ Corregido    | Tests: 131 → 221, Patrones: 10 → 11 (3 referencias actualizadas)     |
-| REPORTE_PATRONES_UBICACION.md                | ✅ Corregido    | Patrones: 10 → 11 (título y contenido)                               |
+| docs/05-audit/reportes/REPORTE_PATRONES_UBICACION.md                | ✅ Corregido    | Patrones: 10 → 11 (título y contenido)                               |
 
 ### Resultado general: **✅ APTO PARA ENTREGA ACADÉMICA**
 
@@ -87,10 +87,10 @@
 
 1. `presentation/app.js`: actualizado `tests: 203 → 221`
 2. `presentation/eranthia-presentation.html`: actualizado `241 tests → 221 tests`
-3. `EXECUTABLES.md`: actualizado `10/10 → 11/11 patrones`
-4. `LINUX_EXECUTABLES.md`: actualizado `10 patrones → 11 patrones`
+3. `docs/06-reference/executables/EXECUTABLES.md`: actualizado `10/10 → 11/11 patrones`
+4. `docs/06-reference/executables/LINUX_EXECUTABLES.md`: actualizado `10 patrones → 11 patrones`
 5. `.github/copilot-instructions.md`: actualizado `131 tests/10 patrones → 221 tests/11 patrones`
-6. `REPORTE_PATRONES_UBICACION.md`: actualizado `10 patrones → 11 patrones`
+6. `docs/05-audit/reportes/REPORTE_PATRONES_UBICACION.md`: actualizado `10 patrones → 11 patrones`
 
 Ejecutado por: GitHub Copilot - Auditoría Final Documentación  
 Fecha Finalización: 2026-04-23  

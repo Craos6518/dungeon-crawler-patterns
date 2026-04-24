@@ -1995,12 +1995,12 @@
             </p>
             <div class="code-block">
               <span class="comment"># Ejecutar juego</span>
-              <span class="cmd">./play-gui.sh</span>
+              <span class="cmd">./scripts/play-gui.sh</span>
 
               <span class="comment"># Empaquetar</span>
-              <span class="cmd">./package-linux.sh --type app-image</span>
-              <span class="cmd">./package-linux.sh --type deb</span>
-              <span class="cmd">./package-linux.sh --type rpm</span>
+              <span class="cmd">./scripts/package-linux.sh --type app-image</span>
+              <span class="cmd">./scripts/package-linux.sh --type deb</span>
+              <span class="cmd">./scripts/package-linux.sh --type rpm</span>
 
               <span class="comment"># Dependencias .deb/.rpm</span>
               <span class="cmd">sudo dnf install dpkg rpm-build</span>
@@ -2016,11 +2016,11 @@
             </p>
             <div class="code-block">
               <span class="comment"># Ejecutar en Windows</span>
-              <span class="cmd">.\play.bat</span>
+              <span class="cmd">.\scripts/play.bat</span>
 
               <span class="comment"># Empaquetar (desde Windows)</span>
-              <span class="cmd">.\package-windows.ps1 -Type exe</span>
-              <span class="cmd">.\package-windows.ps1 -Type app-image</span>
+              <span class="cmd">.\scripts\package-windows.ps1 -Type exe</span>
+              <span class="cmd">.\scripts\package-windows.ps1 -Type app-image</span>
 
               <span class="comment"
                 ># Prerequisitos (JAVA_HOME/PATH + WiX)</span
@@ -2055,8 +2055,9 @@
           — El parámetro <code>--input</code> debe listar JARs individuales o un
           directorio de JARs. Nunca pasar una fat JAR directamente como
           classpath o jpackage retornará error. Los scripts
-          <code>package-linux.sh</code> y <code>package-windows.ps1</code> ya
-          contemplan esto correctamente.
+          <code>scripts/package-linux.sh</code> y
+          <code>scripts/package-windows.ps1</code> ya contemplan esto
+          correctamente.
         </div>
       </div>
     </section>

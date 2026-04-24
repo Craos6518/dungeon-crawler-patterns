@@ -12,11 +12,11 @@
 | **🐧 Linux**     | RPM          | ✅ Sí      | Listo            | [LINUX_EXECUTABLES.md](LINUX_EXECUTABLES.md) |
 | **🪟 Windows**   | .EXE         | ⏳ No\*    | Requiere Windows | [WINDOWS_EXE_GUIDE.md](WINDOWS_EXE_GUIDE.md) |
 | **🪟 Windows**   | App-Image    | ⏳ No\*    | Requiere Windows | [WINDOWS_OPTIONS.md](WINDOWS_OPTIONS.md)     |
-| **🪟 Windows**   | JAR + Script | ✅ Sí      | Listo            | [play.bat](play.bat)                         |
+| **🪟 Windows**   | JAR + Script | ✅ Sí      | Listo            | [play.bat](../../../scripts/play.bat) |
 | **🍎 macOS**     | JAR          | ✅ Sí      | Listo            | `java -jar ...`                              |
 | **🔧 Universal** | JAR + Maven  | ✅ Sí      | Listo            | `mvn javafx:run`                             |
 
-> \* Puede generarse en una máquina Windows ejecutando el script `package-windows.ps1`
+> \* Puede generarse en una máquina Windows ejecutando el script `scripts/package-windows.ps1`
 
 ---
 
@@ -54,7 +54,7 @@ dungeon-crawler-patterns
 
 ```batch
 REM 1. Desde la carpeta del proyecto:
-play.bat
+scripts/play.bat
 
 REM 2. O manualmente:
 java -cp target\dungeon-crawler-patterns-1.0-SNAPSHOT.jar;target\dependency\* ^
@@ -69,7 +69,7 @@ java -cp target\dungeon-crawler-patterns-1.0-SNAPSHOT.jar;target\dependency\* ^
 
 ```batch
 REM 1. Generar (solo en Windows con WiX Toolset):
-.\package-windows.ps1
+.\scripts\package-windows.ps1
 
 REM 2. Instalar:
 .\target\packages\dungeon-crawler-patterns-1.0.0.exe
@@ -114,9 +114,9 @@ mvn clean javafx:run
 │   └── dungeon-crawler-patterns-1.0-1.x86_64.rpm          (137 MB) ← Linux RPM
 ├── target/dungeon-crawler-patterns-1.0-SNAPSHOT.jar       (~30 MB) ← JAR universal
 ├── target/dependency/                                      (libs)
-├── play.bat                                                ← Windows
-├── play.sh                                                 ← Linux/Mac
-└── play-gui.sh                                             ← Linux/Mac GUI
+├── scripts/play.bat                                        ← Windows
+├── scripts/play.sh                                         ← Linux/Mac
+└── scripts/play-gui.sh                                     ← Linux/Mac GUI
 
 ⏳ POR GENERAR (Requiere ejecutar en esa plataforma)
 ├── target/packages/dungeon-crawler-patterns-1.0.0.exe     ← Windows
@@ -162,32 +162,32 @@ mvn clean javafx:run
 
 ```bash
 # Ambos (DEB + RPM)
-./package-linux.sh --type all
+./scripts/package-linux.sh --type all
 
 # Solo DEB
-./package-linux.sh --type deb
+./scripts/package-linux.sh --type deb
 
 # Solo RPM
-./package-linux.sh --type rpm
+./scripts/package-linux.sh --type rpm
 
 # App-Image (portable)
-./package-linux.sh --type app-image
+./scripts/package-linux.sh --type app-image
 
 # Sin recompilar (reutilizar artefactos)
-./package-linux.sh --type all --skip-build
+./scripts/package-linux.sh --type all --skip-build
 ```
 
 ### Windows (desde Windows únicamente)
 
 ```powershell
 # Instalador .exe (requiere WiX Toolset)
-.\package-windows.ps1
+.\scripts\package-windows.ps1
 
 # App-Image portable (sin WiX)
-.\package-windows.ps1 -Type app-image
+.\scripts\package-windows.ps1 -Type app-image
 
 # Sin recompilar
-.\package-windows.ps1 -SkipBuild
+.\scripts\package-windows.ps1 -SkipBuild
 ```
 
 ---
@@ -219,7 +219,7 @@ mvn clean javafx:run
 
 ### Para scripts / automatización
 
-→ **Script de inicio** (`play.bat`, `play.sh`)
+→ **Script de inicio** (`scripts/play.bat`, `scripts/play.sh`)
 
 - Detección automática de Java
 - Ejecución simple
@@ -265,8 +265,8 @@ mvn dependency:copy-dependencies -DincludeScope=runtime
 ### "El script .sh no tiene permisos"
 
 ```bash
-chmod +x play.sh
-chmod +x package-linux.sh
+chmod +x scripts/play.sh
+chmod +x scripts/package-linux.sh
 ```
 
 ### "El archivo .exe no se genera"
@@ -283,7 +283,7 @@ chmod +x package-linux.sh
 
 ```bash
 # Ver guía detallada
-cat LINUX_EXECUTABLES.md
+cat docs/06-reference/executables/LINUX_EXECUTABLES.md
 
 # Instalar DEB
 sudo apt install ./target/packages/dungeon-crawler-patterns_1.0-1_amd64.deb
@@ -293,7 +293,7 @@ sudo apt install ./target/packages/dungeon-crawler-patterns_1.0-1_amd64.deb
 
 1. Clonar proyecto en Windows
 2. Seguir: [WINDOWS_EXE_GUIDE.md](WINDOWS_EXE_GUIDE.md)
-3. Ejecutar: `.\package-windows.ps1`
+3. Ejecutar: `.\scripts\package-windows.ps1`
 
 ### Opción 3: Usar JAR universal ahora
 
@@ -305,10 +305,10 @@ java -jar target/dungeon-crawler-patterns-1.0-SNAPSHOT.jar
 
 ```bash
 # Linux/Mac
-./play.sh
+./scripts/play.sh
 
 # Windows
-play.bat
+scripts/play.bat
 ```
 
 ---
@@ -318,8 +318,8 @@ play.bat
 - **[Linux Executables](LINUX_EXECUTABLES.md)** - DEB y RPM
 - **[Windows EXE Guide](WINDOWS_EXE_GUIDE.md)** - Generación de .exe
 - **[Windows Options](WINDOWS_OPTIONS.md)** - Comparativa de alternativas
-- **[play.bat](play.bat)** - Script Windows
-- **[play.sh](play.sh)** - Script Linux/Mac
+- **[play.bat](../../../scripts/play.bat)** - Script Windows
+- **[play.sh](../../../scripts/play.sh)** - Script Linux/Mac
 
 ---
 
@@ -332,7 +332,7 @@ play.bat
 ✅ Linux DEB:       Generado (137 MB)
 ✅ Linux RPM:       Generado (137 MB)
 ✅ JAR Universal:   Generado (~30 MB)
-✅ Scripts:         Listos (play.bat, play.sh)
+✅ Scripts:         Listos (scripts/play.bat, scripts/play.sh)
 ⏳ Windows .EXE:    Pendiente (generable en Windows)
 ⏳ macOS DMG:       Futuro (generable en macOS)
 ```

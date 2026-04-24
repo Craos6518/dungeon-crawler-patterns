@@ -1,15 +1,18 @@
 #!/bin/bash
 # Script de inicio rápido para la interfaz grafica principal
-# Uso: ./play.sh
+# Uso: ./scripts/play.sh
 
 export JAVA_HOME=/usr/lib/jvm/java-17-temurin-jdk
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "$PROJECT_DIR"
 
 echo "🎮 Iniciando Dungeon Crawler Web..."
 echo ""
 
-# Verificar que estamos en el directorio correcto
 if [ ! -f "pom.xml" ]; then
-    echo "❌ Error: Ejecuta este script desde la raíz del proyecto (dungeon-crawler-patterns/)"
+    echo "❌ Error: no se encontró pom.xml en la raíz del proyecto"
     exit 1
 fi
 

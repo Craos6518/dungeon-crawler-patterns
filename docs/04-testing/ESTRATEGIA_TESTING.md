@@ -19,7 +19,7 @@ Definir como se valida el sistema y como interpretar resultados en evaluacion ac
 ## Comandos recomendados
 
 ```bash
-source setup-java.sh
+source scripts/setup-java.sh
 mvn test
 ```
 

@@ -1,9 +1,9 @@
 # Empaquetado nativo Windows con runtime incluido (JRE + JavaFX)
 #
 # Uso:
-#   .\package-windows.ps1
-#   .\package-windows.ps1 -Type app-image
-#   .\package-windows.ps1 -SkipBuild
+#   .\scripts\package-windows.ps1
+#   .\scripts\package-windows.ps1 -Type app-image
+#   .\scripts\package-windows.ps1 -SkipBuild
 
 param(
   [ValidateSet("exe", "app-image")]
@@ -17,7 +17,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$ProjectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectDir = (Resolve-Path (Join-Path $ScriptDir "..")).Path
 Set-Location $ProjectDir
 
 function Require-Command {

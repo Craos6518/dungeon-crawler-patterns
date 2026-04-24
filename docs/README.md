@@ -25,6 +25,8 @@
 - Patrones: docs/03-patterns/README.md
 - Testing: docs/04-testing/ESTRATEGIA_TESTING.md
 - Auditoria: docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md
+- Reportes de apoyo: docs/05-audit/reportes/
+- Ejecutables y guias por plataforma: docs/06-reference/executables/
 
 ## Nota de consistencia
 

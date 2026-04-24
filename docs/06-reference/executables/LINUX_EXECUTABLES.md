@@ -65,19 +65,19 @@ Si necesitas regenerar los paquetes, usa el script de empaquetamiento:
 
 ```bash
 # Opción 1: Generar ambos (DEB y RPM)
-./package-linux.sh --type all
+./scripts/package-linux.sh --type all
 
 # Opción 2: Solo DEB
-./package-linux.sh --type deb
+./scripts/package-linux.sh --type deb
 
 # Opción 3: Solo RPM
-./package-linux.sh --type rpm
+./scripts/package-linux.sh --type rpm
 
 # Opción 4: App-Image (ejecutable sin instalar)
-./package-linux.sh --type app-image
+./scripts/package-linux.sh --type app-image
 
 # Opción 5: Saltarse compilación (reutiliza artefactos)
-./package-linux.sh --type all --skip-build
+./scripts/package-linux.sh --type all --skip-build
 ```
 
 ## Contenido de los Paquetes

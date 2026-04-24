@@ -33,7 +33,7 @@ El proyecto **Dungeon Crawler Patterns** ha sido auditado exhaustivamente en su 
 | Documentación de Patrones   | ✅ Verificado                | 11 documentos con firmas exactas de métodos                      |
 | Ejecutables Linux (DEB/RPM) | ✅ Verificado                | Paquetes generados en `/target/packages/`                        |
 | Presentaciones Web          | ⚠️ Parcialmente (corregidas) | `presentation/app.js`, `presentation/eranthia-presentation.html` |
-| Archivos Ejecutivos         | ✅ Verificado                | `EXECUTABLES.md`, `LINUX_EXECUTABLES.md`                         |
+| Archivos Ejecutivos         | ✅ Verificado                | `docs/06-reference/executables/EXECUTABLES.md`, `docs/06-reference/executables/LINUX_EXECUTABLES.md`                         |
 
 ### Patrones Verificados
 
@@ -90,26 +90,26 @@ $ mvn test -q
 
 **Archivos Afectados**:
 
-- `EXECUTABLES.md`
-- `LINUX_EXECUTABLES.md`
+- `docs/06-reference/executables/EXECUTABLES.md`
+- `docs/06-reference/executables/LINUX_EXECUTABLES.md`
 - `.github/copilot-instructions.md`
-- `REPORTE_PATRONES_UBICACION.md`
+- `docs/05-audit/reportes/REPORTE_PATRONES_UBICACION.md`
 
 **Problema**:
 
-- `EXECUTABLES.md` decía **10/10 patrones** (incorrecto)
-- `LINUX_EXECUTABLES.md` decía **10 patrones** (incorrecto)
+- `docs/06-reference/executables/EXECUTABLES.md` decía **10/10 patrones** (incorrecto)
+- `docs/06-reference/executables/LINUX_EXECUTABLES.md` decía **10 patrones** (incorrecto)
 - `.github/copilot-instructions.md` decía **10 patrones** (incorrecto, 2 referencias)
 - **Real**: 11 patrones (confirmado por verificación exhaustiva de código)
 
 **Evidencia de Corrección**:
 
 ```
-Archivo: EXECUTABLES.md
+Archivo: docs/06-reference/executables/EXECUTABLES.md
 Antes: ✅ Patrones: 10/10 implementados
 Después: ✅ Patrones: 11/11 implementados ✅
 
-Archivo: LINUX_EXECUTABLES.md
+Archivo: docs/06-reference/executables/LINUX_EXECUTABLES.md
 Antes: 221 tests pasados, 10 patrones implementados
 Después: 221 tests pasados, 11 patrones implementados ✅
 
@@ -237,8 +237,8 @@ Se verificó que cada patrón está correctamente integrado en el runtime produc
 | ----------------------------------------- | ---------------- | ---------------------- | ---------------------- |
 | `presentation/app.js`                     | tests            | 203                    | 221                    |
 | `presentation/eranthia-presentation.html` | tests            | 241                    | 221                    |
-| `EXECUTABLES.md`                          | patrones         | 10/10                  | 11/11                  |
-| `LINUX_EXECUTABLES.md`                    | patrones         | 10                     | 11                     |
+| `docs/06-reference/executables/EXECUTABLES.md`                          | patrones         | 10/10                  | 11/11                  |
+| `docs/06-reference/executables/LINUX_EXECUTABLES.md`                    | patrones         | 10                     | 11                     |
 | `.github/copilot-instructions.md`         | tests y patrones | 131 tests, 10 patrones | 221 tests, 11 patrones |
 
 ---

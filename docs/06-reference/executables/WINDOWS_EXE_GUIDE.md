@@ -37,7 +37,7 @@ Si PowerShell bloquea la ejecución de scripts no firmados, usa una de estas opc
 
 ```powershell
 # Opción puntual para esta ejecución
-powershell -ExecutionPolicy Bypass -File .\package-windows.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\package-windows.ps1
 
 # Opción persistente para el usuario actual
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
@@ -45,14 +45,14 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 
 ```powershell
 # Generar .exe estándar
-powershell -ExecutionPolicy Bypass -File .\package-windows.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\package-windows.ps1
 
 # O con opciones específicas
-powershell -ExecutionPolicy Bypass -File .\package-windows.ps1 -Type exe
-powershell -ExecutionPolicy Bypass -File .\package-windows.ps1 -Type app-image  # Alternativa: App-Image portable
+powershell -ExecutionPolicy Bypass -File .\scripts\package-windows.ps1 -Type exe
+powershell -ExecutionPolicy Bypass -File .\scripts\package-windows.ps1 -Type app-image  # Alternativa: App-Image portable
 
 # Reutilizar artefactos existentes (no recompilar)
-powershell -ExecutionPolicy Bypass -File .\package-windows.ps1 -SkipBuild
+powershell -ExecutionPolicy Bypass -File .\scripts\package-windows.ps1 -SkipBuild
 ```
 
 #### Paso 3: Localizar los Artefactos
@@ -88,7 +88,7 @@ Después de instalar, busca **"Dungeon Crawler Patterns"** en el Menú Inicio.
 Si generas un **app-image** en Windows, obtendrás una carpeta autocontenida que puedes ejecutar directamente:
 
 ```powershell
-.\package-windows.ps1 -Type app-image
+.\scripts\package-windows.ps1 -Type app-image
 ```
 
 Resultado:
@@ -273,7 +273,7 @@ steps:
       java-version: "17"
       distribution: "temurin"
   - run: choco install wixtoolset
-  - run: .\package-windows.ps1
+  - run: .\scripts\package-windows.ps1
   - uses: actions/upload-artifact@v3
     with:
       path: target/packages/*.exe

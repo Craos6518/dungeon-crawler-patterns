@@ -243,12 +243,12 @@ La fuente de verdad documental de la metrica operativa de testing sigue siendo `
 
 ### 8.2 Ejecucion y empaquetado
 
-- Inicio de entorno Java: `source setup-java.sh`
-- Ejecucion consola: `./play.sh`
-- Ejecucion GUI: `./play-gui.sh`
+- Inicio de entorno Java: `source scripts/setup-java.sh`
+- Ejecucion consola: `./scripts/play.sh`
+- Ejecucion GUI: `./scripts/play-gui.sh`
 - Tests: `mvn test`
-- Empaquetado Linux: `./package-linux.sh`
-- Empaquetado Windows: `./package-windows.ps1`
+- Empaquetado Linux: `./scripts/package-linux.sh`
+- Empaquetado Windows: `.\scripts\package-windows.ps1`
 
 ## 9. Regla de interpretacion documental
 

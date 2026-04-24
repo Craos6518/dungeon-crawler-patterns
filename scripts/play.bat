@@ -6,13 +6,14 @@ REM Script para ejecutar el juego en Windows
 REM Requiere: Java 17 (OpenJDK/Temurin)
 REM
 REM USO: 
-REM   1. Coloca este archivo en la raiz del proyecto
-REM   2. Ejecuta: play.bat
+REM   1. Ejecuta este archivo desde cualquier ubicacion
+REM   2. O invocalo desde la raiz: scripts\play.bat
 REM
 REM ============================================================================
 
 setlocal enabledelayedexpansion
 title Dungeon Crawler Patterns - Loading...
+pushd "%~dp0\.." >nul
 
 REM Colores (Windows 10+)
 for /F %%A in ('copy /Z "%~f0" nul') do set "BS=%%A"
