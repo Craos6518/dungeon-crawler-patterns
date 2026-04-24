@@ -328,7 +328,7 @@ play.bat
 ```
 ✅ Compilación:     Exitosa (160 clases Java)
 ✅ Tests:           221/221 pasados
-✅ Patrones:        10/10 implementados
+✅ Patrones:        11/11 implementados
 ✅ Linux DEB:       Generado (137 MB)
 ✅ Linux RPM:       Generado (137 MB)
 ✅ JAR Universal:   Generado (~30 MB)

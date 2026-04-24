@@ -1,3 +1,20 @@
+# ⚠️ DOCUMENTO HISTORICO — NO CANONICO
+
+Este documento NO es fuente de verdad vigente.
+
+Fuentes vigentes:
+
+- `docs/README.md`
+- `docs/03-patterns/README.md`
+- `docs/03-patterns/*.md`
+
+Estado:
+
+- Historico desde: 2026-04-23
+- Motivo: centralizacion documental y eliminacion de duplicidades
+
+---
+
 # 📋 REPORTE DE ANÁLISIS: Ubicación de Patrones de Diseño
 
 **Fecha:** 14 de abril de 2026  
@@ -8,7 +25,7 @@
 
 ## 📌 RESUMEN EXECUTIVO
 
-El proyecto **dungeon-crawler-patterns** implementa **10 patrones de diseño** correctamente ubicados y estructurados. Todas las clases base mencionadas en la presentación existen y son fáciles de ubicar. Se encontró también una arquitectura completa de implementaciones concretas para cada patrón.
+El proyecto **dungeon-crawler-patterns** implementa **11 patrones de diseño** correctamente ubicados y estructurados. Todas las clases base mencionadas en la presentación existen y son fáciles de ubicar. Se encontró también una arquitectura completa de implementaciones concretas para cada patrón.
 
 ---
 
