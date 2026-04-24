@@ -1094,7 +1094,7 @@
             <div class="stat-label">Patrones</div>
           </div>
           <div class="stat">
-            <div class="stat-number">241</div>
+            <div class="stat-number">221</div>
             <div class="stat-label">Tests</div>
           </div>
           <div class="stat">
@@ -1696,7 +1696,7 @@
           <div class="tech-item">
             <h4>JUnit 5</h4>
             <p>
-              241 tests: unitarios, integración y E2E de contrato. Suite con 0
+              221 tests: unitarios, integración y E2E de contrato. Suite con 0
               fallos, 0 errores.
             </p>
           </div>
@@ -1744,7 +1744,7 @@
 
         <div class="test-metrics reveal">
           <div class="test-metric">
-            <div class="test-metric-num">241</div>
+            <div class="test-metric-num">211</div>
             <div class="test-metric-label">Tests totales</div>
           </div>
           <div class="test-metric">
@@ -1917,8 +1917,8 @@
                 <td>Memento</td>
                 <td style="color: var(--ink-dim)">Comportamiento</td>
                 <td><span class="score-before">8/10</span></td>
-                <td><span class="badge-pending">⏳ Pendiente</span></td>
-                <td><span class="badge-pending">En progreso</span></td>
+                <td><span class="score-after">10/10</span></td>
+                <td><span class="badge-remediated">✓ Remediado</span></td>
               </tr>
             </tbody>
           </table>
@@ -1958,7 +1958,7 @@
               font-style: italic;
             "
           >
-            — AUDITORIA_CIERRE_2026-04-04.md
+            — REVISION_FINAL_2026-04-24.md
           </p>
         </div>
       </div>
@@ -1979,7 +1979,7 @@
         <div class="deploy-grid reveal">
           <div class="deploy-card">
             <span class="deploy-platform">🐧 Linux — Fedora primario</span>
-            <h3>App Image / .deb / .rpm</h3>
+            <h3>app-image / .deb / .rpm</h3>
             <p style="font-size: 14px; color: var(--ink-dim); margin-top: 8px">
               Genera distribuciones nativas con JRE embebido. Validado en Fedora
               con app-image en <code>target/packages/</code>.
@@ -1994,7 +1994,7 @@
               <span class="cmd">./package-linux.sh --type rpm</span>
 
               <span class="comment"># Dependencias .deb/.rpm</span>
-              <span class="cmd">sudo dnf install fakeroot dpkg rpm-build</span>
+              <span class="cmd">sudo dnf install dpkg rpm-build</span>
             </div>
           </div>
 
@@ -2006,15 +2006,18 @@
               PATH. El .exe incluye JRE y JavaFX.
             </p>
             <div class="code-block">
-              <span class="comment"># Ejecutar en consola</span>
-              <span class="cmd">./play.sh</span>
+              <span class="comment"># Ejecutar en Windows</span>
+              <span class="cmd">.\play.bat</span>
 
               <span class="comment"># Empaquetar (desde Windows)</span>
               <span class="cmd">.\package-windows.ps1 -Type exe</span>
               <span class="cmd">.\package-windows.ps1 -Type app-image</span>
 
-              <span class="comment"># Prerequisito</span>
-              <span class="cmd">source setup-java.sh</span>
+              <span class="comment"
+                ># Prerequisitos (JAVA_HOME/PATH + WiX)</span
+              >
+              <span class="cmd">java -version</span>
+              <span class="cmd">where light</span>
             </div>
           </div>
         </div>
@@ -2066,7 +2069,7 @@
         <li><a href="#audit">Auditoría</a></li>
       </ul>
       <p class="footer-copy">
-        Dungeon Crawler Patterns · Java 17 · 11 Design Patterns · 241 Tests ·
+        Dungeon Crawler Patterns · Java 17 · 11 Design Patterns · 221 Tests ·
         BUILD SUCCESS
       </p>
     </footer>

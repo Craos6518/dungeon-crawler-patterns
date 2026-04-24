@@ -4,40 +4,46 @@
 
 Java 17 / JUnit 5 únicamente. Proyecto académico (Universidad Tecnológica de Pereira - Patrones de Diseño). Arquitectura limpia sin frameworks externos.
 
-**Estado actual:** ✅ Proyecto completo con 131 tests pasando, 10 patrones implementados, y juego interactivo jugable.
+**Estado actual:** ✅ Proyecto completo con 221 tests pasando, 11 patrones implementados, y juego interactivo jugable.
 
 ## Principios Fundamentales
 
 **Inversión de dependencias estricta**:
+
 - `MotorCombate` depende SOLO de la abstracción `Personaje`
 - Nunca usar `instanceof` para lógica de negocio
 - Cada personaje encapsula su propio cálculo de daño
 
 **Inmutabilidad donde corresponde**:
+
 - `ResultadoAtaque` es un `record` inmutable con: `atacante`, `defensor`, `daño`, `vidaRestanteDefensor`
 - Usar `List.of()` para colecciones inmutables cuando sea posible
 - Preferir `List<>` sobre arrays para colecciones
 
 **Separación de responsabilidades**:
+
 - Motor controla turnos y determina fin de combate
 - Personajes calculan su propio daño en `atacar(Personaje objetivo)`
 - Sin lógica de impresión mezclada con dominio
 
 ## Patrones de Diseño Obligatorios
 
-**Implementar TODOS excepto Singleton** (10 patrones activos):
+**Implementar TODOS excepto Singleton** (11 patrones activos):
 
 **Creacionales**:
+
 - **Factory Method**: Para creación flexible de personajes individuales
 - **Builder**: Para construcción paso a paso de mazmorras
 - **Abstract Factory**: Para familias temáticas coherentes (Fire, Ice, Dark, Poison)
 
 **Estructurales**:
+
 - **Composite**: Para sistema jerárquico de inventario (items simples + contenedores)
 - **Decorator**: Para efectos de estado dinámicos sobre personajes
 - **Facade**: Para interfaz simplificada del sistema de combate
 
 **Comportamiento**:
+
 - **Command**: Para encapsular acciones con historial
 - **Strategy**: Para comportamientos de IA intercambiables
 - **Observer**: Para sistema de eventos desacoplado
@@ -48,6 +54,7 @@ Java 17 / JUnit 5 únicamente. Proyecto académico (Universidad Tecnológica de 
 ## Convenciones de Nomenclatura
 
 **UpperCamelCase obligatorio** para todas las clases:
+
 - Efectos terminan en `Effect`: `BurnEffect`, `PoisonEffect`, `StrengthEffect`
 - Factories terminan en `Factory`: `GuerreroFactory`, `FireThemeFactory`
 - Strategies terminan en `Strategy`: `AggressiveStrategy`, `DefensiveStrategy`
@@ -58,6 +65,7 @@ Java 17 / JUnit 5 únicamente. Proyecto académico (Universidad Tecnológica de 
 ## Manejo de Errores
 
 **Pragmático sin doble trabajo**:
+
 - Excepciones **unchecked** (RuntimeException) para errores de programación (estado inválido, precondiciones violadas)
 - `Optional<T>` para ausencia legítima de valores (búsqueda sin resultado)
 - Validaciones explícitas con mensajes claros en `IllegalArgumentException` o `IllegalStateException`
@@ -83,17 +91,20 @@ public Optional<Item> buscarItem(String nombre) {
 ## Restricciones Específicas
 
 **Al modificar `MotorCombate`**:
+
 - No detectar tipos concretos
 - No calcular daño directamente
 - Solo alternar turnos y verificar condiciones de finalización
 - Exponer método `iniciar()` como punto de entrada
 
 **Al crear clases de personaje**:
+
 - Implementar `atacar()`, `recibirDanio(int)`, `estaVivo()`, `getVida()`
 - Sin referencia al motor desde el personaje
 - Límite de 20 líneas por método
 
 **Prohibido absolutamente**:
+
 - Pattern Singleton (explícitamente excluido del proyecto)
 - Estado global o variables estáticas con lógica de negocio
 - Métodos estáticos para lógica de dominio
@@ -102,6 +113,7 @@ public Optional<Item> buscarItem(String nombre) {
 ## Documentación JavaDoc
 
 **Obligatorio para proyecto académico**:
+
 - Todas las **interfaces públicas** con JavaDoc completo
 - Todas las **clases que implementan patrones** con:
   - Descripción del patrón aplicado
@@ -116,7 +128,7 @@ public Optional<Item> buscarItem(String nombre) {
  * <p>
  * Este patrón permite crear guerreros con configuraciones específicas
  * sin exponer la lógica de construcción al cliente.
- * 
+ *
  * @see PersonajeFactory
  * @see Guerrero
  */
@@ -138,6 +150,7 @@ public class GuerreroFactory implements PersonajeFactory {
 ## Testing
 
 Cada componente debe tener:
+
 - Test unitario de comportamiento aislado
 - Test de integración simulando flujo completo
 - Verificación de alternancia de turnos (para motor)
@@ -150,7 +163,7 @@ Cada componente debe tener:
 
 ## Referencias
 
-- [INTEGRACION_PATRONES.md](../INTEGRACION_PATRONES.md) - Cómo los 10 patrones trabajan juntos
+- [INTEGRACION_PATRONES.md](../INTEGRACION_PATRONES.md) - Cómo los 11 patrones trabajan juntos
 - [RESUMEN_IMPLEMENTACION.md](../RESUMEN_IMPLEMENTACION.md) - Estructura completa del proyecto
 - [PATRONES_CREACIONALES.md](../../Docs/PATRONES_CREACIONALES.md) - Detalle de Factory Method, Builder, Abstract Factory
 - [PATRONES_ESTRUCTURALES.md](../../Docs/PATRONES_ESTRUCTURALES.md) - Detalle de Composite, Decorator, Facade

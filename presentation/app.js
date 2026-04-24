@@ -1,5 +1,5 @@
 const PROJECT_STATS = {
-  tests: 203,
+  tests: 221,
   classes: 160,
 };
 
@@ -100,7 +100,8 @@ const PATTERNS = [
       "game.domain.inventory.Inventory",
       "game.application.usecase.UseItemUseCase",
     ],
-    miniDiagram: "Inventory -> ContainerItem(root) -> ItemComponent[Simple|Container]",
+    miniDiagram:
+      "Inventory -> ContainerItem(root) -> ItemComponent[Simple|Container]",
     tests: [
       "src/test/java/game/unit/structural/CompositePatternTest.java",
       "src/test/java/game/unit/application/UseItemUseCaseCompositeHierarchyTest.java",
@@ -192,7 +193,8 @@ const PATTERNS = [
       "game.patterns.command.actions.SkillCommand",
       "game.patterns.command.actions.LevelUpCommand",
     ],
-    miniDiagram: "CommandInvoker -> Command -> [Attack|Defend|UseItem|Skill|LevelUp]",
+    miniDiagram:
+      "CommandInvoker -> Command -> [Attack|Defend|UseItem|Skill|LevelUp]",
     tests: ["src/test/java/game/unit/behavioral/CommandPatternTest.java"],
     mermaid: `classDiagram
       class Command {
@@ -365,9 +367,15 @@ let activeFilter = "all";
 let mermaidInitialized = false;
 
 function initStats() {
-  document.getElementById("stat-patterns").textContent = String(PATTERNS.length);
-  document.getElementById("stat-tests").textContent = String(PROJECT_STATS.tests);
-  document.getElementById("stat-classes").textContent = String(PROJECT_STATS.classes);
+  document.getElementById("stat-patterns").textContent = String(
+    PATTERNS.length,
+  );
+  document.getElementById("stat-tests").textContent = String(
+    PROJECT_STATS.tests,
+  );
+  document.getElementById("stat-classes").textContent = String(
+    PROJECT_STATS.classes,
+  );
 }
 
 function visiblePatterns() {

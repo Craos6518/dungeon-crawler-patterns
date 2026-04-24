@@ -35,7 +35,7 @@
 
 ✅ **Runtime Java 17 incluido** - No requiere Java adicional  
 ✅ **JavaFX Web integrado** - UI completamente funcional  
-✅ **Juego completo** - 221 tests pasados, 10 patrones implementados  
+✅ **Juego completo** - 221 tests pasados, 11 patrones implementados  
 ✅ **Menú de aplicaciones** - Integración con el sistema  
 ✅ **Ejecutable directo** - `dungeon-crawler-patterns` disponible en PATH
 

@@ -5,6 +5,7 @@
 - Estado: vigente
 
 ## Objetivo
+
 Definir como se valida el sistema y como interpretar resultados en evaluacion academica.
 
 ## Navegacion documental
@@ -16,6 +17,7 @@ Definir como se valida el sistema y como interpretar resultados en evaluacion ac
 - Auditoria: docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md
 
 ## Comandos recomendados
+
 ```bash
 source setup-java.sh
 mvn test
@@ -23,20 +25,30 @@ mvn test
 
 En VS Code, tambien puede ejecutarse la suite con el runner de pruebas integrado.
 
-## Metricas de referencia para documentacion
-- Baseline academico reportado: 241 tests en verde, 0 fallos, 2 omitidos.
-- Ejecucion integrada en este workspace: 241 passed, 0 failed.
+## Metrica operativa unica (fuente de verdad)
 
-## Interpretacion de 241/241 y 2 omitidos
-- 241/241 significa que todos los tests ejecutados en el baseline pasaron.
-- 2 omitidos no son fallos funcionales; no bloquean validez arquitectonica.
-- La gobernanza de pruebas impide introducir `@Disabled` arbitrarios (`DisabledAnnotationPolicyTest`).
+- Fecha de corte: 2026-04-23
+- Sello de ejecucion: `mvn test` en rama `Revision-final`
+- Resultado vigente: 221 tests, 0 fallos, 0 errores, 0 omitidos
+
+## Regla de interpretacion de metricas
+
+- Cualquier conteo en README, auditorias o reportes historicos se considera contextual.
+- El conteo oficial vigente para defensa tecnica se toma exclusivamente de esta seccion.
+- `DisabledAnnotationPolicyTest` mantiene la gobernanza para evitar exclusiones arbitrarias.
+
+## Historial de baseline
+
+- Baseline documentado previo: 241 tests en verde, 0 fallos, 2 omitidos.
+- Se conserva solo como referencia historica, no como metrica operativa actual.
 
 ## Cobertura y alcance
+
 - Fuerte en runtime de negocio: estado, combate, persistencia, observer y comandos.
 - E2E existente: validacion de contrato runtime/adaptadores.
 - E2E pendiente: automatizacion visual completa en navegador real.
 
 ## Sobre `target/surefire-reports`
+
 `target/surefire-reports/*` se considera evidencia generada no versionable.
 No debe usarse como fuente documental canonica porque puede variar segun runner, entorno y momento de ejecucion.

@@ -1,3 +1,21 @@
+# ⚠️ DOCUMENTO HISTORICO — NO CANONICO
+
+Este documento NO es fuente de verdad vigente.
+
+Fuentes vigentes:
+
+- `docs/README.md`
+- `docs/03-patterns/README.md`
+- `docs/03-patterns/*.md`
+- `docs/05-audit/AUDITORIA_CIERRE_2026-04-04.md`
+
+Estado:
+
+- Historico desde: 2026-04-23
+- Motivo: centralizacion documental y control de trazabilidad
+
+---
+
 # 📋 Auditoría Técnica: Presentación Interactiva de Patrones
 
 **Auditor:** Sistema de Auditoría Técnica  
