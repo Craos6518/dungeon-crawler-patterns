@@ -13,7 +13,7 @@ El inventario del jugador necesita manejar estructuras jerárquicas (contenedore
 sequenceDiagram
     participant GR as GameRuntime
     participant Mapper as GameSessionMementoMapper
-    participant Inv as Inventory (Composite Tree)
+    participant Inv as Inventory (Arbol Composite)
     participant UC as UseItemUseCase
     participant Comp as ItemComponent (SimpleItem/ContainerItem)
 
@@ -83,6 +83,6 @@ classDiagram
 
     ItemComponent <|-- ContainerItem
     ItemComponent <|-- SimpleItem
-    Inventory --> ContainerItem : root
+    Inventory --> ContainerItem : raiz
     GameSessionMementoMapper ..> Inventory : usa
 ```

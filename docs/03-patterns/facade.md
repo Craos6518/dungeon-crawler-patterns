@@ -90,10 +90,10 @@ flowchart LR
         Turn[TurnManager]
         Pipeline[CombatStatusDecoratorPipeline]
 
-        Runtime --> Session
-        Session --> Facade
-        Facade --> Combat
-        Combat --> System
-        Combat --> Turn
-        Combat --> Pipeline
+        Runtime -->|usa| Session
+        Session -->|expone| Facade
+        Facade -->|orquesta| Combat
+        Combat -->|delega en| System
+        Combat -->|coordina| Turn
+        Combat -->|aplica| Pipeline
 ```

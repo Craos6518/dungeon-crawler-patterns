@@ -22,7 +22,7 @@ sequenceDiagram
     UC->>C: applyStackingBuff(type)
     C->>TM: apply[Effect](turns, value)
     C->>P: resolveXXX / applyXXX
-    P->>D: new Effect(character)
+    P->>D: crear Effect(character)
     D->>D: aplicarEfecto() / mitigarDanio()
     C->>GR: CombatResult (con buffStacks)
 ```

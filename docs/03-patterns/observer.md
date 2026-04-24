@@ -28,13 +28,13 @@ Instanciados uno por sesión, con referencia inmutable (`final`) a su sesión co
 ```mermaid
 sequenceDiagram
     participant Factory as GameSessionFactory
-    participant Manager as EventManager (Local)
+    participant Manager as EventManager (local)
     participant Session as GameSession
     participant Observer as SessionEventFeedObserver
     
-    Factory->>Manager: new EventManager()
-    Factory->>Session: new GameSession(manager)
-    Factory->>Observer: new SessionEventFeedObserver(session)
+    Factory->>Manager: crear EventManager()
+    Factory->>Session: crear GameSession(manager)
+    Factory->>Observer: crear SessionEventFeedObserver(session)
     Factory->>Manager: suscribir(observer)
     
     Note over Session, Manager: Durante el juego

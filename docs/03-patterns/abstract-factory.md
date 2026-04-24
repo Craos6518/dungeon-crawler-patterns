@@ -32,10 +32,10 @@ Cada factoría garantiza que los productos creados cumplen con las propiedades d
 ## Diagrama de Relaciones
 ```mermaid
 graph TD
-    A[GameSessionFactory] -->|resolve| B(DungeonThemeFactory)
-    B -->|creates| C[Enemies with Resistances]
-    B -->|creates| D[Thematic Loot]
-    subgraph Concrete Factories
+    A[GameSessionFactory] -->|resuelve| B(DungeonThemeFactory)
+    B -->|crea| C[Enemigos con resistencias]
+    B -->|crea| D[Botin tematico]
+    subgraph Factorias concretas
     E[FireThemeFactory]
     F[IceThemeFactory]
     G[PoisonThemeFactory]

@@ -34,12 +34,12 @@ El jugador puede cambiar su estilo táctico en tiempo real consumiendo recursos:
 ```mermaid
 classDiagram
     Combat --> CombatSystem : selectEnemyStrategy()
-    CombatSystem --> AIStrategy : uses
+    CombatSystem --> AIStrategy : usa
     AIStrategy <|.. AggressiveStrategy
     AIStrategy <|.. DefensiveStrategy
     AIStrategy <|.. IntelligentStrategy
     AIStrategy <|.. RandomStrategy
-    Combat --> PlayerCombatStyle : activeStyle
+    Combat --> PlayerCombatStyle : estilo activo
     SetCombatStyleUseCase --> Combat : setCombatStyle(key)
 ```
 

@@ -99,19 +99,28 @@ El flujo soportado en runtime cubre:
 
 ```mermaid
 stateDiagram
+    state "Menu" as Menu
+    state "Heroe" as Heroe
+    state "Slots" as Slots
+    state "Exploracion" as Exploracion
+    state "Combate" as Combate
+    state "Tesoro" as Tesoro
+    state "Fin del juego" as FinDelJuego
+    state "Inventario" as Inventario
+
     [*] --> Menu
-    Menu --> Hero : Nueva partida
-    Menu --> Saves : Abrir slots
-    Hero --> Exploration : Crear sesion
-    Saves --> Exploration : Cargar slot
-    Exploration --> Combat : Enemigo activo
-    Combat --> Treasure : Victoria
-    Combat --> GameOver : Derrota
-    Combat --> Exploration : Retirada
-    Treasure --> Exploration : Continuar
-    Exploration --> Inventory : Abrir inventario
-    Inventory --> Exploration : Volver
-    GameOver --> Menu : Reiniciar
+    Menu --> Heroe : Nueva partida
+    Menu --> Slots : Abrir slots
+    Heroe --> Exploracion : Crear sesion
+    Slots --> Exploracion : Cargar slot
+    Exploracion --> Combate : Enemigo activo
+    Combate --> Tesoro : Victoria
+    Combate --> FinDelJuego : Derrota
+    Combate --> Exploracion : Retirada
+    Tesoro --> Exploracion : Continuar
+    Exploracion --> Inventario : Abrir inventario
+    Inventario --> Exploracion : Volver
+    FinDelJuego --> Menu : Reiniciar
 ```
 
 ## 3. Requerimientos funcionales
@@ -162,14 +171,14 @@ stateDiagram
 
 ```mermaid
 sequenceDiagram
-    participant UI as UI
+    participant UI as Interfaz
     participant UCD as UiCommandDispatcher
     participant RT as GameRuntime
     participant GS as GameSession
     participant GP as GamePresenter
 
     UI->>UCD: comando + payload
-    UCD->>RT: dispatch
+    UCD->>RT: despacho
     RT->>RT: validar payload
     RT->>GS: ejecutar caso de uso
     RT->>GP: presentar estado

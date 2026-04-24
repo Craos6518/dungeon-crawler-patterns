@@ -82,13 +82,13 @@ flowchart LR
         Inventory[InventoryState]
         Over[GameOverState]
 
-        Runtime --> Session
-        Session --> Ctx
-        Ctx --> Menu
-        Ctx --> Explore
-        Ctx --> Combat
-        Ctx --> Inventory
-        Ctx --> Over
+        Runtime -->|usa| Session
+        Session -->|delega en| Ctx
+        Ctx -->|estado activo| Menu
+        Ctx -->|estado activo| Explore
+        Ctx -->|estado activo| Combat
+        Ctx -->|estado activo| Inventory
+        Ctx -->|estado activo| Over
 ```
 
 ## Interfaz GameState

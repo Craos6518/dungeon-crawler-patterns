@@ -22,12 +22,12 @@ El juego requiere construir mazmorras reproducibles por semilla y variables por 
 ## Diagrama de Secuencia Productivo
 ```mermaid
 graph TD
-    A[GameSessionFactory] -->|new| B[ConcreteDungeonBuilder]
-    A -->|new| C[DungeonDirector]
+    A[GameSessionFactory] -->|crea| B[ConcreteDungeonBuilder]
+    A -->|crea| C[DungeonDirector]
     C -->|buildForTheme| D[ProceduralDungeonGenerator]
-    D -->|setSteps| B
-    B -->|build| E[Dungeon Model]
-    C -->|new| F[Dungeon Aggregate]
+    D -->|define pasos| B
+    B -->|construye| E[Modelo Dungeon]
+    C -->|crea| F[Agregado Dungeon]
 ```
 
 ## Validación de Integración

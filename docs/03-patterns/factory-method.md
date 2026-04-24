@@ -52,15 +52,15 @@ flowchart LR
     Runtime[GameRuntime]
     Coordinator[CampaignSessionCoordinator]
     SessionFactory[GameSessionFactory]
-    HeroFactory[PersonajeFactory heroes]
+    HeroFactory[PersonajeFactory de heroes]
     ThemeFactory[DungeonThemeFactory concreta]
-    EnemyFactory[PersonajeFactory enemigos]
+    EnemyFactory[PersonajeFactory de enemigos]
     Session[GameSession]
 
-    Runtime --> Coordinator
-    Coordinator --> SessionFactory
-    SessionFactory --> HeroFactory
-    SessionFactory --> ThemeFactory
-    ThemeFactory --> EnemyFactory
-    SessionFactory --> Session
+    Runtime -->|delega en| Coordinator
+    Coordinator -->|usa| SessionFactory
+    SessionFactory -->|crea heroe con| HeroFactory
+    SessionFactory -->|selecciona| ThemeFactory
+    ThemeFactory -->|crea enemigos con| EnemyFactory
+    SessionFactory -->|retorna| Session
 ```

@@ -76,24 +76,24 @@ GameRuntime.handleCommand("loadFromSlot", slot=1)
 
 ```mermaid
 graph TD
-    A[GameRuntime] -->|saveToSlot command| B(RuntimeSaveSlotManager)
-    B -->|execute| C[SaveGameUseCase]
+    A[GameRuntime] -->|comando saveToSlot| B(RuntimeSaveSlotManager)
+    B -->|ejecuta| C[SaveGameUseCase]
     C -->|toMemento| D(GameSessionMementoMapper)
-    D -->|creates| E[GameMemento v1.0]
+    D -->|crea| E[GameMemento v1.0]
     E -->|guardarEnDisco| F[GameCaretaker]
-    F -->|persists| G[(game-saves/Slot_1.save)]
+    F -->|persiste| G[(game-saves/Slot_1.save)]
 
-    H[GameRuntime] -->|loadFromSlot command| I(RuntimeSaveSlotManager)
-    I -->|execute| J[LoadGameUseCase]
+    H[GameRuntime] -->|comando loadFromSlot| I(RuntimeSaveSlotManager)
+    I -->|ejecuta| J[LoadGameUseCase]
     J -->|cargarDesdeDisco| K[GameCaretaker]
-    K -->|restore| L(GameSessionMementoMapper)
-    L -->|validates schemaVersion| M{v1.0?}
-    M -->|yes| N[Restore Complete]
+    K -->|restaura| L(GameSessionMementoMapper)
+    L -->|valida schemaVersion| M{v1.0?}
+    M -->|si| N[Restauracion completa]
     M -->|no| O[SaveDataCorruptionException]
 
-    subgraph Transaction Support
-    P[UseCaseTransactionSupport] -->|snapshot| Q[GameSession]
-    P -->|restore on error| Q
+    subgraph Soporte transaccional
+    P[UseCaseTransactionSupport] -->|toma snapshot| Q[GameSession]
+    P -->|restaura ante error| Q
     end
 ```
 

@@ -72,14 +72,14 @@ flowchart LR
         XP[Player.gainExperience]
         LevelUp[LevelUpCommand]
 
-        Runtime --> UseItemUC
-        Runtime --> Combat
-        UseItemUC --> UseItemCmd
-        UseItemCmd --> Inv
-        UseItemUC --> Invoker
-        Combat --> System
-        System --> Invoker
-        AI --> AttackCmd
-        AttackCmd --> Invoker
-        XP --> LevelUp
+        Runtime -->|ejecuta| UseItemUC
+        Runtime -->|coordina| Combat
+        UseItemUC -->|crea| UseItemCmd
+        UseItemCmd -->|consume item| Inv
+        UseItemUC -->|delega en| Invoker
+        Combat -->|usa| System
+        System -->|ejecuta comandos| Invoker
+        AI -->|selecciona| AttackCmd
+        AttackCmd -->|se registra en| Invoker
+        XP -->|dispara| LevelUp
 ```
