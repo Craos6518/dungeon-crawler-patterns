@@ -964,10 +964,12 @@ p {
   width: fit-content;
   box-shadow: 2px 2px 0px #000;
 }
+.tier-badge[data-tier="centinela"],
 .tier-badge[data-tier="menor"] {
   border-color: var(--theme-border-dim);
   color: var(--theme-text-dim);
 }
+.tier-badge[data-tier="semi-jefe"],
 .tier-badge[data-tier="elite"] {
   border-color: var(--theme-secondary);
   color: var(--theme-secondary);
