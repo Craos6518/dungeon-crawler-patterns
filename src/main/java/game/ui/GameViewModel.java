@@ -90,7 +90,7 @@ public class GameViewModel {
         public int    hp;
         public int    hpMax;
         public int    hpPct;   // 0–100
-        /** "menor" | "elite" | "jefe" */
+        /** "centinela" | "semi-jefe" | "jefe" */
         public String tier;
     }
 
@@ -291,8 +291,8 @@ public class GameViewModel {
 
     private static String inferirTier(game.domain.personaje.Personaje p) {
         int hp = p.getVidaMaxima();
-        if (hp >= 200) return "jefe";
-        if (hp >= 120) return "elite";
-        return "menor";
+        if (hp >= 150) return "jefe";
+        if (hp >= 50) return "semi-jefe";
+        return "centinela";
     }
 }
