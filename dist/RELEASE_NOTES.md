@@ -146,8 +146,8 @@ dungeon-crawler-patterns
 
 **Institución**: Universidad Tecnológica de Pereira  
 **Materia**: Patrones de Diseño  
-**Semestre**: 2026-I/II  
-**Profesor**: [Según asignación]
+**Semestre**: 2026-I
+**Profesor**: Dinora Seneth Monsalve
 
 ---
 
