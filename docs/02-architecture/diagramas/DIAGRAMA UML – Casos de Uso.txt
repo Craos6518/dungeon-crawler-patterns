@@ -1,0 +1,110 @@
+```mermaid
+graph TB
+    subgraph Sistema["Sistema - Dungeon Crawler"]
+        UC01["<b>UC-01</b><br/>Iniciar Partida"]
+        UC02["<b>UC-02</b><br/>Explorar Mazmorra"]
+        UC03["<b>UC-03</b><br/>Resolver Combate"]
+        UC04["<b>UC-04</b><br/>Gestionar Inventario"]
+        UC05["<b>UC-05</b><br/>Guardar y Cargar Partida"]
+    end
+    
+    Jugador["👤 Jugador"]
+    RuntimeSys["🔧 Runtime<br/>GameRuntime"]
+    PersistenciaSys["💾 Persistencia<br/>RuntimeSaveSlotManager"]
+    
+    Jugador -->|Selecciona héroe<br/>y tema| UC01
+    Jugador -->|Avanza salas<br/>interactúa| UC02
+    Jugador -->|Ejecuta acciones<br/>de combate| UC03
+    Jugador -->|Abre/navega<br/>inventario| UC04
+    Jugador -->|Guarda/carga<br/>progreso| UC05
+    
+    UC01 -->|Crea sesión| RuntimeSys
+    UC02 -->|Resuelve contenido<br/>procedural| RuntimeSys
+    UC03 -->|Procesa turnos<br/>estrategia| RuntimeSys
+    UC04 -->|Modifica estado<br/>de inventario| RuntimeSys
+    UC05 -->|Usa memento para<br/>persistencia| PersistenciaSys
+    
+    UC01 -.->|incluye| UC02
+    UC02 -.->|puede activar| UC03
+    UC03 -.->|genera recompensas| UC04
+    UC02 -.->|acceso directo| UC04
+    
+    style UC01 fill:#e1f5ff
+    style UC02 fill:#e1f5ff
+    style UC03 fill:#fff3e0
+    style UC04 fill:#f3e5f5
+    style UC05 fill:#e8f5e9
+    style Sistema fill:#f5f5f5,stroke:#333,stroke-width:2px
+    style Jugador fill:#fff9c4
+    style RuntimeSys fill:#c8e6c9
+    style PersistenciaSys fill:#bbdefb
+```
+
+## Casos de Uso Detallados
+
+### **UC-01: Iniciar Partida**
+| Aspecto | Descripción |
+|---------|-------------|
+| **Actores** | Jugador, Sistema (GameRuntime) |
+| **Precondición** | El runtime está inicializado |
+| **Flujo Principal** | El jugador selecciona clase de héroe (Guerrero, Mago, Pícaro) y tema de campaña (Poison, Ice, Fire, Dark). El sistema crea una GameSession válida. |
+| **Flujo Alterno** | El jugador elige cargar un slot existente (UC-05). |
+| **Postcondición** | La sesión está lista en flujo de exploración. |
+| **Patrones Aplicados** | Factory Method, Abstract Factory, Memento |
+
+---
+
+### **UC-02: Explorar Mazmorra**
+| Aspecto | Descripción |
+|---------|-------------|
+| **Actores** | Jugador, Sistema |
+| **Precondición** | Existe una sesión activa |
+| **Flujo Principal** | El jugador avanza de sala. El sistema resuelve contenido procedural, progreso de campaña y evento de sala. |
+| **Flujo Alterno** | La exploración activa combate (UC-03), tesoro o cambio de etapa temática. |
+| **Postcondición** | La sesión refleja la nueva sala y su estado jugable. |
+| **Patrones Aplicados** | Builder, Observer, Command |
+
+---
+
+### **UC-03: Resolver Combate**
+| Aspecto | Descripción |
+|---------|-------------|
+| **Actores** | Jugador, Sistema |
+| **Precondición** | Existe enemigo activo en la sala |
+| **Flujo Principal** | El jugador ejecuta acciones (atacar, defender, habilidad). El sistema procesa estrategia enemiga, decoradores de estado, turnos alternados y determina resultado. |
+| **Flujo Alterno** | El jugador puede retroceder (vuelve a UC-02) o sufre derrota (Fin del Juego). |
+| **Postcondición** | Combate termina en victoria (→ tesoro), derrota o retiro. |
+| **Patrones Aplicados** | Strategy, Decorator, Command, Observer |
+
+---
+
+### **UC-04: Gestionar Inventario**
+| Aspecto | Descripción |
+|---------|-------------|
+| **Actores** | Jugador |
+| **Precondición** | La sesión posee items disponibles |
+| **Flujo Principal** | El jugador abre el inventario, navega la estructura jerárquica (Composite), selecciona items y los usa o vende. |
+| **Flujo Alterno** | El jugador cancela y vuelve al flujo anterior. |
+| **Postcondición** | Inventario y estadísticas de sesión se sincronizan. |
+| **Patrones Aplicados** | Composite, Facade, Memento |
+
+---
+
+### **UC-05: Guardar y Cargar Partida**
+| Aspecto | Descripción |
+|---------|-------------|
+| **Actores** | Jugador, Sistema |
+| **Precondición** | Existe una sesión válida para persistir o restaurar |
+| **Flujo Principal** | El sistema guarda o carga desde RuntimeSaveSlotManager usando Memento y almacenamiento local (archivos .save). |
+| **Flujo Alterno** | El runtime rechaza slots inválidos o estados incompatibles. |
+| **Postcondición** | La sesión queda persistida o restaurada de forma consistente. |
+| **Patrones Aplicados** | Memento, Facade |
+
+---
+
+## Notas Arquitectónicas
+
+- **Inclusión**: UC-01 incluye implícitamente UC-02 (al crear sesión, se entra en exploración).
+- **Extensión**: UC-02 puede extenderse a UC-03 (si hay enemigo) y UC-04 (acceso directo al inventario).
+- **Generalización**: UC-05 es transversal y puede ser invocado desde varios estados.
+- **Sincronización**: Todos los casos de uso mantienen estado sincronizado vía GameSession y Observer pattern.

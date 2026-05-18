@@ -1,0 +1,67 @@
+```mermaid
+stateDiagram
+    state "Menu" as Menu
+    state "Selección de Héroe" as SeleccionHeroe
+    state "Selección de Slots" as SeleccionSlots
+    state "Exploración" as Exploracion
+    state "Combate" as Combate
+    state "Tesoro" as Tesoro
+    state "Inventario" as Inventario
+    state "Fin del Juego" as FinDelJuego
+
+    [*] --> Menu
+    
+    Menu --> SeleccionHeroe : Nueva partida
+    Menu --> SeleccionSlots : Cargar partida
+    
+    SeleccionHeroe --> Exploracion : Crear sesión
+    SeleccionSlots --> Exploracion : Restaurar sesión
+    
+    Exploracion --> Combate : Enemigo activo
+    Exploracion --> Inventario : Abrir inventario
+    Exploracion --> FinDelJuego : Abandono
+    
+    Inventario --> Exploracion : Cerrar
+    
+    Combate --> Tesoro : Victoria
+    Combate --> FinDelJuego : Derrota
+    Combate --> Exploracion : Retirada
+    
+    Tesoro --> Exploracion : Continuar
+    
+    FinDelJuego --> Menu : Reiniciar
+    
+    note right of Menu
+        Punto de entrada
+        y reinicio del juego
+    end note
+    
+    note right of Exploracion
+        Estado central del game loop
+        Resolución procedural de salas
+    end note
+    
+    note right of Combate
+        Motor de combate por turnos
+        Aplicación de estrategias y decoradores
+    end note
+```
+
+## Descripción
+
+**Diagrama de Estados del Sistema General** - Representa el flujo completo del juego desde la perspectiva del jugador:
+
+- **Menu**: Punto de entrada. Opciones: nueva partida o cargar.
+- **Selección de Héroe**: Configuración inicial (clase, tema de campaña).
+- **Selección de Slots**: Carga de partidas persistidas.
+- **Exploración**: Estado principal. Resolución procedural de salas, interacción con el sistema.
+- **Combate**: Transición automática al detectar enemigo. Motor de turnos en acción.
+- **Tesoro**: Resolución de recompensas post-combate.
+- **Inventario**: Submódulo accesible desde exploración.
+- **Fin del Juego**: Condición terminal (victoria, derrota, abandono).
+
+### Relaciones clave
+- Exploración es el estado central (hub) que concentra la mayoría de transiciones.
+- Combate y Tesoro forman un ciclo vinculado.
+- Inventario es un estado anidado que retorna a Exploración.
+- Todo cierra en "Fin del Juego" con opción de retorno a Menu.
