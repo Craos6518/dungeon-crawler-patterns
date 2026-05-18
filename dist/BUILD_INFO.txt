@@ -1,0 +1,155 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║        DUNGEON CRAWLER PATTERNS - v2.0.0 BUILD INFORMATION               ║
+║                  18 de mayo de 2026 - 09:07 UTC-5                        ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+📊 INFORMACIÓN DE COMPILACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Versión del proyecto:      2.0.0
+Fecha de compilación:      18 de mayo de 2026
+Hora:                      09:07 UTC-5
+Estado de compilación:     ✅ EXITOSA
+
+📦 TOOLCHAIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Java:                      OpenJDK 17.0.19 (Temurin)
+Maven:                     3.8.x
+Sistema operativo:        Linux
+Arquitectura:             x86_64
+
+📁 ARTEFACTOS GENERADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. JAR Portable
+   ✅ dungeon-crawler-patterns-2.0.0.jar          22 MB
+   → Ejecutable en cualquier SO con Java 17+
+   → Incluye todas las dependencias
+   → Uso: java -jar dungeon-crawler-patterns-2.0.0.jar
+
+2. Paquete Debian/Ubuntu
+   ✅ dungeon-crawler-patterns_2.0.0-1_amd64.deb  145 MB
+   → Instalación: sudo dpkg -i *.deb
+   → Lanzamiento: dungeon-crawler-patterns
+   → Incluye JRE 17 integrado
+
+3. Paquete RedHat/Fedora
+   ✅ dungeon-crawler-patterns-2.0.0-1.x86_64.rpm 146 MB
+   → Instalación: sudo rpm -i *.rpm
+   → Lanzamiento: dungeon-crawler-patterns
+   → Incluye JRE 17 integrado
+
+4. Scripts de lanzamiento
+   ✅ play.sh                                      911 B
+   → Ejecutable en Linux/macOS
+   → Uso: ./play.sh
+   
+   ✅ play.bat                                     701 B
+   → Ejecutable en Windows
+   → Uso: .\play.bat
+
+📊 ESTADÍSTICAS DEL CÓDIGO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Clases de dominio:         160 clases
+Clases de test:            48 clases
+Tests unitarios:           221 tests
+Patrones implementados:    11 patrones
+Dependencias Maven:        18 artefactos
+Líneas de código:          ~15,000+
+
+🎯 PATRONES DE DISEÑO IMPLEMENTADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Creacionales:
+  ✅ Factory Method
+  ✅ Builder
+  ✅ Abstract Factory
+
+Estructurales:
+  ✅ Composite
+  ✅ Decorator
+  ✅ Facade
+
+Comportamiento:
+  ✅ Command
+  ✅ Strategy
+  ✅ Observer
+  ✅ Memento
+  ✅ State
+
+⚙️ CARACTERÍSTICAS PRINCIPALES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Motor de combate por turnos
+✅ Sistema de efectos dinámicos
+✅ Inventario jerárquico (Composite)
+✅ Estados modificables (Decorators)
+✅ IA intercambiable (Strategies)
+✅ Eventos desacoplados (Observer)
+✅ Guardado/carga de estado (Memento)
+✅ Interfaz web interactiva (JavaFX WebView)
+✅ Inversión de dependencias estricta
+✅ Manejo de errores con RuntimeException/Optional
+✅ Documentación JavaDoc completa
+
+🌐 COMPATIBILIDAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sistemas operativos:
+  ✅ Linux (Debian, Ubuntu, Fedora, RedHat, CentOS)
+  ✅ Windows 10+
+  ✅ macOS 10.13+
+
+Java:
+  ✅ OpenJDK 17 LTS
+  ✅ OpenJDK 21 LTS
+  ✅ OpenJDK 25+
+
+📋 REQUISITOS MÍNIMOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Java:                      17 o superior
+RAM:                       512 MB mínimo
+Espacio en disco:          200 MB mínimo
+Pantalla:                  1024x768 mínimo
+
+📚 DOCUMENTACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+README.md                  - Instrucciones de instalación y uso
+RELEASE_NOTES.md           - Notas de versión
+BUILD_INFO.txt             - Este archivo
+src/main/java/            - Código fuente
+docs/                      - Documentación completa del proyecto
+docs/03-patterns/          - Detalles de patrones implementados
+
+🔗 REFERENCIAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Java 17:           https://openjdk.org/projects/jdk/17/
+Maven:             https://maven.apache.org/
+JavaFX:            https://gluonhq.com/products/javafx/
+GSON:              https://github.com/google/gson
+JUnit 5:           https://junit.org/junit5/
+
+🎓 CONTEXTO ACADÉMICO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Institución:       Universidad Tecnológica de Pereira
+Materia:           Patrones de Diseño
+Semestre:          2026-I/II
+Enfoque:           Arquitectura limpia, patrones SOLID
+Requisitos:        Java 17+, JUnit 5, Maven
+
+═══════════════════════════════════════════════════════════════════════════════
+
+¿LISTO PARA INSTALAR?
+
+1. JAR Portable:
+   $ java -jar dungeon-crawler-patterns-2.0.0.jar
+
+2. Linux (Debian/Ubuntu):
+   $ sudo dpkg -i dungeon-crawler-patterns_2.0.0-1_amd64.deb
+   $ dungeon-crawler-patterns
+
+3. Linux (Fedora/RHEL):
+   $ sudo rpm -i dungeon-crawler-patterns-2.0.0-1.x86_64.rpm
+   $ dungeon-crawler-patterns
+
+4. Script rápido:
+   $ ./play.sh (Linux/macOS)
+   $ .\play.bat (Windows)
+
+═══════════════════════════════════════════════════════════════════════════════
