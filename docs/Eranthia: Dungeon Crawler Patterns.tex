@@ -1,0 +1,305 @@
+\documentclass[stu,12pt,floatsintext]{apa7}
+
+% =========================
+% PAQUETES
+% =========================
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{csquotes}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+
+% =========================
+% CONFIGURACIÓN APA 7
+% =========================
+\onehalfspacing
+\setlength{\parindent}{0.5in}
+
+% =========================
+% DATOS DEL DOCUMENTO
+% =========================
+\title{Eranthia: Dungeon Crawler Patterns\\
+Especificación de Requerimientos, Casos de Uso,\\
+Prototipado, Pilares POO y Principios SOLID}
+
+\shorttitle{Eranthia}
+
+\author{Andrés Felipe Martínez Henao}
+
+\affiliation{%
+Universidad Tecnológica de Pereira\\
+Facultad de Ingenierías\\
+Tecnología en Desarrollo de Software
+}
+
+\course{Patrones de Diseño de Software}
+\professor{Nombre del docente}
+\duedate{Mayo de 2026}
+
+% =========================
+% DOCUMENTO
+% =========================
+\begin{document}
+
+\maketitle
+
+% =========================
+% RESUMEN
+% =========================
+
+\begin{abstract}
+Eranthia: Dungeon Crawler Patterns es un videojuego de rol por turnos desarrollado en Java 17 como proyecto académico de la asignatura Patrones de Diseño de Software en la Universidad Tecnológica de Pereira. El sistema tiene como propósito demostrar la implementación verificable de once patrones de diseño Gang of Four (GoF) en un runtime funcional y jugable, con validación mediante 221 pruebas automatizadas que arrojan cero fallos.
+
+El documento presenta la especificación de requerimientos del sistema alineada con el estándar ISO/IEC/IEEE 29148 \parencite{iso29148}, cinco historias de usuario, cinco requerimientos funcionales, cinco requerimientos no funcionales, la descripción formal de cinco casos de uso siguiendo la plantilla académica institucional, un espacio para el prototipado de interfaz, y el análisis de los cuatro pilares de la programación orientada a objetos y los cinco principios SOLID evidenciados en la arquitectura del proyecto.
+
+\textbf{Palabras clave:} patrones de diseño, videojuego, Java, programación orientada a objetos, SOLID, requerimientos de software.
+\end{abstract}
+
+\newpage
+
+% =========================
+% INTRODUCCIÓN
+% =========================
+
+\section{Introducción}
+
+El diseño de software de calidad exige la aplicación de principios y patrones que garanticen mantenibilidad, extensibilidad y coherencia arquitectónica \parencite{gamma1994,martin2003}. El proyecto Eranthia nace como respuesta a este desafío en el contexto académico: un videojuego de exploración de mazmorras por turnos en el que cada mecánica jugable está respaldada por al menos uno de los once patrones de diseño GoF implementados.
+
+La decisión de construir un videojuego funcional, en lugar de una demostración aislada, obedece al principio rector del proyecto: un patrón declarado sin integración productiva no es evidencia suficiente. Cada patrón participa en la cadena real \textit{GameRuntime → casos de uso → dominio}, y es ejercitado mediante pruebas de integración que validan el comportamiento completo del sistema.
+
+Este documento consolida la especificación de requerimientos del sistema, los casos de uso formalizados, el prototipado de interfaz, y el análisis de los pilares de la programación orientada a objetos y los principios SOLID presentes en la arquitectura de Eranthia.
+
+% =========================
+% ESPECIFICACIÓN DE REQUERIMIENTOS
+% =========================
+
+\section{Especificación de Requerimientos del Sistema}
+
+\subsection{Propósito}
+
+El sistema tiene como objetivo demostrar la implementación verificable de patrones de diseño GoF en un videojuego por turnos construido en Java 17 \parencite{oracle2021}. La validación académica no depende únicamente de descripciones teóricas: el proyecto mantiene trazabilidad entre requerimientos, arquitectura, clases productivas, pruebas automatizadas y documentación canónica.
+
+El alcance funcional vigente cubre el menú inicial, la selección de héroe, el inicio o carga de partida, la exploración de mazmorra, el combate por turnos, la resolución de tesoro post-combate, el inventario jerárquico con uso de ítems, la persistencia por slots y la progresión de campaña por temas: Poison → Ice → Fire → Dark.
+
+% =========================
+% HISTORIAS DE USUARIO
+% =========================
+
+\subsection{Historias de Usuario}
+
+\begin{table}[H]
+\centering
+\caption{Historias de usuario del sistema Eranthia}
+\begin{tabular}{p{1.5cm}p{2cm}p{5cm}p{5cm}}
+\toprule
+\textbf{ID} & \textbf{Como...} & \textbf{Quiero...} & \textbf{Para...} \\
+\midrule
+HU-01 & Jugador & Combatir enemigos por turnos eligiendo entre atacar, defender, usar habilidad o ítem & Superar los desafíos de la mazmorra \\
+
+HU-02 & Jugador & Seleccionar mi clase de héroe al iniciar la partida & Adaptar el estilo de juego a mi preferencia \\
+
+HU-03 & Jugador & Gestionar un inventario jerárquico con contenedores y objetos simples & Organizar y usar recursos durante la campaña \\
+
+HU-04 & Jugador & Explorar mazmorras generadas proceduralmente & Tener una experiencia distinta en cada partida \\
+
+HU-05 & Jugador & Guardar y cargar progreso en slots independientes & Retomar la campaña sin perder el avance \\
+\bottomrule
+\end{tabular}
+\caption*{\textit{Nota.} Elaboración propia.}
+\end{table}
+
+% =========================
+% REQUERIMIENTOS FUNCIONALES
+% =========================
+
+\subsection{Requerimientos Funcionales}
+
+\begin{table}[H]
+\centering
+\caption{Requerimientos funcionales del sistema}
+\begin{tabular}{p{2cm}p{9cm}p{3cm}}
+\toprule
+\textbf{ID} & \textbf{Requerimiento} & \textbf{Estado} \\
+\midrule
+RF-01 & El sistema debe permitir iniciar una nueva partida seleccionando héroe y tema de campaña. & Implementado \\
+
+RF-02 & El sistema debe permitir cargar una partida desde slots persistidos con validación de integridad. & Implementado \\
+
+RF-03 & El sistema debe soportar exploración de salas y progresión de campaña. & Implementado \\
+
+RF-04 & El sistema debe resolver combates por turnos con IA adaptativa. & Implementado \\
+
+RF-05 & El sistema debe administrar un inventario jerárquico y permitir uso real de ítems. & Implementado \\
+\bottomrule
+\end{tabular}
+\caption*{\textit{Nota.} Elaboración propia.}
+\end{table}
+
+% =========================
+% REQUERIMIENTOS NO FUNCIONALES
+% =========================
+
+\subsection{Requerimientos No Funcionales}
+
+\begin{table}[H]
+\centering
+\caption{Requerimientos no funcionales del sistema}
+\begin{tabular}{p{2cm}p{9cm}p{3cm}}
+\toprule
+\textbf{ID} & \textbf{Requerimiento} & \textbf{Estado} \\
+\midrule
+RNF-01 & El sistema debe ejecutarse sobre Java 17 con compatibilidad JavaFX 17. & Vigente \\
+
+RNF-02 & El runtime debe conservar una única fuente de verdad de sesión. & Vigente \\
+
+RNF-03 & La persistencia debe detectar y rechazar datos corruptos. & Vigente \\
+
+RNF-04 & La arquitectura debe permitir ejecución web y consola. & Vigente \\
+
+RNF-05 & El empaquetado debe soportar Linux y Windows mediante \textit{jpackage}. & Vigente \\
+\bottomrule
+\end{tabular}
+\caption*{\textit{Nota.} Elaboración propia.}
+\end{table}
+
+% =========================
+% CASOS DE USO
+% =========================
+
+\section{Casos de Uso}
+
+Los siguientes casos de uso describen el comportamiento observable del sistema desde la perspectiva del jugador.
+
+\subsection{CU-01: Iniciar Nueva Partida}
+
+\textbf{Descripción:} Permite al jugador iniciar una nueva campaña seleccionando un héroe y un tema de mazmorra.
+
+\textbf{Actores:} Jugador; Sistema.
+
+\textbf{Precondiciones:}
+\begin{enumerate}[label=\arabic*.]
+    \item El sistema se encuentra inicializado.
+    \item No existe una partida activa.
+\end{enumerate}
+
+\textbf{Flujo Normal:}
+\begin{enumerate}[label=\arabic*.]
+    \item El jugador selecciona ``Nueva Partida''.
+    \item El sistema presenta opciones de héroe.
+    \item El jugador selecciona un héroe.
+    \item El sistema crea una sesión válida.
+    \item Se genera la mazmorra procedural.
+\end{enumerate}
+
+\textbf{Poscondiciones:}
+\begin{enumerate}[label=\arabic*.]
+    \item Existe una sesión válida.
+    \item La mazmorra fue generada correctamente.
+\end{enumerate}
+
+% =========================
+% PROTOTIPADO
+% =========================
+
+\section{Prototipado de Interfaz}
+
+El prototipado de la interfaz de usuario de Eranthia fue desarrollado utilizando Google Stitch.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{prototipo.png}
+    \caption{Capturas del prototipo de interfaz de Eranthia.}
+    \label{fig:prototipo}
+\end{figure}
+
+% =========================
+% POO
+% =========================
+
+\section{Pilares de la Programación Orientada a Objetos}
+
+La programación orientada a objetos se fundamenta en encapsulamiento, herencia, polimorfismo y abstracción \parencite{cairo2022}.
+
+\subsection{Encapsulamiento}
+
+El encapsulamiento protege el estado interno de los objetos y expone únicamente las operaciones necesarias.
+
+\subsection{Herencia}
+
+La herencia permite reutilizar y extender comportamiento entre clases relacionadas.
+
+\subsection{Polimorfismo}
+
+El polimorfismo permite tratar múltiples implementaciones mediante interfaces comunes.
+
+\subsection{Abstracción}
+
+La abstracción modela entidades del dominio ocultando detalles innecesarios.
+
+% =========================
+% SOLID
+% =========================
+
+\section{Principios SOLID}
+
+Los principios SOLID fueron formulados por Robert C. Martin \parencite{martin2003}.
+
+\subsection{Single Responsibility Principle}
+
+Cada clase debe tener una única razón para cambiar.
+
+\subsection{Open/Closed Principle}
+
+Las entidades deben estar abiertas para extensión y cerradas para modificación.
+
+\subsection{Liskov Substitution Principle}
+
+Las subclases deben poder sustituir correctamente a sus clases base.
+
+\subsection{Interface Segregation Principle}
+
+Los clientes no deben depender de interfaces que no utilizan.
+
+\subsection{Dependency Inversion Principle}
+
+Los módulos de alto nivel deben depender de abstracciones.
+
+% =========================
+% REFERENCIAS
+% =========================
+
+\newpage
+
+\begin{thebibliography}{}
+
+\bibitem[American Psychological Association(2020)]{apa2020}
+American Psychological Association. (2020). \textit{Publication manual of the American Psychological Association} (7th ed.). APA Publishing.
+
+\bibitem[Cairó Battistutti(2022)]{cairo2022}
+Cairó Battistutti, O. (2022). \textit{Aprende a programar en Java}. Marcombo.
+
+\bibitem[Gamma et al.(1994)]{gamma1994}
+Gamma, E., Helm, R., Johnson, R., \& Vlissides, J. (1994). \textit{Design patterns: Elements of reusable object-oriented software}. Addison-Wesley.
+
+\bibitem[ISO/IEC/IEEE(2018)]{iso29148}
+ISO/IEC/IEEE. (2018). \textit{Systems and software engineering — Life cycle processes — Requirements engineering (ISO/IEC/IEEE 29148:2018)}.
+
+\bibitem[Martin(2003)]{martin2003}
+Martin, R. C. (2003). \textit{Agile software development: Principles, patterns, and practices}. Pearson Education.
+
+\bibitem[Oracle Corporation(2021)]{oracle2021}
+Oracle Corporation. (2021). \textit{Java Platform, Standard Edition 17 documentation}. https://docs.oracle.com/en/java/javase/17/
+
+\end{thebibliography}
+
+\end{document}

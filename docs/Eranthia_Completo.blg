@@ -1,0 +1,9 @@
+[0] Config.pm:328> INFO - This is Biber 2.21
+[1] Config.pm:331> INFO - Logfile is 'Eranthia_Completo.blg'
+[123] biber:342> INFO - === mar may 26, 2026, 22:15:27
+[145] Biber.pm:421> INFO - Reading 'Eranthia_Completo.bcf'
+[235] Biber.pm:1002> INFO - Found 0 citekeys in bib section 0
+[258] bbl.pm:676> INFO - Writing 'Eranthia_Completo.bbl' with encoding 'UTF-8'
+[259] bbl.pm:779> INFO - Output to Eranthia_Completo.bbl
+[259] Biber.pm:132> WARN - The file 'Eranthia_Completo.bcf' does not contain any citations!
+[259] Biber.pm:134> INFO - WARNINGS: 1
