@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guion — Eranthia: Dungeon Crawler Patterns</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0c0a;
+  --surface: #1a1612;
+  --surface2: #231e18;
+  --gold: #c9a84c;
+  --gold-light: #f0d080;
+  --gold-dim: #7a6328;
+  --ink: #ede0c8;
+  --ink-dim: #9a8b72;
+  --ink-faint: #5a5040;
+  --border: rgba(201,168,76,0.18);
+  --border-strong: rgba(201,168,76,0.4);
+  --red: #c0392b;
+  --blue: #2980b9;
+  --green: #27ae60;
+  --purple: #6c5ce7;
+  --accent-fire: #e4572e;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 17px;
+  line-height: 1.75;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+aside {
+  width: 260px;
+  min-width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 28px 0;
+  flex-shrink: 0;
+}
+
+aside h2 {
+  font-family: "Cinzel", serif;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  padding: 0 22px;
+  margin-bottom: 16px;
+}
+
+.nav-section {
+  margin-bottom: 8px;
+}
+
+.nav-section-label {
+  font-family: "Cinzel", serif;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  padding: 8px 22px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 22px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--ink-dim);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.nav-item:hover { background: rgba(201,168,76,0.06); color: var(--ink); }
+
+.nav-item.active {
+  border-left-color: var(--gold);
+  background: rgba(201,168,76,0.1);
+  color: var(--gold);
+}
+
+.nav-num {
+  font-family: "Cinzel", serif;
+  font-size: 10px;
+  color: var(--ink-faint);
+  min-width: 20px;
+}
+
+.nav-time {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* ── MAIN ── */
+main {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+  max-width: 900px;
+}
+
+/* ── SLIDE BLOCK ── */
+.slide-block {
+  padding: 52px 64px;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 0;
+}
+
+.slide-block:last-child { border-bottom: none; }
+
+/* Slide header */
+.slide-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.slide-num {
+  font-family: "Cinzel", serif;
+  font-size: 11px;
+  color: var(--gold-dim);
+  letter-spacing: 0.15em;
+  min-width: 32px;
+  flex-shrink: 0;
+}
+
+.slide-title-text {
+  font-family: "Cinzel", serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--gold-light);
+  flex: 1;
+}
+
+.slide-timing {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--ink-faint);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ── SCRIPT SECTIONS ── */
+.script-section {
+  margin-bottom: 28px;
+}
+
+.section-label {
+  font-family: "Cinzel", serif;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Speech — what you actually say */
+.speech {
+  background: var(--surface);
+  border-left: 3px solid var(--gold);
+  padding: 18px 22px;
+  border-radius: 0 4px 4px 0;
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--ink);
+  position: relative;
+}
+
+.speech p + p { margin-top: 12px; }
+
+/* Keyword highlight inside speech */
+.kw {
+  color: var(--gold);
+  font-weight: 500;
+}
+
+/* Technical term */
+.tech {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  background: rgba(201,168,76,0.1);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--gold);
+}
+
+/* Notes — director's notes, not spoken */
+.notes {
+  font-size: 14px;
+  color: var(--ink-dim);
+  font-style: italic;
+  padding: 12px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.02);
+}
+
+.notes strong { font-style: normal; color: var(--ink); font-weight: 500; }
+
+/* Emphasis box — key message of the slide */
+.key-message {
+  background: rgba(201,168,76,0.07);
+  border: 1px solid var(--border-strong);
+  padding: 14px 18px;
+  border-radius: 4px;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.key-message strong { color: var(--gold); }
+
+/* Checklist */
+.checklist {
+  list-style: none;
+  font-size: 15px;
+}
+
+.checklist li {
+  padding: 5px 0 5px 24px;
+  position: relative;
+  color: var(--ink-dim);
+}
+
+.checklist li::before {
+  content: "›";
+  position: absolute;
+  left: 6px;
+  color: var(--gold);
+}
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 260px;
+  right: 0;
+  height: 2px;
+  background: var(--surface2);
+  z-index: 100;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  width: 0%;
+  transition: width 0.3s;
+}
+
+/* ── TIMER ── */
+.timer-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 20px;
+  color: var(--gold);
+  cursor: pointer;
+  user-select: none;
+  z-index: 200;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timer-widget:hover { background: var(--surface2); }
+
+.timer-label {
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.15em;
+  display: block;
+  line-height: 1;
+}
+
+.timer-danger { color: var(--accent-fire) !important; }
+
+/* ── COVER ── */
+.cover {
+  padding: 72px 64px 52px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.cover h1 {
+  font-family: "Cinzel", serif;
+  font-size: 38px;
+  font-weight: 600;
+  color: var(--gold-light);
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.cover h2 {
+  font-family: "Cinzel", serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--ink-dim);
+  letter-spacing: 0.18em;
+  margin-bottom: 32px;
+}
+
+.cover-meta {
+  font-size: 14px;
+  color: var(--ink-faint);
+  margin: 4px 0;
+  font-style: italic;
+}
+
+.cover-divider {
+  width: 120px;
+  height: 1px;
+  background: var(--border-strong);
+  margin: 28px auto;
+}
+
+.cover-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 24px;
+}
+
+.cover-stat {
+  text-align: center;
+}
+
+.cover-stat-num {
+  font-family: "Cinzel", serif;
+  font-size: 26px;
+  color: var(--gold);
+  display: block;
+}
+
+.cover-stat-label {
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── TIMELINE TOTALS ── */
+.time-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 40px 64px;
+  border-bottom: 1px solid var(--border);
+}
+
+.time-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.time-card-num {
+  font-family: "Cinzel", serif;
+  font-size: 22px;
+  color: var(--gold);
+  display: block;
+}
+
+.time-card-label {
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: block;
+  margin-top: 4px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  aside { width: 200px; min-width: 200px; }
+  .slide-block, .cover, .time-summary { padding-left: 32px; padding-right: 32px; }
+  .progress-bar { left: 200px; }
+}
+
+@media (max-width: 680px) {
+  aside { display: none; }
+  .progress-bar { left: 0; }
+  body { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside>
+  <h2>Guion · Eranthia</h2>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Intro</div>
+    <a class="nav-item active" href="#s1" onclick="setActive(this)">
+      <span class="nav-num">01</span>Portada
+      <span class="nav-time">0:00</span>
+    </a>
+    <a class="nav-item" href="#s2" onclick="setActive(this)">
+      <span class="nav-num">02</span>El Problema
+      <span class="nav-time">0:30</span>
+    </a>
+    <a class="nav-item" href="#s3" onclick="setActive(this)">
+      <span class="nav-num">03</span>La Solución
+      <span class="nav-time">1:10</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Especificación</div>
+    <a class="nav-item" href="#s4" onclick="setActive(this)">
+      <span class="nav-num">04</span>Flujo del Juego
+      <span class="nav-time">2:00</span>
+    </a>
+    <a class="nav-item" href="#s5" onclick="setActive(this)">
+      <span class="nav-num">05</span>Historias de Usuario
+      <span class="nav-time">2:40</span>
+    </a>
+    <a class="nav-item" href="#s6" onclick="setActive(this)">
+      <span class="nav-num">06</span>Req. Funcionales
+      <span class="nav-time">3:10</span>
+    </a>
+    <a class="nav-item" href="#s7" onclick="setActive(this)">
+      <span class="nav-num">07</span>Req. No Funcionales
+      <span class="nav-time">3:45</span>
+    </a>
+    <a class="nav-item" href="#s8" onclick="setActive(this)">
+      <span class="nav-num">08</span>Casos de Uso
+      <span class="nav-time">4:20</span>
+    </a>
+    <a class="nav-item" href="#s9" onclick="setActive(this)">
+      <span class="nav-num">09</span>Arquitectura
+      <span class="nav-time">4:55</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Patrones</div>
+    <a class="nav-item" href="#s10" onclick="setActive(this)">
+      <span class="nav-num">10</span>Vista General
+      <span class="nav-time">5:30</span>
+    </a>
+    <a class="nav-item" href="#s11" onclick="setActive(this)">
+      <span class="nav-num">11</span>State
+      <span class="nav-time">6:10</span>
+    </a>
+    <a class="nav-item" href="#s12" onclick="setActive(this)">
+      <span class="nav-num">12</span>Strategy
+      <span class="nav-time">6:50</span>
+    </a>
+    <a class="nav-item" href="#s13" onclick="setActive(this)">
+      <span class="nav-num">13</span>Command
+      <span class="nav-time">7:30</span>
+    </a>
+    <a class="nav-item" href="#s14" onclick="setActive(this)">
+      <span class="nav-num">14</span>Composite
+      <span class="nav-time">8:10</span>
+    </a>
+    <a class="nav-item" href="#s15" onclick="setActive(this)">
+      <span class="nav-num">15</span>Decorator
+      <span class="nav-time">8:45</span>
+    </a>
+    <a class="nav-item" href="#s16" onclick="setActive(this)">
+      <span class="nav-num">16</span>Memento
+      <span class="nav-time">9:20</span>
+    </a>
+    <a class="nav-item" href="#s17" onclick="setActive(this)">
+      <span class="nav-num">17</span>Observer
+      <span class="nav-time">9:55</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Principios</div>
+    <a class="nav-item" href="#s18" onclick="setActive(this)">
+      <span class="nav-num">18</span>SOLID
+      <span class="nav-time">10:30</span>
+    </a>
+    <a class="nav-item" href="#s19" onclick="setActive(this)">
+      <span class="nav-num">19</span>Pilares POO
+      <span class="nav-time">11:05</span>
+    </a>
+    <a class="nav-item" href="#s20" onclick="setActive(this)">
+      <span class="nav-num">20</span>Evidencia Técnica
+      <span class="nav-time">11:40</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Cierre</div>
+    <a class="nav-item" href="#s21" onclick="setActive(this)">
+      <span class="nav-num">21</span>Demostración
+      <span class="nav-time">12:20</span>
+    </a>
+    <a class="nav-item" href="#s22" onclick="setActive(this)">
+      <span class="nav-num">22</span>Conclusiones
+      <span class="nav-time">13:10</span>
+    </a>
+    <a class="nav-item" href="#s23" onclick="setActive(this)">
+      <span class="nav-num">23</span>Preguntas
+      <span class="nav-time">14:00</span>
+    </a>
+  </div>
+</aside>
+
+<!-- PROGRESS -->
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- MAIN -->
+<main id="mainContent">
+
+  <!-- COVER -->
+  <div class="cover">
+    <h1>ERANTHIA</h1>
+    <h2>Dungeon Crawler Patterns — Guion de Defensa</h2>
+    <p class="cover-meta">Andrés Felipe Martínez Henao · Patrones de Diseño de Software · UTP</p>
+    <div class="cover-divider"></div>
+    <p style="color:var(--ink-dim); font-size:15px; max-width:540px; margin:0 auto 24px;">Guion completo para una defensa de 15 minutos. Cada slide incluye el texto exacto a decir, notas de presentación y tiempo estimado.</p>
+    <div class="cover-stats">
+      <div class="cover-stat"><span class="cover-stat-num">23</span><span class="cover-stat-label">Slides</span></div>
+      <div class="cover-stat"><span class="cover-stat-num">15</span><span class="cover-stat-label">Minutos</span></div>
+      <div class="cover-stat"><span class="cover-stat-num">11</span><span class="cover-stat-label">Patrones</span></div>
+      <div class="cover-stat"><span class="cover-stat-num">221</span><span class="cover-stat-label">Tests</span></div>
+    </div>
+  </div>
+
+  <!-- TIME SUMMARY -->
+  <div class="time-summary">
+    <div class="time-card"><span class="time-card-num">~30s</span><span class="time-card-label">Portada + Intro</span></div>
+    <div class="time-card"><span class="time-card-num">~3:30</span><span class="time-card-label">Especificación</span></div>
+    <div class="time-card"><span class="time-card-num">~5:30</span><span class="time-card-label">Patrones</span></div>
+    <div class="time-card"><span class="time-card-num">~2:00</span><span class="time-card-label">SOLID + POO</span></div>
+    <div class="time-card"><span class="time-card-num">~3:00</span><span class="time-card-label">Cierre + Demo</span></div>
+  </div>
+
+  <!-- ── SLIDE 01 ── -->
+  <div class="slide-block" id="s1">
+    <div class="slide-header">
+      <span class="slide-num">01</span>
+      <span class="slide-title-text">Portada</span>
+      <span class="slide-timing">0:00 → 0:30</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>Buenos días. Mi nombre es <span class="kw">Andrés Felipe Martínez Henao</span>, y hoy voy a presentarles <span class="kw">Eranthia: Dungeon Crawler Patterns</span>, un proyecto que desarrollé para la asignatura de Patrones de Diseño de Software.</p>
+        <p>Eranthia es un <span class="kw">videojuego RPG de exploración de mazmorras por turnos</span>, construido en Java 17, cuyo propósito principal es demostrar la implementación real de once patrones de diseño del catálogo GoF dentro de un sistema productivo y jugable.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Notas</div>
+      <div class="notes">
+        <strong>Tono:</strong> Directo y seguro. No pedir disculpas. La presentación dura exactamente 15 minutos, así que arranca con energía. Puedes hacer una pausa corta después de decir "videojuego RPG" para dejar que la audiencia vea el slide.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 02 ── -->
+  <div class="slide-block" id="s2">
+    <div class="slide-header">
+      <span class="slide-num">02</span>
+      <span class="slide-title-text">El Problema</span>
+      <span class="slide-timing">0:30 → 1:10</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El punto de partida del proyecto es una pregunta concreta: <span class="kw">¿por qué aprender patrones con ejemplos aislados es insuficiente?</span></p>
+        <p>Cuando estudiamos un patrón en un ejemplo de veinte líneas, nos quedamos con tres problemas. Primero, el <span class="kw">conocimiento queda fragmentado</span>: los patrones parecen recetas desconectadas entre sí. Segundo, <span class="kw">el código sin estructura real se vuelve insostenible</span> desde el primer cambio de requerimientos. Y tercero, y esto es lo más importante: <span class="kw">es casi imposible validar si realmente comprendemos la arquitectura</span>, porque nunca la hemos aplicado bajo presión de un sistema completo.</p>
+        <p>Eranthia nace precisamente para resolver eso.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Notas</div>
+      <div class="notes">
+        Señala cada punto del timeline mientras lo mencionas. Usa una pausa breve antes de "Eranthia nace precisamente para resolver eso" — es la transición al slide siguiente.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 03 ── -->
+  <div class="slide-block" id="s3">
+    <div class="slide-header">
+      <span class="slide-num">03</span>
+      <span class="slide-title-text">La Solución</span>
+      <span class="slide-timing">1:10 → 2:00</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>La solución fue construir un videojuego RPG funcional en el que <span class="kw">cada mecánica del juego esté respaldada por al menos un patrón de diseño GoF</span>, integrado en el flujo de producción real del sistema.</p>
+        <p>El juego tiene cinco módulos jugables: <span class="kw">exploración</span> de mazmorras procedurales, <span class="kw">combate</span> por turnos con IA adaptativa, un <span class="kw">inventario</span> de estructura jerárquica, <span class="kw">persistencia</span> robusta con guardado en slots, y un sistema de <span class="kw">progresión</span> de campaña por biomas temáticos.</p>
+        <p>Lo importante es que ningún patrón existe solo como demostración: todos participan en la cadena productiva <span class="tech">GameRuntime → casos de uso → dominio</span>.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Clave del slide</div>
+      <div class="key-message"><strong>Mensaje principal:</strong> No es un catálogo de ejemplos — es un sistema real donde los patrones colaboran.</div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 04 ── -->
+  <div class="slide-block" id="s4">
+    <div class="slide-header">
+      <span class="slide-num">04</span>
+      <span class="slide-title-text">Flujo Completo del Juego</span>
+      <span class="slide-timing">2:00 → 2:40</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El flujo completo del juego sigue esta secuencia: el jugador comienza en el <span class="kw">Menú Principal</span>, selecciona su héroe, explora la mazmorra, encuentra un combate, recoge un tesoro, guarda el progreso y avanza a una nueva zona.</p>
+        <p>Este flujo lo gobierna el patrón <span class="kw">State</span>, que vamos a ver en detalle más adelante. Cada transición entre pantallas es una transición de estado explícita en <span class="tech">GameStateContext</span>, y cada estado decide qué acciones son válidas en su contexto.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Notas</div>
+      <div class="notes">
+        Señala el diagrama de flujo mientras enumeras los pasos. Este slide es de ritmo rápido, no te detengas mucho aquí. Su función es orientar a la audiencia en el sistema antes de entrar a los detalles.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 05 ── -->
+  <div class="slide-block" id="s5">
+    <div class="slide-header">
+      <span class="slide-num">05</span>
+      <span class="slide-title-text">Historias de Usuario</span>
+      <span class="slide-timing">2:40 → 3:10</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El proyecto nació de cinco historias de usuario, todas implementadas y verificadas en el runtime productivo.</p>
+        <p><span class="kw">HU-01:</span> explorar mazmorras para ganar experiencia. <span class="kw">HU-02:</span> combatir enemigos con IA inteligente. <span class="kw">HU-03:</span> administrar un inventario jerárquico. <span class="kw">HU-04:</span> guardar y cargar el progreso entre sesiones. <span class="kw">HU-05:</span> mejorar al personaje mediante progresión de campaña.</p>
+        <p>Cada una de estas historias tiene un caso de uso formal asociado, sus requerimientos, y está cubierta por pruebas automatizadas.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 06 ── -->
+  <div class="slide-block" id="s6">
+    <div class="slide-header">
+      <span class="slide-num">06</span>
+      <span class="slide-title-text">Requerimientos Funcionales</span>
+      <span class="slide-timing">3:10 → 3:45</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>En cuanto a los requerimientos funcionales, tenemos cinco definidos bajo el estándar ISO/IEC/IEEE 29148, todos en estado <span class="kw">Implementado</span>.</p>
+        <p><span class="tech">RF-01</span> cubre la creación de personajes con selección de héroe y tema de campaña. <span class="tech">RF-02</span> define el sistema de combate por turnos. <span class="tech">RF-03</span> especifica el inventario jerárquico con ítems consumibles. <span class="tech">RF-04</span> establece la persistencia con guardado en archivos. Y <span class="tech">RF-05</span> describe el sistema de efectos de estado decorables.</p>
+        <p>La verificación de todos ellos está respaldada por las 221 pruebas automatizadas que vamos a ver más adelante.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Notas</div>
+      <div class="notes">
+        Puedes pasar por los RF con ritmo de checklist. No los expliques en profundidad — eso viene en los slides de patrones. El mensaje aquí es: están todos implementados y verificados.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 07 ── -->
+  <div class="slide-block" id="s7">
+    <div class="slide-header">
+      <span class="slide-num">07</span>
+      <span class="slide-title-text">Requerimientos No Funcionales</span>
+      <span class="slide-timing">3:45 → 4:20</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>Los requerimientos no funcionales definen las cualidades de calidad del sistema. Los cinco más relevantes son: <span class="kw">rendimiento</span> con respuesta inmediata en operaciones de combate; <span class="kw">robustez</span>, garantizando que no hay excepciones no manejadas en ejecución; <span class="kw">mantenibilidad</span> con código limpio y documentación canónica; <span class="kw">extensibilidad</span>, que se demuestra en cómo agregar un nuevo bioma requiere solo implementar una interfaz; y <span class="kw">testabilidad</span> con cobertura real de los componentes críticos.</p>
+        <p>Estos requerimientos no son aspiracionales — están evidenciados en la arquitectura real del sistema.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 08 ── -->
+  <div class="slide-block" id="s8">
+    <div class="slide-header">
+      <span class="slide-num">08</span>
+      <span class="slide-title-text">Casos de Uso</span>
+      <span class="slide-timing">4:20 → 4:55</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El actor principal del sistema es el jugador, que interactúa con cinco casos de uso formales: <span class="kw">iniciar partida</span>, donde <span class="tech">GameSessionFactory</span> construye la sesión con su héroe y tema; <span class="kw">resolver combate</span>, donde <span class="tech">CombatFacade</span> orquesta el motor de turnos; <span class="kw">gestionar inventario</span>, navegando la jerarquía Composite; <span class="kw">guardar y cargar</span> mediante el patrón Memento; y <span class="kw">explorar la mazmorra</span>, que es el hub central del game loop.</p>
+        <p>Todos estos casos de uso están documentados con precondiciones, flujos alternativos y poscondiciones, y cada uno tiene pruebas de integración asociadas.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Notas</div>
+      <div class="notes">
+        Señala el diagrama UML mientras nombras cada caso de uso. Si el evaluador pregunta por alguno en detalle, puedes referirte al documento escrito de especificación. Aquí el objetivo es dar una vista aérea.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 09 ── -->
+  <div class="slide-block" id="s9">
+    <div class="slide-header">
+      <span class="slide-num">09</span>
+      <span class="slide-title-text">Arquitectura General</span>
+      <span class="slide-timing">4:55 → 5:30</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>La arquitectura sigue el modelo de capas limpias. La <span class="kw">capa UI</span> recibe comandos del jugador y los envía al orquestador. La <span class="kw">capa Application</span>, centrada en <span class="tech">GameRuntime</span>, valida los payloads mediante <span class="tech">RuntimePayloadValidator</span> y ejecuta los casos de uso. La <span class="kw">capa Domain</span> contiene la lógica de negocio: combate, inventario, personajes y dungeon. Y la <span class="kw">capa Persistence</span> gestiona el guardado mediante Memento.</p>
+        <p>La regla fundamental es que <span class="kw">cada capa depende solo de abstracciones</span>, nunca de implementaciones concretas de capas inferiores. Esto es DIP en acción, y es lo que permite que la UI web y la consola compartan el mismo núcleo sin modificar una sola línea de dominio.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Clave del slide</div>
+      <div class="key-message"><strong>Mensaje principal:</strong> Una arquitectura limpia permite cambiar la interfaz sin tocar el dominio. Eso es SOLID en escala.</div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 10 ── -->
+  <div class="slide-block" id="s10">
+    <div class="slide-header">
+      <span class="slide-num">10</span>
+      <span class="slide-title-text">11 Patrones Implementados — Vista General</span>
+      <span class="slide-timing">5:30 → 6:10</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El núcleo del proyecto: <span class="kw">once patrones GoF</span> implementados e integrados en el runtime productivo, verificados por pruebas automatizadas.</p>
+        <p>Los creacionales cubren la <span class="kw">Factory Method</span> para construcción de personajes, <span class="kw">Abstract Factory</span> para familias temáticas de mazmorras, y <span class="kw">Builder</span> para generación procedural. Los estructurales incluyen <span class="kw">Composite</span> para el inventario jerárquico, <span class="kw">Decorator</span> para efectos de estado apilables, y <span class="kw">Facade</span> para el subsistema de combate. Y los de comportamiento son <span class="kw">Command</span>, <span class="kw">Strategy</span>, <span class="kw">Observer</span>, <span class="kw">Memento</span> y <span class="kw">State</span>.</p>
+        <p>Voy a profundizar en los siete más representativos.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Notas</div>
+      <div class="notes">
+        Señala el grid de badges mientras los nombras por categoría. El cierre "voy a profundizar en los siete más representativos" es una transición natural y muestra que tienes criterio de selección — no estás recitando mecánicamente los once.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 11 ── -->
+  <div class="slide-block" id="s11">
+    <div class="slide-header">
+      <span class="slide-num">11</span>
+      <span class="slide-title-text">State — GameStateContext</span>
+      <span class="slide-timing">6:10 → 6:50</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El patrón State es el sistema nervioso del juego. <span class="tech">GameStateContext</span> mantiene el estado activo y delega en él la validación de acciones y transiciones.</p>
+        <p>El flujo va de <span class="tech">MenuState</span> a <span class="tech">ExplorationState</span>, de ahí a <span class="tech">CombatState</span>, luego a <span class="tech">TreasureState</span>, y finalmente a <span class="tech">GameOverState</span>. Lo importante es que <span class="kw">cada estado decide qué acciones acepta y qué transiciones permite</span>. Si intentas ejecutar una acción de combate desde el menú, el sistema lanza una excepción de validación antes de que el comando llegue al dominio.</p>
+        <p>Esto elimina completamente las cadenas de <span class="tech">if/else</span> sobre strings de pantalla que existirían sin este patrón.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Posible pregunta</div>
+      <div class="notes">
+        <strong>P: ¿Cómo se implementa la transición entre estados?</strong> R: <span class="tech">GameSession.transitionTo(nuevoEstado)</span> delega en <span class="tech">GameStateContext.cambiarEstado()</span>, que llama <span class="tech">onExit()</span> del estado anterior y <span class="tech">onEnter()</span> del nuevo. Las transiciones inválidas lanzan <span class="tech">IllegalStateException</span>.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 12 ── -->
+  <div class="slide-block" id="s12">
+    <div class="slide-header">
+      <span class="slide-num">12</span>
+      <span class="slide-title-text">Strategy — AIStrategy</span>
+      <span class="slide-timing">6:50 → 7:30</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El patrón Strategy gobierna la inteligencia artificial de los enemigos. La interfaz <span class="tech">AIStrategy</span> tiene una sola responsabilidad: dado el estado del combate, devolver un comando de acción.</p>
+        <p>La selección de estrategia es <span class="kw">adaptativa</span>: cuando el enemigo tiene más del 75% de vida, usa <span class="tech">AggressiveStrategy</span>; entre 50 y 75, <span class="tech">IntelligentStrategy</span>; entre 25 y 50, <span class="tech">DefensiveStrategy</span>; y por debajo del 25%, vuelve a modo desesperado con <span class="tech">IntelligentStrategy</span>. Esta lógica vive en <span class="tech">CombatSystem.selectEnemyStrategy(hp%)</span> y se evalúa en cada turno.</p>
+        <p>El resultado es un enemigo que el jugador percibe como táctico, sin que el código de combate conozca los detalles de ninguna estrategia concreta.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Posible pregunta</div>
+      <div class="notes">
+        <strong>P: ¿El jugador también tiene una Strategy?</strong> R: Sí, mediante el enum <span class="tech">PlayerCombatStyle</span>, el jugador puede cambiar su estilo táctico consumiendo recursos. El caso de uso <span class="tech">SetCombatStyleUseCase</span> valida que el jugador tenga suficiente recurso antes de aplicar el cambio.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 13 ── -->
+  <div class="slide-block" id="s13">
+    <div class="slide-header">
+      <span class="slide-num">13</span>
+      <span class="slide-title-text">Command — CommandInvoker</span>
+      <span class="slide-timing">7:30 → 8:10</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El patrón Command unifica todas las acciones del sistema bajo un contrato común. La interfaz <span class="tech">Command</span> expone <span class="tech">execute()</span>, <span class="tech">undo()</span> y <span class="tech">canExecute()</span>.</p>
+        <p>En combate, <span class="tech">CombatSystem.playerAttack()</span> crea un <span class="tech">AttackCommand</span> y lo pasa al <span class="tech">CommandInvoker</span>, que verifica <span class="tech">canExecute()</span>, ejecuta y registra en historial. Lo mismo ocurre con el turno enemigo: la IA selecciona un <span class="tech">AttackCommand</span> que se procesa por el mismo invoker. <span class="kw">No hay rutas paralelas de daño.</span></p>
+        <p>En inventario, <span class="tech">UseItemCommand</span> consume el ítem mediante <span class="tech">Inventory.removeSimpleItemRecursive()</span> y aplica su efecto. Esto garantiza que si el uso falla a mitad del proceso, no hay estado corrompido.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Posible pregunta</div>
+      <div class="notes">
+        <strong>P: ¿Todos los comandos soportan undo?</strong> R: Reversibilidad parcial por diseño. <span class="tech">AttackCommand</span> no soporta undo porque el daño ya ocurrió. <span class="tech">DefendCommand</span> y <span class="tech">SkillCommand</span> sí. <span class="tech">UseItemCommand</span> tampoco, por seguridad de estado del inventario.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 14 ── -->
+  <div class="slide-block" id="s14">
+    <div class="slide-header">
+      <span class="slide-num">14</span>
+      <span class="slide-title-text">Composite — Inventario Jerárquico</span>
+      <span class="slide-timing">8:10 → 8:45</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El patrón Composite modela el inventario del jugador. La clase abstracta <span class="tech">ItemComponent</span> define el contrato común. <span class="tech">SimpleItem</span> es la hoja —un ítem individual— y <span class="tech">ContainerItem</span> es el nodo compuesto que puede contener otros <span class="tech">ItemComponent</span>, incluyendo otros contenedores.</p>
+        <p>El árbol puede tener profundidad arbitraria: una mochila que contiene un cofre que contiene una bolsa secreta. La UI recibe la lista aplanada mediante <span class="tech">Inventory.simpleItems()</span>, pero la estructura interna se preserva íntegra. Y esto es crítico para la persistencia: <span class="tech">GameSessionMementoMapper</span> serializa el árbol de forma recursiva, de modo que al cargar la partida, la jerarquía se restaura exactamente, sin aplanamiento.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Posible pregunta</div>
+      <div class="notes">
+        <strong>P: ¿Cómo se usa un ítem dentro de un contenedor anidado?</strong> R: <span class="tech">UseItemUseCase</span> llama a <span class="tech">Inventory.useItem(itemId)</span>, que internamente ejecuta <span class="tech">removeSimpleItemRecursive()</span> buscando en toda la profundidad del árbol. El ítem se encuentra y elimina sin que el caso de uso conozca la estructura.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 15 ── -->
+  <div class="slide-block" id="s15">
+    <div class="slide-header">
+      <span class="slide-num">15</span>
+      <span class="slide-title-text">Decorator — Efectos de Estado</span>
+      <span class="slide-timing">8:45 → 9:20</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El patrón Decorator resuelve uno de los problemas más comunes en sistemas de combate: aplicar efectos acumulables sin multiplicar ramas condicionales.</p>
+        <p><span class="tech">CharacterDecorator</span> extiende <span class="tech">Personaje</span> y envuelve una instancia del mismo tipo. Así, podemos apilar efectos: <span class="tech">PoisonEffect</span> aplica daño periódico al inicio del turno, <span class="tech">BurnEffect</span> hace lo mismo con daño de fuego, <span class="tech">StunEffect</span> provoca pérdida de turno, <span class="tech">StrengthEffect</span> multiplica el daño de salida, y <span class="tech">GuardEffect</span> mitiga el daño entrante.</p>
+        <p>El orquestador es <span class="tech">CombatStatusDecoratorPipeline</span>, que materializa los decoradores según el estado de combate. Cada efecto tiene un límite de tres acumulaciones para mantener la jugabilidad.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Clave del slide</div>
+      <div class="key-message"><strong>Mensaje principal:</strong> Agregar un nuevo efecto es crear una clase que extiende <span class="tech">CharacterDecorator</span>. Cero cambios en el motor de combate. Eso es el principio Open/Closed.</div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 16 ── -->
+  <div class="slide-block" id="s16">
+    <div class="slide-header">
+      <span class="slide-num">16</span>
+      <span class="slide-title-text">Memento — Guardado y Restauración</span>
+      <span class="slide-timing">9:20 → 9:55</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El patrón Memento implementa la persistencia del juego. El originator real es <span class="tech">GameSessionMementoMapper</span>, que transforma una <span class="tech">GameSession</span> compleja en un objeto <span class="tech">GameMemento</span> inmutable. El caretaker es <span class="tech">GameCaretaker</span>, que gestiona el almacenamiento físico en archivos <span class="tech">.save</span>.</p>
+        <p>Un detalle importante de calidad: el sistema implementa <span class="kw">versionado de esquema</span>. Cada memento incluye <span class="tech">schemaVersion = "1.0"</span>. Al cargar, se valida esta versión, y si no coincide, el sistema lanza una <span class="tech">SaveDataCorruptionException</span> descriptiva en lugar de silenciar el error.</p>
+        <p>Además, <span class="tech">UseCaseTransactionSupport</span> usa Memento como mecanismo de rollback: si un caso de uso falla a mitad de ejecución, el estado de la sesión se revierte al snapshot previo.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 17 ── -->
+  <div class="slide-block" id="s17">
+    <div class="slide-header">
+      <span class="slide-num">17</span>
+      <span class="slide-title-text">Observer — EventManager</span>
+      <span class="slide-timing">9:55 → 10:30</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>El patrón Observer desacopla los emisores de eventos de sus consumidores. El sujeto es <span class="tech">EventManager</span>, y los observadores —<span class="tech">CombatLogger</span>, <span class="tech">StatisticsTracker</span>, <span class="tech">SessionEventFeedObserver</span>— se notifican automáticamente cuando ocurre un evento de juego.</p>
+        <p>Un aspecto crítico de la implementación: los observers son <span class="kw">locales por sesión</span>. <span class="tech">GameSessionFactory</span> instancia un <span class="tech">EventManager</span> fresco para cada sesión y crea observers inmutables que apuntan a esa sesión específica. Esto garantiza que los eventos de una partida no contaminen el log de otra si el sistema corre con múltiples sesiones simultáneas.</p>
+        <p>Internamente, <span class="tech">EventManager</span> usa <span class="tech">CopyOnWriteArrayList</span> para ser thread-safe, y valida cada evento contra <span class="tech">EventContractValidator</span> antes de notificar.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 18 ── -->
+  <div class="slide-block" id="s18">
+    <div class="slide-header">
+      <span class="slide-num">18</span>
+      <span class="slide-title-text">Principios SOLID</span>
+      <span class="slide-timing">10:30 → 11:05</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>Los principios SOLID están presentes en la arquitectura de forma estructural, no cosmética.</p>
+        <p><span class="kw">SRP</span>: <span class="tech">GameRuntime</span> era un God Object, y fue refactorizado en tres colaboradores de responsabilidad única: <span class="tech">RuntimePayloadValidator</span>, <span class="tech">RuntimeSaveSlotManager</span> y <span class="tech">CampaignSessionCoordinator</span>. <span class="kw">OCP</span>: agregar un nuevo bioma temático requiere solo crear una clase que implemente <span class="tech">DungeonThemeFactory</span>, sin modificar nada existente. <span class="kw">LSP</span>: cualquier <span class="tech">AIStrategy</span> concreta puede sustituir a otra sin romper el sistema de combate. <span class="kw">ISP</span>: <span class="tech">GameObserver</span> expone un único método <span class="tech">onEvent()</span>. <span class="kw">DIP</span>: <span class="tech">SaveGameUseCase</span> depende de la abstracción <span class="tech">SessionSnapshotStore</span>, no de <span class="tech">GameCaretaker</span> directamente.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Notas</div>
+      <div class="notes">
+        Señala cada letra del acrónimo en el slide mientras la mencionas. Un ejemplo concreto por principio es suficiente — no intentes cubrir todos los ejemplos del sistema. Ritmo: ~8 segundos por principio.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 19 ── -->
+  <div class="slide-block" id="s19">
+    <div class="slide-header">
+      <span class="slide-num">19</span>
+      <span class="slide-title-text">Pilares de la POO</span>
+      <span class="slide-timing">11:05 → 11:40</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>Los cuatro pilares de la programación orientada a objetos son evidentes a lo largo del sistema.</p>
+        <p><span class="kw">Encapsulamiento</span>: <span class="tech">GameSession</span> expone únicamente métodos controlados; ninguna capa externa accede a sus atributos privados directamente. <span class="kw">Herencia</span>: la jerarquía parte de la clase abstracta <span class="tech">Personaje</span>, de la que derivan héroes y enemigos. <span class="tech">CharacterDecorator</span> también extiende <span class="tech">Personaje</span>, permitiendo el anidamiento de efectos. <span class="kw">Polimorfismo</span>: <span class="tech">CombatSystem</span> invoca <span class="tech">decidirAccion()</span> sobre <span class="tech">AIStrategy</span> sin conocer qué estrategia concreta se ejecuta en tiempo de ejecución. <span class="kw">Abstracción</span>: <span class="tech">CombatFacade</span> oculta más de treinta métodos internos del subsistema de combate detrás de una API limpia.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 20 ── -->
+  <div class="slide-block" id="s20">
+    <div class="slide-header">
+      <span class="slide-num">20</span>
+      <span class="slide-title-text">Evidencia Técnica</span>
+      <span class="slide-timing">11:40 → 12:20</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>La validación del sistema no descansa en descripciones teóricas: descansa en <span class="kw">221 pruebas automatizadas</span>, ejecutadas con <span class="tech">mvn test</span> sobre la rama de entrega, con resultado <span class="kw">cero fallos, cero errores, cero omitidos</span>.</p>
+        <p>Las pruebas se distribuyen en tres niveles: unitarias por módulo —aplicación, dominio, UI, patrones individuales—, de integración por categoría —behavioral, structural, creational—, y end-to-end de contrato, que validan el flujo completo desde <span class="tech">GameRuntime</span> hasta la restauración de sesión desde disco.</p>
+        <p>El proyecto tiene 160 clases productivas en Java, y once documentos de patrón con diagramas Mermaid, cadenas de invocación reales y listas de tests asociados. Todo fue auditado y verificado el 24 de abril de 2026.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Clave del slide</div>
+      <div class="key-message"><strong>Mensaje principal:</strong> 221 tests, 0 fallos. Esta es la diferencia entre declarar que algo funciona y demostrarlo.</div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 21 ── -->
+  <div class="slide-block" id="s21">
+    <div class="slide-header">
+      <span class="slide-num">21</span>
+      <span class="slide-title-text">Demostración</span>
+      <span class="slide-timing">12:20 → 13:10</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion de transición</div>
+      <div class="speech">
+        <p>A continuación voy a hacer una demostración en vivo del juego, siguiendo el flujo completo que describimos al principio.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Flujo de demo recomendado</div>
+      <div class="notes">
+        <strong>Secuencia sugerida (50 segundos):</strong><br><br>
+        1. Lanzar el juego con <code>./scripts/play-gui.sh</code> (o tener la GUI ya abierta).<br>
+        2. Seleccionar héroe Guerrero + tema Poison. Comentar: "Aquí entra Factory Method y Abstract Factory."<br>
+        3. Avanzar 2–3 salas hasta encontrar un enemigo. Comentar: "La exploración usa Builder para generar la mazmorra."<br>
+        4. Ejecutar un ataque. Comentar: "AttackCommand va al CommandInvoker, el enemigo responde con su AIStrategy adaptativa."<br>
+        5. Usar un ítem. Comentar: "UseItemCommand navega el árbol Composite para encontrar y consumir el ítem."<br>
+        6. Guardar en Slot 1. Comentar: "GameSessionMementoMapper serializa el árbol completo, schemaVersion 1.0."<br>
+        7. Opcional: mostrar la suite de tests con <code>mvn test -q</code>.<br><br>
+        <strong>Si algo falla:</strong> Ir directamente al slide de tests y comentar "el juego está corriendo en la suite —221 pruebas lo demuestran". No entrar en pánico.
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Checklist pre-demo</div>
+      <ul class="checklist">
+        <li>GUI abierta y cargada antes de empezar la presentación</li>
+        <li>Java 17 configurado en el PATH del sistema</li>
+        <li>Terminal con <code>mvn test -q</code> listo para ejecutar</li>
+        <li>Guardado existente en Slot 1 para mostrar carga rápida</li>
+        <li>Resolución de pantalla ajustada para que la GUI sea visible</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 22 ── -->
+  <div class="slide-block" id="s22">
+    <div class="slide-header">
+      <span class="slide-num">22</span>
+      <span class="slide-title-text">Conclusiones</span>
+      <span class="slide-timing">13:10 → 14:00</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Guion</div>
+      <div class="speech">
+        <p>Para cerrar, cuatro conclusiones concretas.</p>
+        <p>Primera: Eranthia es un <span class="kw">videojuego funcional y jugable</span> —no una maqueta—, lo que demuestra que los patrones de diseño son herramientas capaces de sostener un dominio complejo bajo presión real de desarrollo.</p>
+        <p>Segunda: los <span class="kw">once patrones están integrados</span> en el flujo de producción. Ninguno existe solo como ejercicio aislado; todos participan en la cadena desde la interfaz hasta el almacenamiento en disco.</p>
+        <p>Tercera: la <span class="kw">arquitectura es extensible</span> por diseño: un nuevo bioma, un nuevo efecto de estado, o un nuevo observador de eventos se agregan implementando una interfaz, sin tocar código existente.</p>
+        <p>Y cuarta: la calidad está <span class="kw">evidenciada</span>, no declarada. 221 pruebas automatizadas con resultado perfecto son la garantía objetiva de que el sistema funciona como se especificó.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 23 ── -->
+  <div class="slide-block" id="s23">
+    <div class="slide-header">
+      <span class="slide-num">23</span>
+      <span class="slide-title-text">Preguntas</span>
+      <span class="slide-timing">14:00 → 15:00</span>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Cierre</div>
+      <div class="speech">
+        <p>Eso es todo de mi parte. <span class="kw">¿Tienen preguntas?</span> Gracias.</p>
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="section-label">Preguntas frecuentes probables</div>
+      <div class="notes">
+        <strong>P: ¿Por qué un videojuego y no una aplicación empresarial?</strong><br>
+        R: Un videojuego tiene exactamente la complejidad correcta para evidenciar patrones: múltiples actores, estado mutable, persistencia, eventos en tiempo real y extensibilidad constante. Una aplicación CRUD hubiera requerido forzar los patrones; aquí son naturales.<br><br>
+        <strong>P: ¿Qué patrón fue más difícil de integrar productivamente?</strong><br>
+        R: Facade. La dificultad no fue técnica sino arquitectónica: GameRuntime tendía a acoplarse directamente a Combat, saltándose la Facade. La solución fue que GameSession.combat() retorne siempre CombatFacade, forzando que todo pase por la interfaz simplificada.<br><br>
+        <strong>P: ¿Cómo se garantiza la integridad de los datos guardados?</strong><br>
+        R: Versionado de esquema con schemaVersion. Al cargar, si la versión no coincide, SaveDataCorruptionException detiene el proceso antes de corromper la sesión activa. Además, UseCaseTransactionSupport hace rollback ante cualquier fallo inesperado.<br><br>
+        <strong>P: ¿Cómo se testea el patrón Observer?</strong><br>
+        R: Con un test de aislamiento de sesión: se crean dos sesiones paralelas, se emiten N eventos en cada una, y se verifica que los contadores y logs son independientes. Esto valida específicamente que los observers son locales, no estáticos compartidos.<br><br>
+        <strong>P: ¿Cuánto tiempo tomó desarrollarlo?</strong><br>
+        R: El proyecto pasó por un ciclo completo de auditoría, remediación y verificación. Cada patrón fue auditado, llevado a calificación 10/10 y documentado. El resultado final es la rama Revision-final del 24 de abril de 2026.
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- TIMER -->
+<div class="timer-widget" id="timerWidget" onclick="toggleTimer()">
+  <div>
+    <span class="timer-label">TIEMPO</span>
+    <span id="timerDisplay">15:00</span>
+  </div>
+</div>
+
+<script>
+function setActive(el) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Progress bar on scroll
+const mainEl = document.getElementById('mainContent');
+const fills = document.querySelectorAll('.progress-fill');
+
+mainEl.addEventListener('scroll', () => {
+  const max = mainEl.scrollHeight - mainEl.clientHeight;
+  const pct = max > 0 ? (mainEl.scrollTop / max) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+
+// Intersection observer for nav highlight
+const slideBlocks = document.querySelectorAll('.slide-block[id]');
+const navItems = document.querySelectorAll('.nav-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === '#' + id) {
+          item.classList.add('active');
+        }
+      });
+    }
+  });
+}, { root: mainEl, rootMargin: '-20% 0px -60% 0px' });
+
+slideBlocks.forEach(b => observer.observe(b));
+
+// Timer: countdown 15:00
+let timerRunning = false;
+let timerSeconds = 900;
+let timerInterval = null;
+const timerDisplay = document.getElementById('timerDisplay');
+const timerWidget = document.getElementById('timerWidget');
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function toggleTimer() {
+  if (!timerRunning) {
+    timerInterval = setInterval(() => {
+      if (timerSeconds > 0) {
+        timerSeconds--;
+        timerDisplay.textContent = formatTime(timerSeconds);
+        if (timerSeconds <= 60) timerDisplay.classList.add('timer-danger');
+      } else {
+        clearInterval(timerInterval);
+        timerDisplay.textContent = '00:00';
+      }
+    }, 1000);
+    timerRunning = true;
+  } else {
+    clearInterval(timerInterval);
+    timerRunning = false;
+  }
+}
+
+// Double-click to reset timer
+timerWidget.addEventListener('dblclick', (e) => {
+  e.stopPropagation();
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = 900;
+  timerDisplay.textContent = '15:00';
+  timerDisplay.classList.remove('timer-danger');
+});
+</script>
+
+</body>
+</html>
