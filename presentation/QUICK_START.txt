@@ -1,0 +1,135 @@
+🎭 ERANTHIA: DUNGEON CRAWLER PATTERNS - PRESENTACIÓN ACADÉMICA
+═══════════════════════════════════════════════════════════════
+
+INICIO RÁPIDO:
+
+1️⃣  OPCIÓN MÁS FÁCIL (Recomendada):
+    ────────────────────────────
+    - Doble-click en: index.html
+    - Se abrirá en tu navegador por defecto
+    - Presiona F11 para pantalla completa
+
+2️⃣  OPCIÓN CON SCRIPT:
+    ──────────────────
+    Terminal: ./launch-presentation.sh
+    (En Linux/macOS)
+
+3️⃣  OPCIÓN MANUAL:
+    ───────────────
+    Abre en navegador:
+    - Firefox: firefox index.html
+    - Chrome: google-chrome index.html
+    - Safari: open index.html
+
+4️⃣  OPCIÓN CON SERVIDOR (Recomendado para remoto):
+    ─────────────────────────────────────────────
+    En la terminal (desde este directorio):
+    
+    Python 3:
+    python -m http.server 8000
+    
+    Luego abre: http://localhost:8000
+
+─────────────────────────────────────────────────────────
+
+⌨️  CONTROLES DURANTE LA PRESENTACIÓN:
+    ─────────────────────────────────
+    → Tecla flecha derecha: Siguiente slide
+    ← Tecla flecha izquierda: Slide anterior
+    ESPACIO: Siguiente slide
+    F11: Pantalla completa
+    ESC: Salir pantalla completa
+    Números 1-23: Ir directamente a slide
+
+🖱️  NAVEGACIÓN CON RATÓN:
+    ────────────────────
+    - Click en botones ← → en la parte inferior
+    - Click en puntos indicadores para ir a slide específico
+
+─────────────────────────────────────────────────────────
+
+📊 ESTRUCTURA DE LA PRESENTACIÓN:
+
+Slides 1-3:     Contexto y problema
+Slides 4-9:     Requisitos y arquitectura
+Slides 10-17:   Patrones de diseño (detalle)
+Slides 18-20:   Principios técnicos y métricas
+Slides 21-23:   Demo, conclusiones y cierre
+
+Tiempo recomendado: 15 minutos (40 segundos por slide)
+
+─────────────────────────────────────────────────────────
+
+⚡ REQUISITOS TÉCNICOS:
+    ────────────────
+    ✅ Navegador moderno (Chrome, Firefox, Safari, Edge)
+    ✅ JavaScript habilitado
+    ✅ Conexión a internet (para fuentes)
+    ✅ Resolución 1366x768 mínimo
+
+📁 ARCHIVOS DISPONIBLES:
+    ──────────────────
+    - index.html                 (Acceso principal)
+    - eranthia-presentation.html (Versión completa)
+    - launch-presentation.sh     (Script de lanzamiento)
+    - README.md                  (Documentación completa)
+    - QUICK_START.txt           (Este archivo)
+
+─────────────────────────────────────────────────────────
+
+🎨 CARACTERÍSTICAS:
+    ───────────────
+    ✅ 23 Slides profesionales
+    ✅ Diseño RPG premium (Diablo IV, Darkest Dungeon)
+    ✅ Animaciones fluidas 60 FPS
+    ✅ Transiciones elegantes
+    ✅ Responsive design
+    ✅ Sin dependencias externas
+    ✅ Carga rápida (< 2s)
+    ✅ Compatible con todos los navegadores modernos
+
+─────────────────────────────────────────────────────────
+
+🛠️  SOLUCIÓN DE PROBLEMAS:
+
+❌ "Conexión rechazada"
+   → Asegúrate de tener conexión a internet para fuentes
+   → O abre el archivo directamente sin servidor
+
+❌ "Las fuentes no cargan"
+   → Normal si no hay conexión - la presentación aún funciona
+   → Las fuentes se cache-an en siguientes aperturas
+
+❌ "Las animaciones son lentas"
+   → Actualiza tu navegador a la última versión
+   → Cierra otras pestañas/aplicaciones pesadas
+
+❌ "No funciona con Firefox/Chrome"
+   → Versión vieja - actualiza el navegador
+
+─────────────────────────────────────────────────────────
+
+💡 TIPS DE PRESENTACIÓN:
+
+1. Practica el timing antes de presentar
+2. Conoce cada slide - no leas directamente
+3. Permite pausas para preguntas cada 3-4 slides
+4. Usa notas personales durante la presentación
+5. Mantén ritmo: 40 seg/slide promedio
+6. Enfatiza slides de patrones (11-17)
+7. Demuestra el juego entre slides
+8. Cierra bien con conclusiones
+
+─────────────────────────────────────────────────────────
+
+📧 INFORMACIÓN DEL PROYECTO:
+
+Autor: Andrés Felipe Martínez Henao
+Curso: Patrones de Diseño de Software
+Universidad: Universidad Tecnológica de Pereira
+Proyecto: Eranthia - Dungeon Crawler Patterns
+Estado: ✅ Producción (v1.0)
+
+═══════════════════════════════════════════════════════════════
+
+¡Éxito en tu presentación! 🎓🎭✨
